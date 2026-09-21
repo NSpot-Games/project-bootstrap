@@ -38,7 +38,7 @@ The linter checks both rules on every file under `<project>/docs/design/` (an in
 
 Section anchors are contracts. Once another doc, a plan, or an ADR cites `§6.1`, that number is fixed forever; renumbering breaks every citation that used it. A section inserted later gets an appended letter — `§6.1a` between `§6.1` and `§6.2` — never a renumbering of what follows.
 
-A citation to a document whose exact name is not fixed yet (a doc that will exist per-project, or a generic pattern this kit describes rather than ships) is written with the variable part in angle brackets: `<file>.md §N.M`, never a literal-looking path that does not exist.
+A citation to a document whose exact name is not fixed yet (a doc that will exist per-project, or a generic pattern this kit describes rather than ships) is written with the variable part in angle brackets: `<file>.md §N.M`, never a literal-looking path that does not exist. A citation to a real file that a later bootstrap step will create is different: write the real path. While the bootstrap is running — before `<project>/docs/CURRENT.md` exists — the linter reports such a citation to a file under `docs/` as `W007`, a warning; once generation has run, the same missing file is `E001`.
 
 ## 4. Where things go
 

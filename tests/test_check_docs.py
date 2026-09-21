@@ -922,3 +922,36 @@ def test_every_finding_code_is_in_the_code_table():
     assert used == set(cd.CODES), used ^ set(cd.CODES)
     for code in cd.CODES:
         assert code in cd.__doc__, f"{code} missing from the module docstring"
+
+
+# --------------------------------------------------------------------------- release B: forward citations while bootstrapping
+
+
+def test_w007_forward_citation_under_docs_while_bootstrapping(tmp_path):
+    root = make_project(tmp_path)
+    (root / "docs" / "CURRENT.md").unlink()
+    (root / "docs" / "design" / "product-design.md").write_text(
+        "# P\n**Project:** F  **Status:** draft  **Audience:** t\nRelated: `docs/design/api-surface.md`, `OPEN-QUESTIONS.md`\n\n---\n\n## 1. A\nSee `docs/plans/M0/M0-01-x.md`.\n\n## Changelog\n- x\n",
+        encoding="utf-8")
+    found = cd.run(root)
+    assert [f.code for f in found if "api-surface" in f.message or "M0-01-x" in f.message] == ["W007", "W007"]
+
+
+def test_w007_sibling_filename_cited_from_inside_docs_while_bootstrapping(tmp_path):
+    root = make_project(tmp_path)
+    (root / "docs" / "CURRENT.md").unlink()
+    (root / "docs" / "notes.md").write_text("See `GLOSSARY-2.md`.\n", encoding="utf-8")
+    assert [f.code for f in cd.run(root) if "GLOSSARY-2" in f.message] == ["W007"]
+
+
+def test_forward_citation_is_e001_once_current_md_exists(tmp_path):
+    root = make_project(tmp_path)
+    (root / "docs" / "notes.md").write_text("See `docs/design/api-surface.md`.\n", encoding="utf-8")
+    assert [f.code for f in cd.run(root) if "api-surface" in f.message] == ["E001"]
+
+
+def test_citation_outside_docs_is_e001_even_while_bootstrapping(tmp_path):
+    root = make_project(tmp_path)
+    (root / "docs" / "CURRENT.md").unlink()
+    (root / "docs" / "notes.md").write_text("See `src/nothing.md` and `../elsewhere.md`.\n", encoding="utf-8")
+    assert [f.code for f in cd.run(root) if "nothing" in f.message or "elsewhere" in f.message] == ["E001", "E001"]

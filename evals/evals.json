@@ -70,7 +70,7 @@
         {"text": "Sketch milestones stay in the roadmap only", "check": "file_absent", "path": "docs/milestones/M2.md"},
         {"text": "No template tokens remain", "check": "no_tokens", "glob": "**/*.md"},
         {"text": "The project lints with zero errors", "check": "lint", "max_errors": 0},
-        {"text": "No stub plans were created", "check": "count_glob", "glob": "docs/plans/M*/M*-*.md", "max": 0},
+        {"text": "No stub plans: every plan that exists is claimed, none is left at grounding", "check": "none_grep", "glob": "docs/plans/M*/M*-*.md", "pattern": "(?m)^\\*\\*Status:\\*\\* grounding"},
         {"text": "OPEN-QUESTIONS.md records which docs got the least scrutiny and must be revisited", "check": "grep", "path": "docs/OPEN-QUESTIONS.md", "pattern": "(?i)(scrutin|revisit|one sitting|without (a )?(review|gate)|compressed)"},
         {"text": "The final message names the docs that got the least scrutiny", "check": "final_contains", "pattern": "(?i)(scrutin|revisit|least review|thinnest|without (a )?(review|gate))"}
       ]

@@ -41,3 +41,19 @@ Brownfield replaces the writing steps with recovery steps: the code and its hist
 ## 3. Which procedure
 
 An empty repository — no code, nothing to recover — is greenfield. Any repository with real code in it is brownfield, even if that code is rough or partial: there is more signal in the code than in re-deciding everything from a blank brainstorm. A repository with code but no docs is still brownfield, and in practice spends most of its effort in steps 2 through 4 (`§2`) — the architecture, the data model, and the ADR backfill — since there is nothing already written down to shortcut those.
+
+A repository with no code but with documents already in it — vision notes, research, a spec, a journal — is neither: greenfield's blank brainstorm would throw the thinking away, and brownfield's recovery steps have no code to recover from. That is docs-first (`§4`): the existing documents are the brainstorm's input, and the first job is to say which of them are contract, which are history, and where they disagree.
+
+## 4. Docs-first
+
+Docs-first replaces the brainstorm (C1) with a reconciliation pass and adds a classification step before it; everything from C2 on is greenfield's.
+
+**1. Inventory and classify.** Read every existing document and classify each file or folder as one of three: *contract* — it describes what will be built and becomes, or feeds, one of the profile's design docs; *history* — a dated record of thinking (a vision note, a journal, a research write-up), kept as written, never edited, cited as history; *external reference* — material from outside the project (a standard, a vendor doc, a paper). Hold the classification in the scratch list; at generation it is written into `<project>/DOCS.md §1`, one line per file, with the design doc that supersedes each contract-or-history file.
+
+**2. Rename and relink first.** If any file will be renamed or moved to fit the naming convention decided in C0, do every rename and fix every inbound link in one commit before any design doc is written. A design doc that cites a path which then moves is a broken citation on day one.
+
+**3. Reconcile.** Instead of brainstorming from blank, read the history for three things and write them into the scratch list: the decisions already taken, each with its date and the file that records it; the questions the history leaves open; and every contradiction between documents — two notes that disagree about the same thing. Each contradiction is a decision the user has to make before the design doc that depends on it is written, so put the contradictions to the user first, starting with the one that shapes the architecture most, exactly as C1 pushes on the hardest technical constraint first. Decisions already taken become ADRs at generation (`§2`, step 4, the same backfill brownfield does), dated as they were decided.
+
+**4. Derive the design docs.** Write the profile's docs as C2 through C7 describe, one per session, each derived from the history with citations back to the notes it came from. Each design doc's first paragraph states what it supersedes ("supersedes `<project>/docs/vision/<file>.md` for <topic>"); from then on the design doc is the contract and the note is the record of how it was reached. History is never edited to agree with the design doc; where they differ, the difference is a decision, recorded in the design doc's changelog and, if hard to reverse, an ADR.
+
+**5. Keep the linter off frozen prose.** Add the history folders to `citation_exclude` in `<project>/docs/.check_docs.toml` at generation. A dated note may cite a section that has since been renumbered or a file that has since moved; the note is right for its date, and the linter must not pressure anyone into rewriting it.

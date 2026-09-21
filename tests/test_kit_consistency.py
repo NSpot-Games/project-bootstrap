@@ -74,3 +74,18 @@ def test_workflow_template_embeds_the_plan_and_milestone_templates_verbatim():
     workflow = _text(TEMPLATES / "WORKFLOW.md")
     assert _fenced_block_after(workflow, "7. Plan template") == _text(TEMPLATES / "plan.md")
     assert _fenced_block_after(workflow, "8. Milestone template") == _text(TEMPLATES / "milestone.md")
+
+
+def test_no_profile_outline_ends_a_design_doc_with_an_open_questions_section():
+    """lessons.md lesson 5: one open-questions file. An outline that lists 'open questions' as a
+    section makes every project scatter them again; the only allowed mention is the pointer."""
+    for p in sorted((REFERENCES / "profiles").glob("*.md")):
+        if p.name == "README.md":
+            continue
+        for line in _section(_text(p), 2).splitlines():
+            if not line.startswith("| `"):
+                continue
+            outline = line.split("|")[2].lower()
+            for part in outline.split(";"):
+                if "open questions" in part:
+                    assert "OPEN-QUESTIONS.md" in line, (p.name, part.strip())

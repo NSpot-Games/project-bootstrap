@@ -16,6 +16,7 @@ Codes (the CODES table below is the same list, for tooling):
   W001 claim stale or unstamped        W004 milestone outside 3-10 features
   W002 in-progress plan, unticked dep  W005 evidence file not written yet
   W003 generated file differs          W006 AGENTS.md over 120 lines
+  W007 cited docs/ file not written yet (no CURRENT.md, bootstrap in progress)
 """
 from __future__ import annotations
 
@@ -52,6 +53,7 @@ CODES: dict[str, str] = {
     "W004": "milestone outside 3-10 features",
     "W005": "evidence file not written yet",
     "W006": "AGENTS.md over 120 lines",
+    "W007": "cited file under docs/ not written yet (bootstrap in progress)",
 }
 
 # Tiers, least to most machinery. `minimal` is a project with no roadmap yet (mid-bootstrap):
@@ -555,6 +557,15 @@ def _resolve_citation(cfg: Config, citing: Path, target: str) -> Path | None:
     return None
 
 
+def _under_docs(cfg: Config, citing: Path, target: str) -> bool:
+    """True for a citation to a file the bootstrap creates later: a root-relative path under
+    docs/, or a sibling filename cited from a file that itself lives under docs/. A relative
+    path with directories in it is taken at face value and stays an error when missing."""
+    if target.startswith("docs/"):
+        return True
+    return "/" not in target and citing.resolve().is_relative_to(cfg.docs.resolve())
+
+
 def check_citations(cfg: Config, md_files: list[Path]) -> list[Finding]:
     out: list[Finding] = []
     heading_cache: dict[Path, set[str]] = {}
@@ -571,6 +582,7 @@ def check_citations(cfg: Config, md_files: list[Path]) -> list[Finding]:
         lines = text.split("\n")
         unfinished_milestone = (r.startswith("docs/milestones/")
                                 and (field_value(text, "Status") or "").lower() != "done")
+        bootstrapping = not (cfg.docs / "CURRENT.md").is_file()
         for m in CITE_RE.finditer(scan):
             target, anchor = m.group(1), m.group(2)
             ln = line_of(scan, m.start())
@@ -578,6 +590,8 @@ def check_citations(cfg: Config, md_files: list[Path]) -> list[Finding]:
             if resolved is None:
                 if unfinished_milestone and lines[ln - 1].startswith("**Evidence of exit:**"):
                     out.append(Finding("W005", r, ln, f"evidence file not written yet: {target}"))
+                elif bootstrapping and _under_docs(cfg, path, target):
+                    out.append(Finding("W007", r, ln, f"cited file not written yet (bootstrap in progress): {target}"))
                 else:
                     out.append(Finding("E001", r, ln, f"cited file missing: {target}"))
                 continue

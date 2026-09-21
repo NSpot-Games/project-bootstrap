@@ -23,7 +23,7 @@ the idea, names the machinery, and points into the skill.
   Elsewhere, a name that isn't fixed yet is written `<angle-bracketed>`.
 - Section numbers (`## N. Title`) are contracts once another doc cites them — append a lettered
   section rather than renumbering.
-- The version is `2.2.0` in `skills/project-bootstrap/SKILL.md` metadata,
+- The version is `2.3.0` in `skills/project-bootstrap/SKILL.md` metadata,
   `.claude-plugin/plugin.json` and `.claude-plugin/marketplace.json`; bump all three together.
 
 ## Commands

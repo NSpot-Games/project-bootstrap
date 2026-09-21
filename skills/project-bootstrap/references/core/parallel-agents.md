@@ -4,7 +4,7 @@ Several sessions — different agents, different tools, sometimes a human workin
 
 ## 1. Claiming
 
-A feature is claimed by setting its plan's status to `in progress` and appending a session stamp line under `## Sessions`: `- {{date}}T{{hh}}:{{mm}}Z — {{agent}} — {{branch}}` (`assets/templates/WORKFLOW.md §3`). An agent must not start a feature whose plan is already `in progress` with a stamp under 24 hours old, unless a human explicitly says to take it anyway — the 24-hour window assumes a session that stalled without finishing might still be mid-thought, and a human is the only one who can tell "stalled" from "abandoned." The linter flags any stamp older than the configurable stale threshold (`stale_hours` in `<project>/docs/.check_docs.toml`, default 24 hours) as `W001` — a warning a human can act on, not a hard failure, since staleness alone doesn't prove the work was abandoned. `W001` also fires for a plan that is `in progress` with no session stamp at all: an unstamped claim is at least as suspect as a stale one.
+A feature is claimed by setting its plan's status to `in progress`, appending its plan path to the feature line in the milestone, and appending a session stamp line under `## Sessions`: `- {{date}}T{{hh}}:{{mm}}Z — {{agent}} — {{branch}}` (`assets/templates/WORKFLOW.md §3`). An agent must not start a feature whose plan is already `in progress` with a stamp under 24 hours old, unless a human explicitly says to take it anyway — the 24-hour window assumes a session that stalled without finishing might still be mid-thought, and a human is the only one who can tell "stalled" from "abandoned." The linter flags any stamp older than the configurable stale threshold (`stale_hours` in `<project>/docs/.check_docs.toml`, default 24 hours) as `W001` — a warning a human can act on, not a hard failure, since staleness alone doesn't prove the work was abandoned. `W001` also fires for a plan that is `in progress` with no session stamp at all: an unstamped claim is at least as suspect as a stale one. The first claim in a milestone also sets that milestone's `**Status:**` to `in progress` in the same edit — the milestone's status is what `<project>/docs/CURRENT.md` and the indexes key on, and a milestone that stays `planned` while its features are being worked reports the project as idle.
 
 ## 2. Generated files
 
@@ -20,7 +20,7 @@ A `proposed` ADR does not block a feature's Close unless it is explicitly marked
 
 ## 5. Branches and commits
 
-Each feature works on its own branch, `feat/M<n>-<nn>-<slug>`. Commit messages start with the feature ID. `main` is always green: a branch merges only once its feature has closed (`references/core/lifecycle.md §5`), never partway through, so any session that branches from `main` at any time starts from working code (`assets/templates/WORKFLOW.md §4`).
+Each feature works on its own branch, `feat/M<n>-<nn>-<slug>`. Commit messages start with the feature ID. `main` is always green: a branch merges only once its feature has closed (`references/core/lifecycle.md §5`), never partway through, so any session that branches from `main` at any time starts from working code (`assets/templates/WORKFLOW.md §4`). The bootstrap itself is the one exception to feature branches: it runs on `bootstrap/<codename>`, one commit per step, merged as one pull request, and no rule about that branch is written into the project's own files, because the branch expires at merge (`SKILL.md §1a`).
 
 ## 6. Conflict recovery
 
