@@ -5,7 +5,7 @@ license: MIT
 compatibility: Requires Python 3.11+ for scripts/check_docs.py
 metadata:
   author: NSpotGames
-  version: "2.3.0"
+  version: "2.4.0"
 ---
 
 # Project Bootstrap
@@ -129,14 +129,30 @@ must be recorded rather than lost. In compressed mode:
 Once the brainstorm, phase 1's design docs, and the roadmap are all written and reviewed:
 
 1. Copy the files `assets/templates/` provides for the chosen tier into the project;
-   `references/core/tiers.md` lists which files each tier gets.
-2. Copy `scripts/check_docs.py` to `<project>/tools/check_docs.py`. If the user wants the
-   linter to run without being remembered, also copy `scripts/hooks/stop.sh` to
+   `references/core/tiers.md` lists which files each tier gets. Copy the object templates
+   `assets/templates/plan.md`, `assets/templates/milestone.md`, `assets/templates/adr.md` and
+   `assets/templates/evidence.md` unchanged to `<project>/tools/templates/`; sessions copy and
+   fill one each time they create a plan, a milestone, an ADR or an evidence file.
+2. Copy `scripts/check_docs.py` to `<project>/tools/check_docs.py`, and
+   `assets/templates/check_docs.toml` to `<project>/docs/.check_docs.toml` with the tier
+   pinned, any history folders (docs-first, §6a) in `citation_exclude`, and any vendored
+   bundle in `exclude`. Ask whether the user wants the linter to run at the end of every
+   session without being remembered; if so, and the kit is not installed as a Claude Code
+   plugin (which already runs it), copy `scripts/hooks/stop.sh` to
    `<project>/tools/hooks/stop.sh` and wire it as `scripts/hooks/README.md` shows.
+2a. Copy `assets/templates/gitattributes` to `<project>/.gitattributes` if the project has
+   none, and add `tools/__pycache__/` to `<project>/.gitignore` if it is not there, so the
+   linter's LF output and a Windows checkout never produce a mixed-ending diff.
 3. Substitute every `{{token}}` using the table in `assets/templates/README.md`; values come
    from C0's answers, the brainstorm's decisions, the design docs, and the roadmap just written.
-4. Create the milestone files for the current and next milestone; everything beyond stays
-   `sketch` in the roadmap only.
+   If a README already exists, keep whatever it offered a human that the template does not — a
+   reading order, related repositories, a per-version map — and add the template's three
+   sentences and its "Where things are" table to it, rather than replacing it. Seed the
+   glossary's areas from the profile's vocabulary table and the design docs' section headings.
+4. Create the milestone files for the current and next milestone from
+   `<project>/tools/templates/milestone.md`; everything beyond stays `sketch` in the roadmap
+   only. Create no plans: a plan is written at the Ground step of the session that claims its
+   feature, never at generation.
 5. From the project root, run `python tools/check_docs.py --root . --fix` and fix whatever it
    reports. `--fix` writes the four generated files before it checks, so a clean project passes
    on the first run; a warning about an evidence file not written yet (`W005`) is expected

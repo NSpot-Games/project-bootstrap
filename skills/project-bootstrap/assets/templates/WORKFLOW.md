@@ -13,7 +13,7 @@ IDs are allocated in order and never reused. A moved feature gets a new ID; the 
 **Close** — all tasks ticked, suite green, docs updated, ADRs reviewed: accepted by a human, or left `proposed` (non-blocking unless `**Blocking:** yes`), feature ticked in the milestone, plan `done`. Run `python tools/check_docs.py --fix`. If this is the milestone's last feature, run the roadmap review checklist (§10).
 
 ## 3. Sessions
-Claim before you start: plan status `in progress` plus a stamp line `- {{date}}T{{hh}}:{{mm}}Z — {{agent}} — {{branch}}` under `## Sessions`, and the plan's path appended to the feature line in the milestone. The first claim in a milestone also sets that milestone's `**Status:**` to `in progress`. Never take a feature stamped under 24 hours ago by someone else.
+Claim before you start: plan status `in progress` plus a stamp line `- <date>T<hh>:<mm>Z — <agent> — <branch>` (UTC) under `## Sessions`, and the plan's path appended to the feature line in the milestone. The first claim in a milestone also sets that milestone's `**Status:**` to `in progress`. Never take a feature stamped under 24 hours ago by someone else.
 Start: `AGENTS.md` → `docs/CURRENT.md` → your plan → first unticked task. End: plan matches reality; notes say where you stopped; tree green or the plan says what's red. One feature per session by default.
 
 ## 4. Branches and commits
@@ -29,43 +29,10 @@ Time-boxed, throwaway code to answer one question. Never committed to `main`. Re
 Too big → split. Blocked on a decision → ADR `proposed`, move on. Exit criteria unmeetable → say so with numbers. Doc is wrong → fix it in the same change.
 
 ## 7. Plan template
-```markdown
-# M{{n}}-{{nn}} — {{Title}}
-**Status:** grounding
-**Milestone:** M{{n}}
-**Branch:** feat/M{{n}}-{{nn}}-{{slug}}
-**Design docs:**
-**ADRs:**
-**Depends on:**
-
-## Sessions
-
-## Objective
-## Current state
-## Approach
-### Alternatives considered
-### Risks
-### Docs to update
-## Tasks
-- [ ] T1 — ... **Verify:** `command`
-## Progress notes
-## Verification log
-```
+Copy `tools/templates/plan.md` to `docs/plans/M<n>/M<n>-<nn>-<slug>.md` and fill every double-brace token; none may remain.
 
 ## 8. Milestone template
-```markdown
-# M{{n}} — {{Title}}
-**Status:** planned
-**Goal:**
-**Exit criteria:**
-**Evidence of exit:**
-**Depends on:**
-
-## Features
-- [ ] M{{n}}-01 — {{Title}}
-
-## Notes
-```
+Copy `tools/templates/milestone.md` to `docs/milestones/M<n>.md` and fill every double-brace token. A feature line gains its plan path when the plan is written, not before.
 
 ## 9. Every session, in order
 1. Read `AGENTS.md`. 2. Open `docs/CURRENT.md`. 3. Claim or resume your feature. 4. Verify before ticking. 5. Run `python tools/check_docs.py --fix`. 6. Leave the plan true.

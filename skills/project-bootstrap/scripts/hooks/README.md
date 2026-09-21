@@ -59,7 +59,7 @@ state until generation has run.
 
 If the kit was installed as a Claude Code plugin, the plugin already registers a Stop hook. It
 runs the project's `tools/check_docs.py` when that file exists and does nothing otherwise, so
-no per-project setting is needed. Installing both is harmless; the linter runs twice.
+no per-project setting is needed. Skip the per-project hook in that case: installing both is harmless but runs the linter twice, and the bootstrap skill asks before copying it for exactly that reason.
 
 ## Pre-commit hook
 

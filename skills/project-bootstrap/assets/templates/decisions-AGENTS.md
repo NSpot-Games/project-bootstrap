@@ -13,7 +13,7 @@ Hard to reverse; resolves an open question; changes a design doc; a real choice 
 `proposed` (agents may create) · `accepted` (human sets) · `superseded by NNNN` · `rejected`. Never delete.
 
 ## Template
-See `adr.md`.
+Copy `tools/templates/adr.md`; fill every double-brace token; none may remain.
 
 ## Rules for agents
 1. Read before writing (grep the topic). 2. Propose, don't accept — except backfills from accepted design docs. 3. Update the design doc in the same change. 4. Cite ADRs in code where it helps. 5. Never edit `README.md`; it is generated. 6. Don't relitigate inside the ADR. 7. A `proposed` ADR does not block a feature's Close unless `**Blocking:** yes`. Humans accept proposed ADRs in a batch at milestone close.

@@ -115,7 +115,9 @@
         {"text": "Generated files are current and milestones are well-sized", "check": "lint", "absent_codes": ["W003", "W004"]},
         {"text": "CURRENT.md points the first session at M0", "check": "grep", "path": "docs/CURRENT.md", "pattern": "Next milestone:\\*\\* M0"},
         {"text": "The linter config is written with the project", "check": "file_exists", "path": "docs/.check_docs.toml"},
-        {"text": "Line endings are pinned with .gitattributes", "check": "file_exists", "path": ".gitattributes"}
+        {"text": "Line endings are pinned with .gitattributes", "check": "file_exists", "path": ".gitattributes"},
+        {"text": "The object templates are copied into the project", "check": "files_exist", "paths": ["tools/templates/plan.md", "tools/templates/milestone.md", "tools/templates/adr.md"]},
+        {"text": "WORKFLOW.md points at the object templates instead of embedding them", "check": "grep", "path": "docs/WORKFLOW.md", "pattern": "tools/templates/plan.md"}
       ]
     }
   ]

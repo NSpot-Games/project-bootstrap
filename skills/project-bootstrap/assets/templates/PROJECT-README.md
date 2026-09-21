@@ -1,4 +1,12 @@
 # {{Project}}
 {{three_sentences}}
-Docs: start at `DOCS.md`. Agents: start at `AGENTS.md`.
-Progress: `docs/CURRENT.md`.
+
+## Where things are
+| | |
+|---|---|
+| Docs, and the rules for them | `DOCS.md` |
+| Agent instructions | `AGENTS.md` |
+| What is being built now | `docs/CURRENT.md` |
+| Design | `docs/design/{{product}}-design.md` |
+| Roadmap | `docs/roadmap.md` |
+| Commands | `AGENTS.md`, under Commands |
