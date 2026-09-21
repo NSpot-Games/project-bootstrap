@@ -84,8 +84,9 @@ Record each answer in a scratch list; write nothing to disk yet.
    instance; when the real one is anonymised, invent a plausible one. The instance is written in
    the schema's native format when the data model names one (CSV, SQL, YAML); otherwise one
    JSON file per collection plus a manifest listing them, which also fits an ORM's models. It
-   carries a README stating where it came from, with a numbered *Gaps* section (see §3(b)); the
-   architecture doc will cite the folder.
+   carries a README stating where it came from, with a numbered *Gaps* section (see §3(b)), and,
+   when the project imports data, the source the import reads (the spreadsheet sheets as CSV)
+   beside it, so the import journey can be exercised; the architecture doc will cite the folder.
 4. **Tier.** Recommend one from `references/core/tiers.md`, based on scope: solo, one phase,
    under ten features suggests lite; most projects land on standard; multi-phase, multi-agent,
    or regulated suggests full. No feature list exists yet: estimate from whatever notes or
@@ -124,7 +125,8 @@ phase 1 only, in the order the profile lists.
 The example instance (C4: the profile's seed fixture, golden example or worked instance) is
 written in the session of the doc it belongs with — the data-model doc for most profiles —
 before that doc is finished, so the gaps it exposes are folded in while the doc is open. Every
-gap goes into the instance README's numbered *Gaps* section, marked *folded* or *held for M0*;
+gap goes into the instance README's numbered *Gaps* section, marked *folded*, *held for M0*, or both
+when the model change is folded and the policy behind it is held;
 the data-model doc points at that section, and the held ones are copied into M0's notes at
 generation (§4, step 4). Fold the clear gaps at once; hold the ones that need a decision. When
 the real instance cannot be obtained at bootstrap, write a constructed stand-in in the actual
