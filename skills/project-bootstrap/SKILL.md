@@ -61,8 +61,8 @@ own branch, starting from a commit that captures the repository as it was:
    remove it at merge.
 
 The linter knows the bootstrap is running because `<project>/docs/CURRENT.md` does not exist
-yet: until then a citation to a file under `docs/` that a later step will create is a warning
-(`W007`), not an error. Cite the real path the procedure will create; do not angle-bracket it.
+yet: until then a citation to a project file that a later step will create — a design doc, the
+example instance's folder, a milestone file — is a warning (`W007`), not an error. Cite the real path the procedure will create; do not angle-bracket it.
 A doc the profile schedules for a later phase is different: it is not created by the bootstrap,
 so name it in prose until it exists. Before the project has its own linter copy, run the kit's
 read-only after each commit (`python <skill>/scripts/check_docs.py --root <project>`); never

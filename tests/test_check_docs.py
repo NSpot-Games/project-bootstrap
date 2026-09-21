@@ -950,8 +950,11 @@ def test_forward_citation_is_e001_once_current_md_exists(tmp_path):
     assert [f.code for f in cd.run(root) if "api-surface" in f.message] == ["E001"]
 
 
-def test_citation_outside_docs_is_e001_even_while_bootstrapping(tmp_path):
+def test_w007_covers_any_project_path_but_not_an_escape_while_bootstrapping(tmp_path):
     root = make_project(tmp_path)
     (root / "docs" / "CURRENT.md").unlink()
-    (root / "docs" / "notes.md").write_text("See `src/nothing.md` and `../elsewhere.md`.\n", encoding="utf-8")
-    assert [f.code for f in cd.run(root) if "nothing" in f.message or "elsewhere" in f.message] == ["E001", "E001"]
+    (root / "docs" / "notes.md").write_text("See `cases/first/README.md`, `src/nothing.md` and `../elsewhere.md`.\n", encoding="utf-8")
+    found = cd.run(root)
+    assert [f.code for f in found if "cases/first" in f.message] == ["W007"]
+    assert [f.code for f in found if "nothing" in f.message] == ["W007"]
+    assert [f.code for f in found if "elsewhere" in f.message] == ["E001"]

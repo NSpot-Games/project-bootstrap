@@ -16,7 +16,7 @@ Codes (the CODES table below is the same list, for tooling):
   W001 claim stale or unstamped        W004 milestone outside 3-10 features
   W002 in-progress plan, unticked dep  W005 evidence file not written yet
   W003 generated file differs          W006 AGENTS.md over 120 lines
-  W007 cited docs/ file not written yet (no CURRENT.md, bootstrap in progress)
+  W007 cited project file not written yet (no CURRENT.md, bootstrap in progress)
 """
 from __future__ import annotations
 
@@ -53,7 +53,7 @@ CODES: dict[str, str] = {
     "W004": "milestone outside 3-10 features",
     "W005": "evidence file not written yet",
     "W006": "AGENTS.md over 120 lines",
-    "W007": "cited file under docs/ not written yet (bootstrap in progress)",
+    "W007": "cited project file not written yet (bootstrap in progress)",
 }
 
 # Tiers, least to most machinery. `minimal` is a project with no roadmap yet (mid-bootstrap):
@@ -558,12 +558,10 @@ def _resolve_citation(cfg: Config, citing: Path, target: str) -> Path | None:
 
 
 def _under_docs(cfg: Config, citing: Path, target: str) -> bool:
-    """True for a citation to a file the bootstrap creates later: a root-relative path under
-    docs/, or a sibling filename cited from a file that itself lives under docs/. A relative
-    path with directories in it is taken at face value and stays an error when missing."""
-    if target.startswith("docs/"):
-        return True
-    return "/" not in target and citing.resolve().is_relative_to(cfg.docs.resolve())
+    """True for a citation a bootstrap step may still create: any path inside the project (the
+    docs tree, the example instance folder, a sibling file). A path that escapes the project
+    root is taken at face value and stays an error when missing."""
+    return ".." not in target.split("/")
 
 
 def check_citations(cfg: Config, md_files: list[Path]) -> list[Finding]:
