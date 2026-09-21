@@ -62,3 +62,15 @@ def test_hooks_readme_snippet_matches_the_shipped_project_hook():
     readme = _text(SKILL_DIR / "scripts" / "hooks" / "README.md")
     snippet = re.search(r"```sh\n(#!/bin/sh\n.*?)```", readme, re.S).group(1)
     assert snippet == _text(SKILL_DIR / "scripts" / "hooks" / "stop.sh")
+
+
+def _fenced_block_after(text: str, heading: str) -> str:
+    m = re.search(rf"^## {re.escape(heading)}[ \t]*$\n```markdown\n(.*?)```", text, re.M | re.S)
+    assert m, f"no fenced block under '{heading}'"
+    return m.group(1)
+
+
+def test_workflow_template_embeds_the_plan_and_milestone_templates_verbatim():
+    workflow = _text(TEMPLATES / "WORKFLOW.md")
+    assert _fenced_block_after(workflow, "7. Plan template") == _text(TEMPLATES / "plan.md")
+    assert _fenced_block_after(workflow, "8. Milestone template") == _text(TEMPLATES / "milestone.md")
