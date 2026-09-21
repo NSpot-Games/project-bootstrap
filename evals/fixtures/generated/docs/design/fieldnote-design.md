@@ -33,5 +33,12 @@ Python 3.11 and later on Linux, macOS and Windows. Pure Python; no native extens
   `expected-index.json`, checked by a test.
 - `fieldnote build` on 500 notes completes in under five seconds on a laptop.
 
+## 6. Decisions
+1. Notes are plain files; the index is derived and never hand-edited — *owner*.
+2. Pure Python, no native extensions — *recommended, not confirmed*.
+
+## 7. Open questions
+Questions live in `docs/OPEN-QUESTIONS.md`, never in this document.
+
 ## Changelog
 - 2026-09-18 — created.
