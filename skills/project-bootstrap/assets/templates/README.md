@@ -15,9 +15,9 @@ These files are copied into a new project during bootstrap and every double-brac
 | `{{slug}}` | Kebab-case slug of the title |
 | `{{date}}` | ISO date `YYYY-MM-DD` |
 | `{{agent}}` | Agent or tool name that collected an evidence file |
-| `{{commands}}` | Build, test, lint, run commands |
-| `{{rule}}` | A single non-negotiable rule |
-| `{{deferred}}` | A deferred item |
+| `{{commands}}` | Build, test, lint, run commands; before code exists, the linter command plus a line naming the milestone that adds the rest |
+| `{{rule}}` | A non-negotiable rule; the line may repeat for several |
+| `{{deferred}}` | A deferred item; the line may repeat for several |
 | `{{Area}}` | Glossary area or design area, in heading form |
 | `{{loose word}}` | An imprecise word the glossary says to avoid |
 | `{{precise term}}` | The exact term to use instead of a loose word |

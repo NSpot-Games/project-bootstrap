@@ -8,7 +8,7 @@ Not every project needs every file the kit offers. Tiers scale the ceremony to t
 |---|---|---|
 | Lite | `<project>/AGENTS.md`, `<project>/docs/design.md`, `<project>/docs/roadmap.md` with checkboxes, `<project>/docs/decisions/` | Solo, one phase, under ten features. The roadmap is the milestone. |
 | Standard | v1's set plus `<project>/docs/CURRENT.md` and the linter | Most projects |
-| Full | Standard plus phases, per-area design docs, evidence, profile optional docs | Multi-phase, multi-agent, or regulated |
+| Full | Standard plus more than one non-sketch phase, per-area design docs, evidence, profile optional docs | Multi-phase, multi-agent, or regulated |
 | Minimal | `<project>/docs/` with no roadmap yet | A project mid-bootstrap, before the roadmap exists; the linter checks citations and placeholders only |
 
 The linter runs at every tier (`tools/check_docs.py`); what it checks scales with the tier, detailed per tier below. The tier is auto-detected from the file layout, or pinned with the `tier` key in `<project>/docs/.check_docs.toml`; a value outside `minimal`, `lite`, `standard`, `full` is reported as `E012` and auto-detection is used instead, so a typo never silently disables checking.
@@ -21,7 +21,7 @@ At this tier the linter runs `E001`, `E002`, `E004`, and `E005`, and generates t
 
 ## 3. Standard in detail
 
-Standard is v1's whole set, plus `<project>/docs/CURRENT.md` and the linter, both new in v2: `<project>/AGENTS.md`, `<project>/CLAUDE.md`, `<project>/DOCS.md`, `<project>/README.md`, `<project>/docs/WORKFLOW.md`, `<project>/docs/GLOSSARY.md`, `<project>/docs/OPEN-QUESTIONS.md`, `<project>/docs/design/` (the design docs the profile lists, `references/profiles/<name>.md`), `<project>/docs/roadmap.md`, `<project>/docs/decisions/`, `<project>/docs/milestones/`, `<project>/docs/plans/`, and `<project>/docs/evidence/`, plus `<project>/tools/` holding the linter, its config in `<project>/docs/.check_docs.toml`, and the object templates under `<project>/tools/templates/`. This is the tier most projects land on: enough structure to survive several months and more than one contributor, with `<project>/docs/CURRENT.md` bounding read cost (`references/core/long-horizon.md §7`) and `tools/check_docs.py` catching drift that used to be caught by nobody.
+Standard is v1's whole set, plus `<project>/docs/CURRENT.md` and the linter, both new in v2: `<project>/AGENTS.md`, `<project>/CLAUDE.md`, `<project>/DOCS.md`, `<project>/README.md`, `<project>/docs/WORKFLOW.md`, `<project>/docs/GLOSSARY.md`, `<project>/docs/OPEN-QUESTIONS.md`, `<project>/docs/design/` (the design docs the profile lists, `references/profiles/<name>.md`), `<project>/docs/roadmap.md`, `<project>/docs/decisions/`, `<project>/docs/milestones/`, `<project>/docs/plans/`, and `<project>/docs/evidence/`, plus `<project>/tools/` holding the linter, its config in `<project>/docs/.check_docs.toml`, and the object templates under `<project>/tools/templates/`. A standard roadmap carries one phase, `P1`, and may sketch what comes after it; a second phase that is `active` or `done` is what makes a project full. This is the tier most projects land on: enough structure to survive several months and more than one contributor, with `<project>/docs/CURRENT.md` bounding read cost (`references/core/long-horizon.md §7`) and `tools/check_docs.py` catching drift that used to be caught by nobody.
 
 ## 4. Full in detail
 

@@ -107,3 +107,11 @@ def test_every_profile_has_the_seven_sections_and_is_indexed():
         assert heads == [str(i) for i in range(1, 8)], (p.name, heads)
         assert f"references/profiles/{p.name}" in _section(readme, 1), p.name
         assert f"references/profiles/{p.name}" in _section(readme, 4), p.name
+
+
+def test_skill_routing_sends_every_path_through_the_setup_questions():
+    """The first acceptance run found docs-first routed past §2, whose answers §6a and §3(b)
+    depend on. The routing sentence must name §1a and §2 for every path."""
+    text = _text(SKILL_DIR / "SKILL.md")
+    routing = _section(text, 1)
+    assert "Every path runs §1a and §2 first" in routing
