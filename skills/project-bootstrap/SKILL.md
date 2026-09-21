@@ -141,7 +141,8 @@ primary design doc's Decisions section is where the brainstorm's decision list i
 the ADR backfill (§4, step 4a) reads these sections and nothing else. When a decision taken in
 a later session contradicts an earlier doc, edit the earlier doc in the same commit, with a
 changelog line naming the decision; a design doc is never left saying something the project has
-decided against.
+decided against. When a later doc extends the schema, the data-model doc and the example
+instance change in the same commit too, and the instance README gains a numbered gap for it.
 
 A design doc never carries an open-questions section. Every question goes to
 `<project>/docs/OPEN-QUESTIONS.md` — create it from `assets/templates/OPEN-QUESTIONS.md` the
