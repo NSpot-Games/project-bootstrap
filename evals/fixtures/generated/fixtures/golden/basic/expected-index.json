@@ -1,0 +1,7 @@
+{
+  "notes": 2,
+  "places": {"oak-ridge": ["2026-03-02-oak-ridge.md"]},
+  "dates": {"2026-03-02": ["2026-03-02-oak-ridge.md"], "2026-03-05": ["2026-03-05-creek-bend.md"]},
+  "tags": {"trail": ["2026-03-02-oak-ridge.md"], "spring": ["2026-03-02-oak-ridge.md"]},
+  "gaps": ["creek-bend has no place; the model needs an explicit 'no place' rule"]
+}
