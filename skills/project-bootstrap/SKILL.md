@@ -73,9 +73,9 @@ read-only after each commit (`python <skill>/scripts/check_docs.py --root <proje
 Ask these one per message, in this order, and wait for the answer before asking the next.
 Record each answer in a scratch list; write nothing to disk yet.
 
-1. **Name and codename.** What is the project called? The codename is a kebab-case slug used
-   for the branch (`bootstrap/<codename>`) and the primary design doc
-   (`docs/design/<codename>-design.md`).
+1. **Name and codename.** What is the project called? Propose the name an existing README
+   gives, if there is one. The codename is a kebab-case slug used for the branch
+   (`bootstrap/<codename>`) and the primary design doc (`docs/design/<codename>-design.md`).
 2. **Naming convention.** Recommend kebab-case, unnumbered — numbered prefixes look tidy and
    then break every cross-reference the first time something is reordered.
 3. **Example location.** Where will the example instance live? Recommend `<project>/cases/<id>/`
@@ -312,7 +312,7 @@ Follow `references/core/adoption.md §4`. In outline:
    note's commit date), the questions still open, and every contradiction between documents.
    Each contradiction is a decision the user makes before the design doc that depends on it is
    written; put them to the user one per message, hardest constraint first, as C1 would, unless
-   the user batches. Settle the stack here too, as §3(a) says.
+   the user batches. With no contradictions, lead with C1's hardest technical constraint. Settle the stack here too, as §3(a) says.
 4. **Derive, and say what supersedes what.** Each design doc is derived from the history with
    citations back to it, and its first paragraph states what it supersedes ("supersedes
    `<project>/docs/history/<file>.md` for <topic>"). History is never edited to match.
