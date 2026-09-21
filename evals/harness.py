@@ -176,6 +176,9 @@ def check(a: dict, project: Path, rd: Path, ev: dict) -> tuple[bool, str]:
         if fm.is_file() and re.search(a["pattern"], _read(fm)):
             names.append("final_message.md")
         return bool(names), ("in " + ", ".join(names[:3])) if names else "no file matches"
+    if kind == "none_grep":
+        hits = [p.relative_to(project).as_posix() for p in _files(project, a["glob"], a.get("exclude")) if re.search(a["pattern"], _read(p))]
+        return not hits, ("no file matches, as required" if not hits else "found in: " + ", ".join(hits[:3]))
     if kind == "mentions_each":
         texts = {p.relative_to(project).as_posix(): _read(p) for p in _files(project, "**/*.md", a.get("exclude"))}
         fm = rd / "final_message.md"
