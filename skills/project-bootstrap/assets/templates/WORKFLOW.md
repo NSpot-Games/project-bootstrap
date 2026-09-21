@@ -62,7 +62,7 @@ Too big → split. Blocked on a decision → ADR `proposed`, move on. Exit crite
 **Depends on:**
 
 ## Features
-- [ ] M{{n}}-01 — {{Title}} — `docs/plans/M{{n}}/M{{n}}-01-{{slug}}.md`
+- [ ] M{{n}}-01 — {{Title}}
 
 ## Notes
 ```

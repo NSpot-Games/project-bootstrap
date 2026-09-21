@@ -1,3 +1,4 @@
+import re
 import shutil
 import subprocess
 import sys as _sys
@@ -325,7 +326,7 @@ def test_milestone_index_rows(tmp_path):
     gen = cd.generate(cd.load_project(cd.load_config(root)))
     idx = gen["docs/milestones/README.md"]
     assert "| M0 | Foundations | done | 1/1 |" in idx
-    assert "| M1 | First playable | in progress | 0/2 |" in idx
+    assert "| M1 | First playable | in progress | 0/3 |" in idx
     assert "| M2 | Authoring tool | sketch | — |" in idx
     assert "| M3 | Ten instances | sketch | — |" in idx
 
@@ -624,3 +625,300 @@ def test_citation_roots_wrong_type_is_e012(tmp_path):
     _add_config(root, 'citation_roots = "kit"')
     found = cd.run(root)
     assert "E012" in codes(found)
+
+
+# --------------------------------------------------------------------------- release A: tiers
+
+FULL = Path(__file__).parent / "fixture" / "full"
+GENERATED_FOUR = {"docs/milestones/README.md", "docs/plans/README.md", "docs/CURRENT.md",
+                  "docs/decisions/README.md"}
+
+
+def make_full(tmp_path: Path, edits: dict[str, tuple[str, str]] | None = None) -> Path:
+    """Copy the full-tier fixture to tmp_path/full and apply {relpath: (old, new)} replacements."""
+    root = tmp_path / "full"
+    shutil.copytree(FULL, root)
+    for relpath, (old, new) in (edits or {}).items():
+        p = root / relpath
+        text = p.read_text(encoding="utf-8")
+        assert old in text, f"{relpath} does not contain {old!r}"
+        p.write_text(text.replace(old, new), encoding="utf-8", newline="\n")
+    return root
+
+
+def test_tier_names_are_declared():
+    assert cd.TIERS == ("minimal", "lite", "standard", "full")
+
+
+def test_full_fixture_lints_with_only_the_evidence_warning(tmp_path):
+    root = make_full(tmp_path)
+    assert codes(cd.run(root)) == ["W005"]
+
+
+def test_full_fixture_committed_generated_files_are_current():
+    project = cd.load_project(cd.load_config(FULL))
+    assert project.tier == "full"
+    for relp, expected in cd.generate(project).items():
+        assert (FULL / relp).read_text(encoding="utf-8").replace("\r\n", "\n") == expected, relp
+
+
+def test_full_tier_from_config_loads_milestones_and_generates_all_four(tmp_path):
+    root = make_full(tmp_path)
+    project = cd.load_project(cd.load_config(root))
+    assert project.tier == "full"
+    assert set(project.milestones) == {"M0", "M1", "M2", "M3"}
+    assert set(project.plans) == {"M0-01", "M0-02", "M1-01", "M2-01", "M2-02"}
+    assert set(cd.generate(project)) == GENERATED_FOUR
+
+
+def test_full_tier_auto_detected_from_two_non_sketch_phases(tmp_path):
+    root = make_full(tmp_path, {"docs/.check_docs.toml": ('tier = "full"\n', "")})
+    assert cd.detect_tier(cd.load_config(root)) == "full"
+
+
+def test_standard_stays_standard_with_one_non_sketch_phase(tmp_path):
+    root = make_project(tmp_path)
+    assert cd.detect_tier(cd.load_config(root)) == "standard"
+
+
+def test_unknown_tier_is_e012_and_falls_back_to_auto_detection(tmp_path):
+    root = make_project(tmp_path)
+    (root / "docs" / ".check_docs.toml").write_text('tier = "gold"\nstale_hours = 876000\n', encoding="utf-8")
+    cfg = cd.load_config(root)
+    assert cd.detect_tier(cfg) == "standard"
+    found = cd.run(root)
+    assert "E012" in codes(found)
+    assert not any(f.code == "E005" for f in found), "sketch sections must still be recognised"
+
+
+def test_status_checks_run_at_full_tier(tmp_path):
+    root = make_full(tmp_path, {"docs/milestones/M2.md": ("- [ ] M2-01", "- [x] M2-01")})
+    assert "E006" in errors(cd.run(root))
+
+
+# --------------------------------------------------------------------------- release A: citations
+
+
+def test_markdown_link_text_is_not_a_citation(tmp_path):
+    root = make_project(tmp_path)
+    (root / "docs" / "notes.md").write_text("See [IDEA.md](roadmap.md) and [v1.2.md](roadmap.md).\n", encoding="utf-8")
+    assert not any(f.code == "E001" for f in cd.run(root))
+
+
+def test_shell_variable_path_is_not_a_citation(tmp_path):
+    root = make_project(tmp_path)
+    (root / "docs" / "notes.md").write_text('Run `[ -f "$ROOT/docs/GONE.md" ]` and $PWD/GONE.md first.\n', encoding="utf-8")
+    assert not any(f.code == "E001" for f in cd.run(root))
+
+
+def test_markdown_link_target_is_still_checked(tmp_path):
+    root = make_project(tmp_path)
+    (root / "docs" / "notes.md").write_text("See [the notes](missing.md).\n", encoding="utf-8")
+    found = [f for f in cd.run(root) if f.code == "E001"]
+    assert len(found) == 1 and "missing.md" in found[0].message
+
+
+def test_dotted_anchor_accepts_a_numbered_list_item(tmp_path):
+    root = make_project(tmp_path)
+    (root / "docs" / "spec.md").write_text("# Spec\n## 1. Stack\n1.5 Language: Python.\n- 1.6 Hosting: a VPS.\n## 2. Other\n", encoding="utf-8")
+    (root / "docs" / "notes.md").write_text("See `spec.md §1.5`, `spec.md §1.6` and `spec.md §2`.\n", encoding="utf-8")
+    assert not any(f.code == "E002" for f in cd.run(root))
+
+
+def test_dotted_anchor_without_heading_or_item_is_still_e002(tmp_path):
+    root = make_project(tmp_path)
+    (root / "docs" / "spec.md").write_text("# Spec\n## 1. Stack\n1.5 Language: Python.\n", encoding="utf-8")
+    (root / "docs" / "notes.md").write_text("See `spec.md §1.7`.\n", encoding="utf-8")
+    assert [f.code for f in cd.run(root) if f.code == "E002"] == ["E002"]
+
+
+def test_undotted_anchor_needs_a_heading_not_a_list_item(tmp_path):
+    root = make_project(tmp_path)
+    (root / "docs" / "spec.md").write_text("# Spec\n## 1. Stack\n2. not a heading\n", encoding="utf-8")
+    (root / "docs" / "notes.md").write_text("See `spec.md §2`.\n", encoding="utf-8")
+    assert [f.code for f in cd.run(root) if f.code == "E002"] == ["E002"]
+
+
+def test_missing_evidence_on_unfinished_milestone_is_w005_not_e001(tmp_path):
+    root = make_project(tmp_path, {"docs/milestones/M1.md": ("**Evidence of exit:**\n", "**Evidence of exit:** `docs/evidence/M1-exit.md`\n")})
+    found = cd.run(root)
+    assert "W005" in codes(found)
+    assert not any(f.code == "E001" and "M1-exit" in f.message for f in found)
+
+
+def test_missing_evidence_on_done_milestone_is_still_e001(tmp_path):
+    root = make_project(tmp_path, {"docs/milestones/M0.md": ("docs/evidence/M0-exit.md", "docs/evidence/M0-gone.md")})
+    assert any(f.code == "E001" and "M0-gone" in f.message for f in cd.run(root))
+
+
+# --------------------------------------------------------------------------- release A: --fix order
+
+
+def test_fix_generates_before_checking_so_first_run_is_clean(tmp_path):
+    root = make_project(tmp_path)
+    for relp in GENERATED_FOUR:
+        (root / relp).unlink()
+    found = cd.run(root, fix=True)
+    assert not any(f.code in ("E001", "E003", "E004", "W003") for f in found), codes(found)
+    assert all((root / relp).is_file() for relp in GENERATED_FOUR)
+
+
+# --------------------------------------------------------------------------- release A: CURRENT.md
+
+
+def test_current_lists_first_planned_milestone_when_none_is_in_progress(tmp_path):
+    root = make_project(tmp_path, {"docs/milestones/M1.md": ("**Status:** in progress", "**Status:** planned")})
+    text = cd.gen_current(cd.load_project(cd.load_config(root)))
+    assert "**Next milestone:** M1 — First playable (planned)" in text
+    assert "- M1-02 — Old thing, re-homed" in text
+
+
+def test_current_shows_exit_criteria_of_in_progress_milestone(tmp_path):
+    root = make_project(tmp_path)
+    text = cd.gen_current(cd.load_project(cd.load_config(root)))
+    assert "**Exit (M1):** one instance plays end to end with zero validator errors." in text
+
+
+def test_current_lists_open_questions_that_block_listed_work(tmp_path):
+    root = make_full(tmp_path)
+    text = cd.gen_current(cd.load_project(cd.load_config(root)))
+    assert "## Blocking questions" in text
+    assert "- M2-03 — Which clock wins when two devices disagree?" in text
+    assert "per-entry permissions" not in text
+
+
+def test_current_blocking_questions_are_capped_under_forty_lines(tmp_path):
+    rows = "".join(f"| Question {i}? | `docs/roadmap.md` | M2-03 | TBD | soon |\n" for i in range(20))
+    root = make_full(tmp_path, {"docs/OPEN-QUESTIONS.md": ("| Do shared ledgers", rows + "| Do shared ledgers")})
+    text = cd.gen_current(cd.load_project(cd.load_config(root)))
+    assert len(text.splitlines()) < 40
+    assert "… and" in text
+
+
+# --------------------------------------------------------------------------- release A: vocabularies and structure
+
+
+def test_e013_milestone_status_outside_vocabulary(tmp_path):
+    root = make_project(tmp_path, {"docs/milestones/M1.md": ("**Status:** in progress", "**Status:** wip")})
+    assert "E013" in codes(cd.run(root))
+
+
+def test_e013_plan_status_outside_vocabulary(tmp_path):
+    root = make_project(tmp_path, {"docs/plans/M1/M1-01-runtime-loop.md": ("**Status:** in progress", "**Status:** started")})
+    assert "E013" in codes(cd.run(root))
+
+
+def test_e013_phase_status_outside_vocabulary(tmp_path):
+    root = make_project(tmp_path, {"docs/roadmap.md": ("**Status:** active", "**Status:** running")})
+    assert "E013" in codes(cd.run(root))
+
+
+def test_e013_adr_status_outside_vocabulary_but_superseded_by_is_fine(tmp_path):
+    adr = "docs/decisions/0001-filenames-are-kebab-case-and-unnumbered.md"
+    root = make_project(tmp_path, {adr: ("**Status:** accepted", "**Status:** superseded by 0002")})
+    assert "E013" not in codes(cd.run(root))
+    root2 = make_project(tmp_path / "b", {adr: ("**Status:** accepted", "**Status:** wibble")})
+    assert "E013" in codes(cd.run(root2))
+
+
+def test_e013_missing_status_line(tmp_path):
+    root = make_project(tmp_path, {"docs/milestones/M1.md": ("**Status:** in progress\n", "")})
+    assert "E013" in codes(cd.run(root))
+
+
+def test_e014_design_doc_without_header(tmp_path):
+    root = make_project(tmp_path)
+    (root / "docs" / "design" / "naked.md").write_text("# Naked\n\nBody.\n\n## Changelog\n- today — created.\n", encoding="utf-8")
+    found = cd.run(root)
+    assert "E014" in codes(found) and "E015" not in codes(found)
+
+
+def test_e014_design_doc_status_outside_vocabulary(tmp_path):
+    root = make_project(tmp_path, {"docs/design/product-design.md": ("**Status:** stable", "**Status:** wibble")})
+    assert "E014" in codes(cd.run(root))
+
+
+def test_e014_accepts_the_one_line_header_form(tmp_path):
+    root = make_project(tmp_path)
+    (root / "docs" / "design" / "one-line.md").write_text(
+        "# One line\n**Project:** Fixture  **Status:** draft  **Audience:** testers\nRelated: `docs/roadmap.md`\n\n---\n\n## 1. Body\nText.\n\n## Changelog\n- today — created.\n",
+        encoding="utf-8")
+    assert not any(f.code in ("E014", "E015") for f in cd.run(root))
+
+
+def test_e015_design_doc_without_changelog(tmp_path):
+    root = make_project(tmp_path, {"docs/design/product-design.md": ("## Changelog\n- 2026-09-15 — created.\n", "")})
+    assert "E015" in codes(cd.run(root))
+
+
+def test_design_checks_skip_readme_and_generated_files(tmp_path):
+    root = make_project(tmp_path)
+    (root / "docs" / "design" / "README.md").write_text("# Design docs\n- `product-design.md`\n", encoding="utf-8")
+    (root / "docs" / "design" / "gen.md").write_text(cd.GENERATED_MARKER + "\n# Gen\n", encoding="utf-8")
+    assert not any(f.code in ("E014", "E015") for f in cd.run(root))
+
+
+def test_w004_milestone_outside_three_to_ten_features(tmp_path):
+    root = make_project(tmp_path, {"docs/milestones/M1.md": ("- [ ] M1-03 — Third thing\n", "")})
+    assert "W004" in codes(cd.run(root))
+    many = "".join(f"- [ ] M1-{i:02d} — Thing {i}\n" for i in range(4, 15))
+    root2 = make_project(tmp_path / "b", {"docs/milestones/M1.md": ("\n## Notes", many + "\n## Notes")})
+    assert "W004" in codes(cd.run(root2))
+
+
+def test_w004_not_raised_for_done_or_dropped_milestones(tmp_path):
+    root = make_project(tmp_path)  # M0 is done with one real feature
+    assert "W004" not in codes(cd.run(root))
+
+
+def test_w006_agents_md_over_120_lines(tmp_path):
+    root = make_project(tmp_path)
+    (root / "AGENTS.md").write_text("# AGENTS.md\n" + "- a rule\n" * 125, encoding="utf-8")
+    assert "W006" in codes(cd.run(root))
+
+
+def test_e016_two_active_phases(tmp_path):
+    root = make_full(tmp_path, {"docs/roadmap.md": ("## P1 — Local core\n**Status:** done", "## P1 — Local core\n**Status:** active")})
+    assert "E016" in errors(cd.run(root))
+
+
+def test_e016_active_phase_without_exit(tmp_path):
+    root = make_project(tmp_path, {"docs/roadmap.md": ("**Exit:** one instance plays end to end; see `docs/design/product-design.md §3`.\n", "")})
+    assert "E016" in errors(cd.run(root))
+
+
+def test_e016_done_phase_with_unfinished_milestone(tmp_path):
+    root = make_full(tmp_path, {"docs/milestones/M1.md": ("**Status:** done", "**Status:** in progress")})
+    assert "E016" in errors(cd.run(root))
+
+
+def test_phase_checks_do_not_run_at_lite(tmp_path):
+    root = make_project(tmp_path)
+    shutil.rmtree(root / "docs" / "milestones")
+    shutil.rmtree(root / "docs" / "plans")
+    (root / "docs" / "CURRENT.md").unlink()
+    (root / "docs" / "roadmap.md").write_text("# Roadmap\n## P1 — Only phase\n**Status:** active\n- [ ] Do the thing\n", encoding="utf-8")
+    assert "E016" not in codes(cd.run(root))
+
+
+# --------------------------------------------------------------------------- release A: plans without stubs, CRLF, code table
+
+
+def test_unticked_feature_without_plan_is_not_a_finding(tmp_path):
+    root = make_project(tmp_path)  # M1-02 has no plan
+    assert not any("M1-02" in f.message for f in cd.run(root))
+
+
+def test_crlf_project_lints_the_same(tmp_path):
+    root = make_full(tmp_path)
+    for p in root.rglob("*.md"):
+        p.write_bytes(p.read_text(encoding="utf-8").replace("\n", "\r\n").encode("utf-8"))
+    assert codes(cd.run(root)) == ["W005"]
+
+
+def test_every_finding_code_is_in_the_code_table():
+    src = CHECK.read_text(encoding="utf-8")
+    used = set(re.findall(r'Finding\("([EW]\d{3})"', src))
+    assert used == set(cd.CODES), used ^ set(cd.CODES)
+    for code in cd.CODES:
+        assert code in cd.__doc__, f"{code} missing from the module docstring"

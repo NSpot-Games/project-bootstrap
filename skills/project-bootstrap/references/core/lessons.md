@@ -22,7 +22,7 @@ Things learned bootstrapping the reference project, and improvements over what i
 14. **Non-goals section.** Agents will otherwise helpfully build the thing you deferred.
 15. **Say what not to build first.** The most visually impressive part of any tool is rarely the most important. Name it and order it late.
 16. **Section anchors are contracts.** Once code or other docs cite `§6.1`, renumbering is a breaking change. Append `§6.1a` instead.
-17. **Keep `<project>/AGENTS.md` short and pointing outward.** Rules that change behaviour, layout, commands, conventions, don'ts. Everything else is a link. Over 120 lines and agents stop reading it.
+17. **Keep `<project>/AGENTS.md` short and pointing outward.** Rules that change behaviour, layout, commands, conventions, don'ts. Everything else is a link. Over 120 lines and agents stop reading it; the linter warns (`W006`) past that length.
 18. **Generate milestone files from the roadmap, then make them authoritative.** Never keep checkboxes in two places — and generate the indexes from them.
 19. **Turn Part C into a skill.** Running the bootstrap procedure as a guided conversation instead of a copy-paste catches the same mistakes these other eighteen lessons describe, session after session, without relying on whoever is bootstrapping to have read this file first; `SKILL.md` is that skill.
 

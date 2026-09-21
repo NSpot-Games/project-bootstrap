@@ -9,8 +9,9 @@ Not every project needs every file the kit offers. Tiers scale the ceremony to t
 | Lite | `<project>/AGENTS.md`, `<project>/docs/design.md`, `<project>/docs/roadmap.md` with checkboxes, `<project>/docs/decisions/` | Solo, one phase, under ten features. The roadmap is the milestone. |
 | Standard | v1's set plus `<project>/docs/CURRENT.md` and the linter | Most projects |
 | Full | Standard plus phases, per-area design docs, evidence, profile optional docs | Multi-phase, multi-agent, or regulated |
+| Minimal | `<project>/docs/` with no roadmap yet | A project mid-bootstrap, before the roadmap exists; the linter checks citations and placeholders only |
 
-The linter runs at every tier (`tools/check_docs.py`); what it checks scales with the tier, detailed per tier below.
+The linter runs at every tier (`tools/check_docs.py`); what it checks scales with the tier, detailed per tier below. The tier is auto-detected from the file layout, or pinned with the `tier` key in `<project>/docs/.check_docs.toml`; a value outside `minimal`, `lite`, `standard`, `full` is reported as `E012` and auto-detection is used instead, so a typo never silently disables checking.
 
 ## 2. Lite in detail
 
@@ -25,6 +26,8 @@ Standard is v1's whole set, plus `<project>/docs/CURRENT.md` and the linter, bot
 ## 4. Full in detail
 
 Full adds what a project needs once it outgrows a single sequence of work: phases, each with its own exit criteria stated in the roadmap (`references/core/layers.md §1`, `references/core/long-horizon.md §2`); per-area design docs under `<project>/docs/design/<area>/`, written when each phase becomes `active` rather than all at bootstrap (`references/core/long-horizon.md §3`); evidence linked from every milestone's exit rather than kept informally; and whichever of the chosen profile's optional docs (`references/profiles/<name>.md`) the project has actually put to use. This is the tier for multi-phase work, more than a couple of agents in parallel, or anything regulated enough that "we measured it" needs a citable record.
+
+The linter runs every standard-tier check at full, plus the phase rules (`E016`: one phase `active` at a time, an active phase states its `**Exit:**`, a `done` phase holds only `done` or `dropped` milestones). A project is auto-detected as `full` once its roadmap carries two or more phases that are not `sketch`; pin `tier = "full"` in `<project>/docs/.check_docs.toml` to get the phase rules from the first session.
 
 ## 5. Promotion rules
 

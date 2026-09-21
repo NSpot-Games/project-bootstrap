@@ -5,7 +5,7 @@ license: MIT
 compatibility: Requires Python 3.11+ for scripts/check_docs.py
 metadata:
   author: NSpotGames
-  version: "2.1.0"
+  version: "2.2.0"
 ---
 
 # Project Bootstrap
@@ -90,7 +90,9 @@ Once the brainstorm, phase 1's design docs, and the roadmap are all written and 
 4. Create the milestone files for the current and next milestone; everything beyond stays
    `sketch` in the roadmap only.
 5. From the project root, run `python tools/check_docs.py --root . --fix` and fix whatever it
-   reports.
+   reports. `--fix` writes the four generated files before it checks, so a clean project passes
+   on the first run; a warning about an evidence file not written yet (`W005`) is expected
+   until the milestone closes.
 
 ## 5. First session
 

@@ -6,6 +6,6 @@
 **Depends on:**
 
 ## Features
-- [ ] M{{n}}-01 — {{Title}} — `docs/plans/M{{n}}/M{{n}}-01-{{slug}}.md`
+- [ ] M{{n}}-01 — {{Title}}
 
 ## Notes

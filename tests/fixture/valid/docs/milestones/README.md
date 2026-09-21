@@ -4,6 +4,6 @@
 | ID | Title | Status | Features done |
 |---|---|---|---|
 | M0 | Foundations | done | 1/1 |
-| M1 | First playable | in progress | 0/2 |
+| M1 | First playable | in progress | 0/3 |
 | M2 | Authoring tool | sketch | — |
 | M3 | Ten instances | sketch | — |
