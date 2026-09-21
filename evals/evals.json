@@ -1,7 +1,7 @@
 {
   "skill_name": "project-bootstrap",
   "answers": "Setup answers, already given by the user: the project is Fieldnote (codename fieldnote); file naming is kebab-case, unnumbered; golden examples live at fixtures/golden/<id>/; tier standard; profile library-sdk-cli.",
-  "brainstorm": "Brainstorm decisions, already made with the user: Fieldnote turns a folder of dated markdown notes about places into a searchable static site; it is for people who write one note per visit; the hard part is the note model (optional frontmatter, date falling back to the filename, inconsistent tags); the alternatives were a hand-kept index page or a general static-site generator; not built in v1: browser editing, sync between machines, a plugin system. Open questions left: whether a note with no date at all is indexed as undated or rejected; whether v1 has client-side search.",
+  "brainstorm": "Brainstorm decisions, already made with the user: Fieldnote turns a folder of dated markdown notes about places into a searchable static site; it is for people who write one note per visit; the hard part is the note model (optional frontmatter, date falling back to the filename, inconsistent tags); the alternatives were a hand-kept index page or a general static-site generator; not built in v1: browser editing, sync between machines, a plugin system. Stack, settled: Python 3.11 or later, markdown-it-py for rendering, PyYAML for frontmatter, Jinja2 for templates, output is a static folder hosted anywhere. Open questions left: whether a note with no date at all is indexed as undated or rejected; whether v1 has client-side search.",
   "evals": [
     {
       "id": 1,
@@ -68,7 +68,7 @@
         {"text": "The roadmap and both planned milestone files exist", "check": "files_exist", "paths": ["docs/roadmap.md", "docs/milestones/M0.md", "docs/milestones/M1.md"]},
         {"text": "Process files exist", "check": "files_exist", "paths": ["AGENTS.md", "CLAUDE.md", "DOCS.md", "docs/WORKFLOW.md", "docs/GLOSSARY.md", "docs/OPEN-QUESTIONS.md", "docs/CURRENT.md"]},
         {"text": "Sketch milestones stay in the roadmap only", "check": "file_absent", "path": "docs/milestones/M2.md"},
-        {"text": "No template tokens remain", "check": "no_tokens", "glob": "**/*.md"},
+        {"text": "No template tokens remain (the object templates under tools/ keep theirs by design)", "check": "no_tokens", "glob": "**/*.md", "exclude": "tools/"},
         {"text": "The project lints with zero errors", "check": "lint", "max_errors": 0},
         {"text": "No stub plans: every plan that exists is claimed, none is left at grounding", "check": "none_grep", "glob": "docs/plans/M*/M*-*.md", "pattern": "(?m)^\\*\\*Status:\\*\\* grounding"},
         {"text": "OPEN-QUESTIONS.md records which docs got the least scrutiny and must be revisited", "check": "grep", "path": "docs/OPEN-QUESTIONS.md", "pattern": "(?i)(scrutin|revisit|one sitting|without (a )?(review|gate)|compressed)"},

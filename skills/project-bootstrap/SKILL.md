@@ -132,8 +132,8 @@ first time a question arises, before generation — and the doc carries one line
 (`references/core/lessons.md §1`, lesson 5). A question inside a doc is the one place nobody
 looks for it again. Editing that file alongside a design doc is normal; commit them together.
 When a doc depends on a question still open, ask once; if no answer comes, write the doc on a
-stated assumption, name it in the doc's first paragraph and its decisions list, and move the
-row's *Needed by* to the first thing the assumption would make expensive to change.
+stated assumption, name it in the doc's first paragraph (and in its decisions list, where the
+doc has one), and move the row's *Needed by* to the first thing the assumption would make expensive to change.
 
 After finishing each doc, stop and post exactly:
 

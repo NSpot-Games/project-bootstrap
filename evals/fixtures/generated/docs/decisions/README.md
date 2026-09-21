@@ -3,3 +3,4 @@
 
 | # | Decision | Status |
 |---|---|---|
+| 0001 | [YAML frontmatter is optional; a missing date falls back to the filename](0001-frontmatter-is-optional.md) | proposed |
