@@ -36,9 +36,9 @@ points where the procedure did not say what to do and the agent decided alone.
 | O8 | The glossary is seeded with the profile's vocabulary and the design docs' areas, and terms cite where they live | `assets/templates/GLOSSARY.md` |
 | O9 | One open-questions file; no design doc has an open-questions section; each doc points at the file | `references/core/lessons.md §1`, lesson 5 |
 | O10 | ADRs are `proposed`, never accepted by the agent; the backfill list is filled from decisions the design docs already state | `SKILL.md §7`, `assets/templates/decisions-AGENTS.md` |
-| O11 | `docs/CURRENT.md` is generated, under forty lines, and points the next session at real work | `references/core/long-horizon.md §7` |
+| O11 | `<project>/docs/CURRENT.md` is generated, under forty lines, and points the next session at real work | `references/core/long-horizon.md §7` |
 | O12 | Evidence paths cited by unfinished milestones are real paths (a warning, not angle-bracketed), and the profile's vocabulary is used in headings and prose | `references/core/doc-kinds.md §3`, `references/profiles/<name>.md §3` |
-| O13 | Docs that existed before the bootstrap are classified in `DOCS.md` and left unedited; the naming convention is applied with inbound links fixed | `references/core/adoption.md §4`, `SKILL.md §2` |
+| O13 | Docs that existed before the bootstrap are classified in `<project>/DOCS.md` and left unedited; the naming convention is applied with inbound links fixed | `references/core/adoption.md §4`, `SKILL.md §2` |
 | O14 | The linter reports zero errors at the end, and every warning is one the procedure names as expected | `SKILL.md §4` |
 
 ## Improvisations
