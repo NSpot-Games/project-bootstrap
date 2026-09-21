@@ -41,7 +41,7 @@ procedure change they measure has shipped. A baseline run records which.
 1. Prepare every scenario into a runs directory, pointing at the skill version under test:
 
    ```
-   python evals/harness.py prepare all evals/runs --label with_skill
+   python evals/harness.py prepare all evals/runs --label <label>
    python evals/harness.py prepare all evals/runs --label baseline --skill <path to a snapshot of the old skill>
    ```
 
@@ -53,7 +53,7 @@ procedure change they measure has shipped. A baseline run records which.
 3. Grade and report:
 
    ```
-   python evals/harness.py grade all evals/runs --label with_skill
+   python evals/harness.py grade all evals/runs --label <label>
    python evals/harness.py report evals/runs
    ```
 
