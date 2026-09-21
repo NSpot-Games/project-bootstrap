@@ -14,6 +14,7 @@ Pick by asking what the project's central artefact is — the one thing that, if
 | Datasets and the metrics computed over them | `references/profiles/data-ml.md` |
 | Environments and the SLOs they must hold | `references/profiles/infra-platform.md` |
 | A question worth answering before committing to build anything | `references/profiles/research-prototype.md` |
+| A curated body of entities with provenance — a guide, directory, catalogue, registry | `references/profiles/curated-directory.md` |
 
 If a project genuinely straddles two of these, pick the one that matches phase 1's central artefact and revisit at the next phase's design docs (`references/core/long-horizon.md §3`) — a profile choice is not permanent, but changing it mid-phase means redoing whichever design docs the new profile calls for and the old one didn't.
 
@@ -43,7 +44,7 @@ Every profile file (`references/profiles/<name>.md`) carries exactly these seven
 
 ## 3a. Composing profiles
 
-A project may borrow one doc from another profile when its subject genuinely needs it — a directory product that must state its privacy posture borrows `<project>/docs/design/security-and-privacy.md` from `references/profiles/web-app-saas.md`. The rules: borrow whole docs, not sections; the borrowed doc keeps its own profile's outline; list it in `<project>/DOCS.md §1` with the profile it came from; and write the composition on the `**Profile:**` line of `<project>/AGENTS.md` as `<profile> plus <doc> from <profile>`, so the next reader knows which outline governs which file. If a project borrows two or more docs, the profile is probably wrong — pick again before writing more.
+A project may borrow one doc from another profile when its subject genuinely needs it — a data-driven product that keeps player accounts borrows `<project>/docs/design/security-and-privacy.md` from `references/profiles/web-app-saas.md`. The rules: borrow whole docs, not sections; the borrowed doc keeps its own profile's outline; list it in `<project>/DOCS.md §1` with the profile it came from; and write the composition on the `**Profile:**` line of `<project>/AGENTS.md` as `<profile> plus <doc> from <profile>`, so the next reader knows which outline governs which file. If a project borrows two or more docs, the profile is probably wrong — pick again before writing more.
 
 ## 4. Profiles at a glance
 
@@ -55,3 +56,4 @@ A project may borrow one doc from another profile when its subject genuinely nee
 | `references/profiles/data-ml.md` | Datasets and metrics over them | Standard |
 | `references/profiles/infra-platform.md` | Environments and the SLOs they hold | Standard |
 | `references/profiles/research-prototype.md` | A question worth answering before building | Lite |
+| `references/profiles/curated-directory.md` | Curated entities with provenance, a public site and a curation tool | Standard |

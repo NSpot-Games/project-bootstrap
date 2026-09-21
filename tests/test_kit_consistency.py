@@ -64,28 +64,46 @@ def test_hooks_readme_snippet_matches_the_shipped_project_hook():
     assert snippet == _text(SKILL_DIR / "scripts" / "hooks" / "stop.sh")
 
 
-def _fenced_block_after(text: str, heading: str) -> str:
-    m = re.search(rf"^## {re.escape(heading)}[ \t]*$\n```markdown\n(.*?)```", text, re.M | re.S)
-    assert m, f"no fenced block under '{heading}'"
-    return m.group(1)
-
-
-def test_workflow_template_embeds_the_plan_and_milestone_templates_verbatim():
+def test_workflow_template_points_at_the_object_templates_and_carries_no_tokens():
     workflow = _text(TEMPLATES / "WORKFLOW.md")
-    assert _fenced_block_after(workflow, "7. Plan template") == _text(TEMPLATES / "plan.md")
-    assert _fenced_block_after(workflow, "8. Milestone template") == _text(TEMPLATES / "milestone.md")
+    assert "tools/templates/plan.md" in workflow
+    assert "tools/templates/milestone.md" in workflow
+    assert "{{" not in workflow, "format hints in WORKFLOW.md are angle-bracketed, never tokens"
 
 
-def test_no_profile_outline_ends_a_design_doc_with_an_open_questions_section():
-    """lessons.md lesson 5: one open-questions file. An outline that lists 'open questions' as a
-    section makes every project scatter them again; the only allowed mention is the pointer."""
+def test_token_table_lists_exactly_the_tokens_the_templates_use():
+    table = _text(TEMPLATES / "README.md")
+    documented = set(re.findall(r"`(\{\{[^}]+\}\})`", table))
+    used = set()
+    for p in TEMPLATES.glob("*.md"):
+        if p.name == "README.md":
+            continue
+        used |= set(re.findall(r"\{\{[^}]+\}\}", _text(p)))
+    assert documented == used, documented ^ used
+
+
+def test_config_template_documents_every_linter_key():
+    import dataclasses
+    import tomllib
+    keys = {f.name for f in dataclasses.fields(cd.Config)} - {"root", "config_error"}
+    text = _text(TEMPLATES / "check_docs.toml")
+    mentioned = set(re.findall(r"^#?\s*([a-z_]+)\s*=", text, re.M))
+    assert keys <= mentioned, keys - mentioned
+    active = tomllib.loads(text)
+    assert set(active) <= keys, set(active) - keys
+
+
+def test_gitattributes_template_pins_lf():
+    text = _text(TEMPLATES / "gitattributes")
+    assert "* text=auto eol=lf" in text and "*.sh text eol=lf" in text
+
+
+def test_every_profile_has_the_seven_sections_and_is_indexed():
+    readme = _text(REFERENCES / "profiles" / "README.md")
     for p in sorted((REFERENCES / "profiles").glob("*.md")):
         if p.name == "README.md":
             continue
-        for line in _section(_text(p), 2).splitlines():
-            if not line.startswith("| `"):
-                continue
-            outline = line.split("|")[2].lower()
-            for part in outline.split(";"):
-                if "open questions" in part:
-                    assert "OPEN-QUESTIONS.md" in line, (p.name, part.strip())
+        heads = re.findall(r"^## (\d+)\. ", _text(p), re.M)
+        assert heads == [str(i) for i in range(1, 8)], (p.name, heads)
+        assert f"references/profiles/{p.name}" in _section(readme, 1), p.name
+        assert f"references/profiles/{p.name}" in _section(readme, 4), p.name

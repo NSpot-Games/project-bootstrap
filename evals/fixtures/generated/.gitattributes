@@ -1,0 +1,5 @@
+# Copied to <project>/.gitattributes at generation when the project has none. Line endings are
+# normalised to LF in the repository so a Windows checkout and the linter's generated files
+# (always LF) never produce a mixed-ending diff; shell hooks must be LF to run at all.
+* text=auto eol=lf
+*.sh text eol=lf

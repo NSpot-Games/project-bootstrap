@@ -28,6 +28,9 @@ claude plugin marketplace add NSpot-Games/project-bootstrap
 claude plugin install project-bootstrap@project-bootstrap
 ```
 
+A freshly installed plugin is not visible to the running session: run `/reload-plugins`, or
+start a new session, before asking for the skill.
+
 or `/plugin marketplace add NSpot-Games/project-bootstrap` and
 `/plugin install project-bootstrap@project-bootstrap` inside a session.
 
@@ -54,7 +57,7 @@ from a Stop hook, a pre-commit hook, or CI.
 - `skills/project-bootstrap/SKILL.md` — the guided procedure.
 - `skills/project-bootstrap/references/core/` — document kinds, layers, lifecycle,
   long-horizon rules, parallel agents, tiers, adoption, lessons.
-- `skills/project-bootstrap/references/profiles/` — six project profiles and how to pick one.
+- `skills/project-bootstrap/references/profiles/` — seven project profiles and how to pick one.
 - `skills/project-bootstrap/assets/templates/` — the files a project copies in.
 - `skills/project-bootstrap/scripts/` — `check_docs.py` and hook snippets.
 - `tests/` — the linter's test suite and fixture project.

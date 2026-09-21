@@ -5,7 +5,6 @@ These files are copied into a new project during bootstrap and every double-brac
 | Token | Meaning |
 |---|---|
 | `{{Project}}` | Project display name |
-| `{{project}}` | Project slug (kebab-case) |
 | `{{one_sentence}}` | What the project is, one sentence |
 | `{{one_rule}}` | The rule that shapes everything |
 | `{{product}}` | Slug of the product design doc |
@@ -15,17 +14,13 @@ These files are copied into a new project during bootstrap and every double-brac
 | `{{Title}}` | Title of the object being created |
 | `{{slug}}` | Kebab-case slug of the title |
 | `{{date}}` | ISO date `YYYY-MM-DD` |
-| `{{agent}}` | Agent or tool name for a session stamp |
-| `{{hh}}`, `{{mm}}` | Hour and minute of a session stamp, UTC |
-| `{{branch}}` | Git branch name for a session stamp |
+| `{{agent}}` | Agent or tool name that collected an evidence file |
 | `{{commands}}` | Build, test, lint, run commands |
 | `{{rule}}` | A single non-negotiable rule |
 | `{{deferred}}` | A deferred item |
-| `{{area}}`, `{{Area}}` | Glossary area or design area (heading form capitalizes) |
-| `{{Term}}` | Glossary term |
+| `{{Area}}` | Glossary area or design area, in heading form |
 | `{{loose word}}` | An imprecise word the glossary says to avoid |
 | `{{precise term}}` | The exact term to use instead of a loose word |
-| `{{question}}` | An open question |
 | `{{measurable statement}}` | A phase's numeric or checkable exit statement |
 | `{{one or two sentences}}` | A sketch milestone's goal, kept short |
 | `{{NNNN}}` | Four-digit ADR number |
@@ -37,3 +32,10 @@ These files are copied into a new project during bootstrap and every double-brac
 | `{{three_sentences}}` | A project README's three sentences: what, for whom, current state |
 
 A template file has no `{{` left when copied into a project; the linter's E005 check enforces this.
+
+Three files here are not filled in but copied as they are: `check_docs.toml` becomes
+`<project>/docs/.check_docs.toml` (every linter key, commented), `gitattributes` becomes
+`<project>/.gitattributes`, and the object templates `plan.md`, `milestone.md`, `adr.md` and
+`evidence.md` are copied, tokens intact, to `<project>/tools/templates/`, where a session copies
+one and fills it each time it creates a plan, a milestone, an ADR or an evidence file. That
+directory sits outside the linter's placeholder scope, so the tokens there are not E005.

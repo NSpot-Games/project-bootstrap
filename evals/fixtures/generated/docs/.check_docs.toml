@@ -1,0 +1,29 @@
+# Configuration for tools/check_docs.py. Copied to <project>/docs/.check_docs.toml at generation.
+# Every key the linter reads is listed; a key left out takes the default shown.
+
+# The tier the linter checks against: "auto" detects it from the file layout (a milestones
+# directory means standard, two or more non-sketch phases mean full, a roadmap alone means lite).
+# Pin it so a typo in the layout never silently drops a check. One of: minimal, lite, standard, full.
+tier = "standard"
+
+# Hours after which an `in progress` plan's newest session stamp is reported stale (W001).
+stale_hours = 876000
+
+# Files or folders (relative to the project root) where "TBD" is allowed. Elsewhere it is E005.
+allow_tbd_in = ["docs/OPEN-QUESTIONS.md"]
+
+# Files or folders whose citations are not checked at all. Use it for history: dated notes,
+# journals, imported research — frozen prose that must never be rewritten to satisfy a citation
+# check (`E001`/`E002`). Their content is still checked for placeholders.
+citation_exclude = []
+
+# Extra directories a citation may resolve against, besides the citing file's directory, the
+# project root and docs/. Use it when docs cite files under a vendored or nested tree.
+citation_roots = []
+
+# Files or folders the linter never reads, on top of .git, node_modules, .venv and __pycache__.
+# Use it for vendored bundles and generated output that happens to contain markdown.
+exclude = []
+
+# A codename placeholder that must not survive into a real doc; reported as E005 if found.
+# codename_placeholder = "PROJECTNAME"

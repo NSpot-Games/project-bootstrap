@@ -7,7 +7,7 @@ How `docs/` is organised and kept honest.
 - `docs/design/architecture.md` — layout, interfaces, data flow, testing
 - `docs/roadmap.md` — phases and milestones
 - `docs/milestones/`, `docs/plans/` — progress
-- `docs/GLOSSARY.md`, `docs/WORKFLOW.md`, `docs/OPEN-QUESTIONS.md` — reference
+- `docs/GLOSSARY.md`, `docs/WORKFLOW.md`, `docs/OPEN-QUESTIONS.md` — reference Documents that existed before the bootstrap are listed with their class — *history* (frozen; never edited; superseded by the design doc named on its line), *research*, or *external reference*.
 
 ## 2. Five kinds of document
 
