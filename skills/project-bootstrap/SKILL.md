@@ -51,7 +51,9 @@ own branch, starting from a commit that captures the repository as it was:
    codename is known (§2, question 1); nothing is written to disk before then, so nothing is
    lost by waiting. The first commit on the branch, whatever it contains — in docs-first it is
    the rename-and-relink commit of §6a — names the SHA in its subject (`bootstrap: starting from
-   <sha>`), so the starting point survives even if the branch is squashed.
+   <sha>`), so the starting point survives even if the branch is squashed, and carries
+   `assets/templates/gitattributes` as `<project>/.gitattributes` if the project has none, so
+   no commit before generation mixes line endings.
 3. Commit after every step that ends in a file: one commit per design doc, one for the roadmap,
    one for generation, one for the first claim. Open one pull request when §5 is reached; with no
    remote configured, say so in one line and leave the branch for the user.
