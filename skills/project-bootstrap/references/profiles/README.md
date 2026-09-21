@@ -42,6 +42,8 @@ Every profile file (`references/profiles/<name>.md`) carries exactly these seven
 6. **Suggested non-goals** — categories of work this kind of project tends to over-build early; a starting point for the design doc's non-goals section, not a mandate.
 7. **Profile-specific lessons** — lessons for bootstrapping this kind of project, in the spirit of `references/core/lessons.md` but specific to this profile.
 
+An outline in section 2 lists what is specific to the doc. Whatever it lists, every design doc also ends with the Decisions section and the open-questions pointer that `references/core/doc-kinds.md §3` requires, and the profile's example instance carries a README with a numbered *Gaps* section (`SKILL.md §3`).
+
 ## 3a. Composing profiles
 
 A project may borrow one doc from another profile when its subject genuinely needs it — a data-driven product that keeps player accounts borrows `<project>/docs/design/security-and-privacy.md` from `references/profiles/web-app-saas.md`. The rules: borrow whole docs, not sections; the borrowed doc keeps its own profile's outline; list it in `<project>/DOCS.md §1` with the profile it came from; and write the composition on the `**Profile:**` line of `<project>/AGENTS.md` as `<profile> plus <doc> from <profile>`, so the next reader knows which outline governs which file. If a project borrows two or more docs, the profile is probably wrong — pick again before writing more.

@@ -5,7 +5,7 @@ license: MIT
 compatibility: Requires Python 3.11+ for scripts/check_docs.py
 metadata:
   author: NSpotGames
-  version: "2.5.0"
+  version: "2.6.0"
 ---
 
 # Project Bootstrap
@@ -51,7 +51,9 @@ own branch, starting from a commit that captures the repository as it was:
    codename is known (§2, question 1); nothing is written to disk before then, so nothing is
    lost by waiting. The first commit on the branch, whatever it contains — in docs-first it is
    the rename-and-relink commit of §6a — names the SHA in its subject (`bootstrap: starting from
-   <sha>`), so the starting point survives even if the branch is squashed.
+   <sha>`), so the starting point survives even if the branch is squashed, and carries
+   `assets/templates/gitattributes` as `<project>/.gitattributes` if the project has none, so
+   no commit before generation mixes line endings.
 3. Commit after every step that ends in a file: one commit per design doc, one for the roadmap,
    one for generation, one for the first claim. Open one pull request when §5 is reached; with no
    remote configured, say so in one line and leave the branch for the user.
@@ -61,8 +63,8 @@ own branch, starting from a commit that captures the repository as it was:
    remove it at merge.
 
 The linter knows the bootstrap is running because `<project>/docs/CURRENT.md` does not exist
-yet: until then a citation to a file under `docs/` that a later step will create is a warning
-(`W007`), not an error. Cite the real path the procedure will create; do not angle-bracket it.
+yet: until then a citation to a project file that a later step will create — a design doc, the
+example instance's folder, a milestone file — is a warning (`W007`), not an error. Cite the real path the procedure will create; do not angle-bracket it.
 A doc the profile schedules for a later phase is different: it is not created by the bootstrap,
 so name it in prose until it exists. Before the project has its own linter copy, run the kit's
 read-only after each commit (`python <skill>/scripts/check_docs.py --root <project>`); never
@@ -73,17 +75,20 @@ read-only after each commit (`python <skill>/scripts/check_docs.py --root <proje
 Ask these one per message, in this order, and wait for the answer before asking the next.
 Record each answer in a scratch list; write nothing to disk yet.
 
-1. **Name and codename.** What is the project called? The codename is a kebab-case slug used
-   for the branch (`bootstrap/<codename>`) and the primary design doc
-   (`docs/design/<codename>-design.md`).
+1. **Name and codename.** What is the project called? Propose the name an existing README
+   gives, if there is one. The codename is a kebab-case slug used for the branch
+   (`bootstrap/<codename>`) and the primary design doc (`docs/design/<codename>-design.md`).
 2. **Naming convention.** Recommend kebab-case, unnumbered — numbered prefixes look tidy and
    then break every cross-reference the first time something is reordered.
 3. **Example location.** Where will the example instance live? Recommend `<project>/cases/<id>/`
    when instances are named things (a tenant, a garden, a level, a customer) and
    `<project>/fixtures/` when they are anonymous samples. `<id>` is a kebab-case name for the
    instance; when the real one is anonymised, invent a plausible one. The instance is written in
-   the schema's native format (one JSON file per collection, CSV, whatever the data model says)
-   with a README stating where it came from; the architecture doc will cite the folder.
+   the schema's native format when the data model names one (CSV, SQL, YAML); otherwise one
+   JSON file per collection plus a manifest listing them, which also fits an ORM's models. It
+   carries a README stating where it came from, with a numbered *Gaps* section (see §3(b)), and,
+   when the project imports data, the source the import reads (the spreadsheet sheets as CSV)
+   beside it, so the import journey can be exercised; the architecture doc will cite the folder.
 4. **Tier.** Recommend one from `references/core/tiers.md`, based on scope: solo, one phase,
    under ten features suggests lite; most projects land on standard; multi-phase, multi-agent,
    or regulated suggests full. No feature list exists yet: estimate from whatever notes or
@@ -109,8 +114,9 @@ of decisions made and questions left open, held in the scratch list alongside C0
 The user may batch: answer several questions in one message, or ask to close the brainstorm and
 write the first design doc in the same session. Do so; one design doc per session still holds.
 The user may delegate ("take your recommendation"): record each recommendation as a decision
-marked *recommended, not confirmed*, and put every one that a wrong guess would make expensive
-to change into `<project>/docs/OPEN-QUESTIONS.md` with the user as owner.
+marked *recommended, not confirmed* in the Decisions section of the doc that rests on it
+(§3(b)), and put every one that a wrong guess would make expensive to change into
+`<project>/docs/OPEN-QUESTIONS.md` with the user as owner.
 
 **(b) Design docs (C2 through C7), one per session.** State the rule and the reason to the
 user: this skill writes at most one design doc per session, because a one-shot bootstrap that
@@ -120,11 +126,25 @@ phase 1 only, in the order the profile lists.
 
 The example instance (C4: the profile's seed fixture, golden example or worked instance) is
 written in the session of the doc it belongs with — the data-model doc for most profiles —
-before that doc is finished, so the gaps it exposes are folded in while the doc is open. Fold
-the clear gaps at once; hold the ones that need a decision for M0, listed in the milestone's
-notes. When the real instance cannot be obtained at bootstrap, write a constructed stand-in in
-the actual schema, say so in its README, and make replacing it with the real one an M0 feature.
-Any script that generated the instance stays out of the project unless it becomes a tool.
+before that doc is finished, so the gaps it exposes are folded in while the doc is open. Every
+gap goes into the instance README's numbered *Gaps* section, marked *folded*, *held for M0*, or both
+when the model change is folded and the policy behind it is held;
+the data-model doc points at that section, and the held ones are copied into M0's notes at
+generation (§4, step 4). Fold the clear gaps at once; hold the ones that need a decision. When
+the real instance cannot be obtained at bootstrap, write a constructed stand-in in the actual
+schema, say so in its README, and make replacing it with the real one an M0 feature. Any script
+that generated the instance stays out of the project unless it becomes a tool.
+
+Every design doc, whatever its profile outline says, ends with two things before its changelog:
+a numbered *Decisions* section listing the decisions the doc rests on — each marked *owner*,
+*recovered* (from pre-bootstrap history, with the date) or *recommended, not confirmed* — and
+the one-line pointer to the open-questions file (`references/core/doc-kinds.md §3`). The
+primary design doc's Decisions section is where the brainstorm's decision list is written down;
+the ADR backfill (§4, step 4a) reads these sections and nothing else. When a decision taken in
+a later session contradicts an earlier doc, edit the earlier doc in the same commit, with a
+changelog line naming the decision; a design doc is never left saying something the project has
+decided against. When a later doc extends the schema, the data-model doc and the example
+instance change in the same commit too, and the instance README gains a numbered gap for it.
 
 A design doc never carries an open-questions section. Every question goes to
 `<project>/docs/OPEN-QUESTIONS.md` — create it from `assets/templates/OPEN-QUESTIONS.md` the
@@ -132,8 +152,14 @@ first time a question arises, before generation — and the doc carries one line
 (`references/core/lessons.md §1`, lesson 5). A question inside a doc is the one place nobody
 looks for it again. Editing that file alongside a design doc is normal; commit them together.
 When a doc depends on a question still open, ask once; if no answer comes, write the doc on a
-stated assumption, name it in the doc's first paragraph (and in its decisions list, where the
-doc has one), and move the row's *Needed by* to the first thing the assumption would make expensive to change.
+stated assumption, name it in the doc's first paragraph and its Decisions section, and move the
+row's *Needed by* to the first thing the assumption would make expensive to change. A row the
+user decides during the bootstrap is not deleted at once: mark it *decided* with the answer, so
+the ADR backfill (§4, step 4a) writes its ADR and deletes the row then. Before the roadmap
+exists, *Blocks* names the design doc that needs the answer, or the event that does ("the
+first deployment") when no doc depends on it; a decided row keeps its question and says
+*decided: <answer>* in *Needed by*. §4 step 4 rewrites every row to milestone and feature IDs
+once they exist.
 
 After finishing each doc, stop and post exactly:
 
@@ -147,7 +173,11 @@ sentence and nothing more. Write `<project>/docs/roadmap.md` from
 `assets/templates/roadmap.md`. At the standard tier the roadmap still carries `P1` as its one
 phase and sketches anything after it; a single non-sketch phase is how the linter tells
 standard from full. Decide the current and next milestones' feature lines here — ID and title —
-and list them in the gate message so the user reviews them now; they are written into the
+ordered so that `M0-01` is claimable at once (no open-question row blocks it), three to ten per
+milestone (`references/core/layers.md §5`), and list them with each milestone's exit in the
+gate message so the user reviews them now; the roadmap holds only goals, so the exits and
+feature lines live in the scratch list until the milestone files are written at generation. The
+template's sketched second phase stays as it ships; they are written into the
 milestone files at generation. Then apply the same review gate as (b): stop and post the message
 above. Do not move on to generation (§4) until the user replies.
 
@@ -188,11 +218,16 @@ Once the brainstorm, phase 1's design docs, and the roadmap are all written and 
    `<project>/tools/hooks/stop.sh` and wire it as `scripts/hooks/README.md` shows.
 2a. Copy `assets/templates/gitattributes` to `<project>/.gitattributes` if the project has
    none, and add `tools/__pycache__/` to `<project>/.gitignore` if it is not there, so the
-   linter's LF output and a Windows checkout never produce a mixed-ending diff.
+   linter's LF output and a Windows checkout never produce a mixed-ending diff. Add any secrets
+   file the security doc names (`.env`, a key file) to the same ignore list.
 3. Substitute every `{{token}}` using the table in `assets/templates/README.md`; values come
    from C0's answers, the brainstorm's decisions, the design docs, and the roadmap just written.
    Before any code exists, `{{commands}}` is the linter command plus one line naming the
    milestone that adds the rest; `{{rule}}` and `{{deferred}}` may each expand to several lines.
+   A template line written as an instruction ("one line per top-level entry", "note what is
+   test-first") is replaced by the content it asks for, never kept. Cite design docs by their
+   full path from the project root everywhere, including the layout section of
+   `<project>/AGENTS.md`; a bare filename resolves against the citing file's folder and fails.
    If a README already exists, keep whatever it offered a human that the template does not — a
    reading order, related repositories, a per-version map — and add the template's three
    sentences (what it is, for whom, its current state) and its "Where things are" table to it,
@@ -202,17 +237,25 @@ Once the brainstorm, phase 1's design docs, and the roadmap are all written and 
    `<project>/DOCS.md §1`: one line per file, its class, and the design doc that supersedes it.
 4. Create the milestone files for the current and next milestone from
    `<project>/tools/templates/milestone.md`, with the feature lines decided at the roadmap gate;
-   everything beyond stays `sketch` in the roadmap only. Add `<project>/docs/evidence/.gitkeep`
-   so the empty directory is tracked. Create no plans: a plan is written at the Ground step of
-   the session that claims its feature, never at generation.
-4a. Backfill the ADRs. One per decision in the design docs' "decisions we're committing to"
-   lists and in the brainstorm's decision list, from `<project>/tools/templates/adr.md`, each
-   `proposed`, dated today, with the source section under Related; merge decisions that are one
-   choice stated twice. Decisions recovered from pre-bootstrap history (docs-first §6a,
-   brownfield) are the exception: they are `accepted`, with `**Date:**` the date the note
-   records or `recovered` when it records none, because they were made and lived with before
-   the skill arrived, and marking them proposed would ask a human to re-decide the past. Fill
-   the backfill table in `<project>/docs/decisions/AGENTS.md` from the same list.
+   the next milestone depends on the current one (`**Depends on:** M0`) unless the roadmap says
+   otherwise; everything beyond stays `sketch` in the roadmap only. Copy the instance README's *held for
+   M0* gaps into M0's notes. Rewrite every open-question row's *Blocks* and *Needed by* to the
+   milestone or feature IDs that now exist. Add `<project>/docs/evidence/.gitkeep` so the empty
+   directory is tracked. Create no plans: a plan is written at the Ground step of the session
+   that claims its feature, never at generation.
+4a. Backfill the ADRs. One per entry in the design docs' Decisions sections, from
+   `<project>/tools/templates/adr.md`, dated today, with the source section under Related.
+   Status follows who decided: a decision the owner made — in this bootstrap's conversation, or
+   recovered from pre-bootstrap history — is `accepted`, with `**Deciders:**` "the owner" (or
+   the note and its date, and `**Date:**` that date or `recovered`), because a human made it and
+   asking them to re-decide it would be noise; a decision the bootstrap recommended is
+   `proposed`, with `**Deciders:**` "bootstrap recommendation, not confirmed". Merge entries that
+   stand or fall together into one ADR, even across docs; split an entry that carries two
+   markers into one ADR per marker. A backfilled ADR's Context, Alternatives and Consequences
+   are one or two sentences each, taken from the design doc that states the decision. Keep the filename to the number plus
+   at most sixty characters, cut at a word. Delete every open-question row marked *decided* as
+   its ADR is written. Fill the backfill table in `<project>/docs/decisions/AGENTS.md` from the
+   same list.
 5. From the project root, run `python tools/check_docs.py --root . --fix` and fix whatever it
    reports. `--fix` writes the four generated files before it checks, so a clean project passes
    on the first run; a warning about an evidence file not written yet (`W005`) is expected
@@ -227,8 +270,11 @@ Once the brainstorm, phase 1's design docs, and the roadmap are all written and 
 Open `<project>/docs/CURRENT.md` and claim `M0-01`: copy `<project>/tools/templates/plan.md` to
 `<project>/docs/plans/M0/M0-01-<slug>.md`, set `**Status:** in progress`, add a session stamp
 in the form `<project>/docs/WORKFLOW.md §3` gives (`- <date>T<hh>:<mm>Z — <agent> — <branch>`,
-UTC), fill the header's design-doc and ADR citations and the Objective, and leave Current state
-and Tasks for the Ground step. Append the plan's path to the feature line in
+UTC; `<agent>` is the tool's name, `claude-code`, `codex`, and `<branch>` the branch you are on,
+the bootstrap branch at this point), fill the header's design-doc and ADR citations and the
+Objective, delete the template's placeholder task line, and leave Current state and Tasks for
+the Ground step. The header's `**Branch:**` field names the feature branch the work will use
+once the bootstrap has merged (`feat/M0-01-<slug>`), not the branch of the stamp. Append the plan's path to the feature line in
 `<project>/docs/milestones/M0.md`, and — because this is the milestone's first claim — set `M0`
 itself to `in progress` in the same edit (`references/core/parallel-agents.md §1`). Run
 `python tools/check_docs.py --root . --fix` so `<project>/docs/CURRENT.md` shows the claim, and
@@ -256,7 +302,10 @@ Follow `references/core/adoption.md §4`. In outline:
    in the scratch list; it is written into `<project>/DOCS.md §1` at §4 step 3a.
 2. **Fix names and inbound links first**, in one commit, if any file will be renamed or moved,
    so no later doc cites a path that then changes. History goes under `<project>/docs/history/`
-   unless it already has a folder of its own. A plain-text mention of a moved file counts as an
+   unless it already has a folder of its own, keeping each file's name unless it breaks the
+   naming convention, in which case a kebab-case name for what the file is
+   (`<project>/docs/history/first-conversations.md`, `<project>/docs/history/market-notes.md`),
+   never a date prefix. A plain-text mention of a moved file counts as an
    inbound link: relink it as a citation. This commit is the first on the bootstrap branch and
    carries the starting-SHA subject (§1a); it may share a session with step 3, since it writes
    no design doc.
@@ -265,7 +314,7 @@ Follow `references/core/adoption.md §4`. In outline:
    note's commit date), the questions still open, and every contradiction between documents.
    Each contradiction is a decision the user makes before the design doc that depends on it is
    written; put them to the user one per message, hardest constraint first, as C1 would, unless
-   the user batches. Settle the stack here too, as §3(a) says.
+   the user batches. With no contradictions, lead with C1's hardest technical constraint. Settle the stack here too, as §3(a) says.
 4. **Derive, and say what supersedes what.** Each design doc is derived from the history with
    citations back to it, and its first paragraph states what it supersedes ("supersedes
    `<project>/docs/history/<file>.md` for <topic>"). History is never edited to match.
@@ -280,9 +329,10 @@ Then continue with §3(b): the profile's design docs, one per session, each behi
 - Write more than one design doc in a single session, unless the user explicitly says to —
   and then only as §3a describes, with the least-reviewed docs recorded.
 - This skill never ticks a box; ticking happens in feature work, with verification evidence.
-- Accept an ADR it wrote. An ADR the bootstrap proposes moves to `accepted` by human decision,
-  never by this skill. A decision recovered from pre-bootstrap history is written `accepted`
-  (§4 step 4a) because it was already made and lived with; that is the only case.
+- Accept an ADR it wrote. An ADR the bootstrap recommends moves to `accepted` by human
+  decision, never by this skill. An ADR that records a decision a human made — in this
+  bootstrap's conversation, or in pre-bootstrap history — is written `accepted` (§4 step 4a),
+  because the human decided it; the skill is recording, not accepting.
 - Edit a generated file by hand (`<project>/docs/CURRENT.md`,
   `<project>/docs/milestones/README.md`, `<project>/docs/plans/README.md`,
   `<project>/docs/decisions/README.md`); only the project's `tools/check_docs.py --fix` writes

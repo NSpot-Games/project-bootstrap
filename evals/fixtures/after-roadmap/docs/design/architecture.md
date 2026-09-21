@@ -27,5 +27,12 @@ Unit tests per stage; the golden examples are integration tests; one benchmark a
 - YAML frontmatter is optional; a missing date falls back to the filename.
 - Tags are case-insensitive and stored lowercase.
 
+## 7. Decisions
+1. `markdown-it-py` and `pyyaml` are the only runtime dependencies — *recommended, not confirmed*.
+2. Tags are case-insensitive and stored lowercase — *owner*.
+
+## 8. Open questions
+Questions live in `docs/OPEN-QUESTIONS.md`, never in this document.
+
 ## Changelog
 - 2026-09-19 — created.
