@@ -153,8 +153,10 @@ stated assumption, name it in the doc's first paragraph and its Decisions sectio
 row's *Needed by* to the first thing the assumption would make expensive to change. A row the
 user decides during the bootstrap is not deleted at once: mark it *decided* with the answer, so
 the ADR backfill (§4, step 4a) writes its ADR and deletes the row then. Before the roadmap
-exists, *Blocks* names the design doc that needs the answer; §4 step 4 rewrites every row to
-milestone and feature IDs once they exist.
+exists, *Blocks* names the design doc that needs the answer, or the event that does ("the
+first deployment") when no doc depends on it; a decided row keeps its question and says
+*decided: <answer>* in *Needed by*. §4 step 4 rewrites every row to milestone and feature IDs
+once they exist.
 
 After finishing each doc, stop and post exactly:
 
