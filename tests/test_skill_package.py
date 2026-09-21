@@ -101,6 +101,12 @@ def test_hooks_json_registers_the_stop_script():
     assert "${CLAUDE_PLUGIN_ROOT}" in cmd
 
 
+def _bootstrapped(cwd: Path) -> None:
+    """A project past generation: docs/CURRENT.md exists, so the hook is allowed to block."""
+    (cwd / "docs").mkdir(exist_ok=True)
+    (cwd / "docs" / "CURRENT.md").write_text("# Current focus\n", encoding="utf-8")
+
+
 def _run_stop(cwd: Path, stdin: str) -> subprocess.CompletedProcess:
     env = {**os.environ, "CLAUDE_PROJECT_DIR": str(cwd)}
     return subprocess.run(["sh", str(STOP_SH)], input=stdin, capture_output=True, text=True, cwd=cwd, env=env)
@@ -149,6 +155,7 @@ def test_stop_hook_exits_zero_when_python_passing(tmp_path):
 
 @needs_sh
 def test_stop_hook_blocks_when_project_linter_fails(tmp_path):
+    _bootstrapped(tmp_path)
     (tmp_path / "tools").mkdir()
     (tmp_path / "tools" / "check_docs.py").write_text("import sys; sys.exit(1)\n", encoding="utf-8")
     r = _run_stop(tmp_path, "{}")
@@ -158,6 +165,7 @@ def test_stop_hook_blocks_when_project_linter_fails(tmp_path):
 
 @needs_sh
 def test_stop_hook_blocks_when_stop_hook_active_is_false(tmp_path):
+    _bootstrapped(tmp_path)
     (tmp_path / "tools").mkdir()
     (tmp_path / "tools" / "check_docs.py").write_text("import sys; sys.exit(1)\n", encoding="utf-8")
     r = _run_stop(tmp_path, '{"stop_hook_active": false}')
@@ -167,6 +175,7 @@ def test_stop_hook_blocks_when_stop_hook_active_is_false(tmp_path):
 
 @needs_sh
 def test_stop_hook_does_not_crash_on_non_json_stdin(tmp_path):
+    _bootstrapped(tmp_path)
     (tmp_path / "tools").mkdir()
     (tmp_path / "tools" / "check_docs.py").write_text("import sys; sys.exit(1)\n", encoding="utf-8")
     r = _run_stop(tmp_path, "")
@@ -191,6 +200,7 @@ def test_project_stop_hook_exits_zero_when_stop_hook_active(tmp_path, stdin):
 
 @needs_sh
 def test_project_stop_hook_blocks_when_stop_hook_active_is_false(tmp_path):
+    _bootstrapped(tmp_path)
     (tmp_path / "tools").mkdir()
     (tmp_path / "tools" / "check_docs.py").write_text("import sys; sys.exit(1)\n", encoding="utf-8")
     r = _run_project_stop(tmp_path, '{"stop_hook_active": false}')
@@ -200,6 +210,7 @@ def test_project_stop_hook_blocks_when_stop_hook_active_is_false(tmp_path):
 
 @needs_sh
 def test_project_stop_hook_does_not_crash_on_non_json_stdin(tmp_path):
+    _bootstrapped(tmp_path)
     (tmp_path / "tools").mkdir()
     (tmp_path / "tools" / "check_docs.py").write_text("import sys; sys.exit(1)\n", encoding="utf-8")
     r = _run_project_stop(tmp_path, "")
@@ -267,3 +278,35 @@ def test_skill_directory_works_when_copied_alone(tmp_path):
             assert (copy / p.rstrip("/")).exists(), p
     r = subprocess.run([sys.executable, "scripts/check_docs.py", "--help"], cwd=copy, capture_output=True, text=True)
     assert r.returncode == 0, r.stderr
+
+
+# --------------------------------------------------------------------------- release A: hooks warn until CURRENT.md exists
+
+PROJECT_STOP_SH = SKILL_DIR / "scripts" / "hooks" / "stop.sh"
+
+
+def _failing_linter(cwd: Path) -> None:
+    (cwd / "tools").mkdir(exist_ok=True)
+    (cwd / "tools" / "check_docs.py").write_text("import sys; print('E001 boom'); sys.exit(1)\n", encoding="utf-8")
+
+
+@needs_sh
+@pytest.mark.parametrize("script", [STOP_SH, PROJECT_STOP_SH], ids=["plugin", "project"])
+def test_stop_hook_warns_but_does_not_block_before_current_md_exists(tmp_path, script):
+    _failing_linter(tmp_path)
+    env = {**os.environ, "CLAUDE_PROJECT_DIR": str(tmp_path)}
+    r = subprocess.run([SH, str(script)], input="{}", capture_output=True, text=True, cwd=tmp_path, env=env)
+    assert r.returncode == 0, r.stderr
+    assert "E001 boom" in r.stdout + r.stderr
+    assert "bootstrap" in (r.stdout + r.stderr).lower()
+
+
+@needs_sh
+@pytest.mark.parametrize("script", [STOP_SH, PROJECT_STOP_SH], ids=["plugin", "project"])
+def test_stop_hook_blocks_on_errors_once_current_md_exists(tmp_path, script):
+    _failing_linter(tmp_path)
+    (tmp_path / "docs").mkdir()
+    (tmp_path / "docs" / "CURRENT.md").write_text("# Current focus\n", encoding="utf-8")
+    env = {**os.environ, "CLAUDE_PROJECT_DIR": str(tmp_path)}
+    r = subprocess.run([SH, str(script)], input="{}", capture_output=True, text=True, cwd=tmp_path, env=env)
+    assert r.returncode == 2, r.stderr

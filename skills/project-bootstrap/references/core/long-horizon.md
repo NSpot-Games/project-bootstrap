@@ -36,7 +36,7 @@ The linter enforces two things here: it fails (`E008`) if a `planned` or `in pro
 
 ## 7. Bounded read cost
 
-`<project>/docs/CURRENT.md` is generated, not written by hand: the active phase, the in-progress milestone or milestones, each claimed feature with its plan path and last progress note, open blockers, and the most recent evidence. It stays under forty lines by construction — anything longer belongs in the plan it points to, not in `<project>/docs/CURRENT.md` itself.
+`<project>/docs/CURRENT.md` is generated, not written by hand: the active phase, the in-progress milestone or milestones with their exit criteria on one line each, each claimed feature with its plan path and last progress note, open blockers, the next unclaimed features, any row of `<project>/docs/OPEN-QUESTIONS.md` whose *Blocks* column names one of the listed features or milestones, and the most recent evidence. When no milestone is `in progress` yet — the state right after bootstrap — it lists the first `planned` milestone and its features instead, so the first session always has something to claim. It stays under forty lines by construction — anything longer belongs in the plan it points to, not in `<project>/docs/CURRENT.md` itself.
 
 Session start reads `<project>/AGENTS.md`, then `<project>/docs/CURRENT.md`, then the plan for the feature being resumed or claimed. The milestone file and the roadmap are read only when planning a new feature or reviewing the roadmap, not on every session. Done plans stay where they are but appear only in a collapsed section of the generated index, so the index stays short as the project grows.
 

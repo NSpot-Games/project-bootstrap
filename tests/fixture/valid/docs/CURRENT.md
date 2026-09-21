@@ -3,6 +3,7 @@
 
 **Phase:** P1 — Playable core
 **Milestones in progress:** M1 — First playable
+**Exit (M1):** one instance plays end to end with zero validator errors.
 
 ## Claimed features
 
@@ -11,6 +12,7 @@
 ## Next unclaimed features
 
 - M1-02 — Old thing, re-homed
+- M1-03 — Third thing
 
 ## Latest evidence
 

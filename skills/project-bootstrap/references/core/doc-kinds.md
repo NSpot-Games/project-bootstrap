@@ -34,6 +34,8 @@ Status is exactly one of `draft`, `stable`, or `living`. `draft` means the doc i
 
 Every design doc ends with a `## Changelog` section. A design change made during a milestone appends a changelog line in the same commit that makes the change — never a separate cleanup commit, and never silence.
 
+The linter checks both rules on every file under `<project>/docs/design/` (an index file named README and generated files excepted): a missing header or a status outside `draft`, `stable`, `living` is `E014`; a missing `## Changelog` is `E015`.
+
 Section anchors are contracts. Once another doc, a plan, or an ADR cites `§6.1`, that number is fixed forever; renumbering breaks every citation that used it. A section inserted later gets an appended letter — `§6.1a` between `§6.1` and `§6.2` — never a renumbering of what follows.
 
 A citation to a document whose exact name is not fixed yet (a doc that will exist per-project, or a generic pattern this kit describes rather than ships) is written with the variable part in angle brackets: `<file>.md §N.M`, never a literal-looking path that does not exist.
