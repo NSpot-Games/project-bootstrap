@@ -170,7 +170,8 @@ sentence and nothing more. Write `<project>/docs/roadmap.md` from
 `assets/templates/roadmap.md`. At the standard tier the roadmap still carries `P1` as its one
 phase and sketches anything after it; a single non-sketch phase is how the linter tells
 standard from full. Decide the current and next milestones' feature lines here — ID and title —
-and list them in the gate message so the user reviews them now; they are written into the
+ordered so that `M0-01` is claimable at once (no open-question row blocks it), and list them in
+the gate message so the user reviews them now; they are written into the
 milestone files at generation. Then apply the same review gate as (b): stop and post the message
 above. Do not move on to generation (§4) until the user replies.
 
