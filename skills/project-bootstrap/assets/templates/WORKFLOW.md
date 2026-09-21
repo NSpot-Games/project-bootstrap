@@ -13,7 +13,7 @@ IDs are allocated in order and never reused. A moved feature gets a new ID; the 
 **Close** — all tasks ticked, suite green, docs updated, ADRs reviewed: accepted by a human, or left `proposed` (non-blocking unless `**Blocking:** yes`), feature ticked in the milestone, plan `done`. Run `python tools/check_docs.py --fix`. If this is the milestone's last feature, run the roadmap review checklist (§10).
 
 ## 3. Sessions
-Claim before you start: plan status `in progress` plus a stamp line `- <date>T<hh>:<mm>Z — <agent> — <branch>` (UTC) under `## Sessions`, and the plan's path appended to the feature line in the milestone. The first claim in a milestone also sets that milestone's `**Status:**` to `in progress`. Never take a feature stamped under 24 hours ago by someone else.
+Claim before you start: plan status `in progress` plus a stamp line `- <date>T<hh>:<mm>Z — <agent> — <branch>` (UTC; the agent is the tool's name, `claude-code`, `codex`; the branch is the one you are on) under `## Sessions`, and the plan's path appended to the feature line in the milestone. The first claim in a milestone also sets that milestone's `**Status:**` to `in progress`. Never take a feature stamped under 24 hours ago by someone else.
 Start: `AGENTS.md` → `docs/CURRENT.md` → your plan → first unticked task. End: plan matches reality; notes say where you stopped; tree green or the plan says what's red. One feature per session by default.
 
 ## 4. Branches and commits

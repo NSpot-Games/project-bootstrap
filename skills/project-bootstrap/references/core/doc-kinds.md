@@ -32,7 +32,7 @@ Every design doc opens with the header from `assets/templates/design-header.md`:
 
 Status is exactly one of `draft`, `stable`, or `living`. `draft` means the doc is ahead of the phase it describes and may still change on first contact with the work; `stable` means the described part is built and the doc is deliberately maintained; `living` means the doc is expected to change often as understanding improves (a glossary-adjacent design area, for example) and a changelog entry is still required per change.
 
-Every design doc ends with a `## Changelog` section. A design change made during a milestone appends a changelog line in the same commit that makes the change — never a separate cleanup commit, and never silence.
+Every design doc ends with a numbered *Decisions* section (the decisions it rests on, each marked *owner*, *recovered* or *recommended, not confirmed*; the source the ADR backfill reads), then the one-line pointer to `<project>/docs/OPEN-QUESTIONS.md`, then a `## Changelog` section. A design change made during a milestone appends a changelog line in the same commit that makes the change — never a separate cleanup commit, and never silence.
 
 The linter checks both rules on every file under `<project>/docs/design/` (an index file named README and generated files excepted): a missing header or a status outside `draft`, `stable`, `living` is `E014`; a missing `## Changelog` is `E015`.
 

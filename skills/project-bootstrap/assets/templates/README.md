@@ -31,7 +31,7 @@ These files are copied into a new project during bootstrap and every double-brac
 | `{{audience}}` | Who reads this doc, and why |
 | `{{three_sentences}}` | A project README's three sentences: what, for whom, current state |
 
-A template file has no `{{` left when copied into a project; the linter's E005 check enforces this.
+A template file has no `{{` left when copied into a project; the linter's E005 check enforces this. A line written as an instruction ("one line per top-level entry", "note what is test-first") is likewise replaced by the content it asks for.
 
 Three files here are not filled in but copied as they are: `check_docs.toml` becomes
 `<project>/docs/.check_docs.toml` (every linter key, commented), `gitattributes` becomes

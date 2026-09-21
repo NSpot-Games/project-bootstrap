@@ -28,6 +28,7 @@ Goal: {{one or two sentences}}. Exit: TBD.
 Goal: TBD.
 
 ## Explicitly deferred
+Out of scope for now, by decision. A question still to be decided is not deferred: it is a row in `OPEN-QUESTIONS.md` or a gap held for M0.
 - {{deferred}}
 
 ## Open decisions with a deadline

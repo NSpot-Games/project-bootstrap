@@ -7,7 +7,7 @@ Design docs say what; ADRs say why. Check here before relitigating anything.
 Hard to reverse; resolves an open question; changes a design doc; a real choice between alternatives; discussed at length. Not for: routine choices, naming, formatting, single-file changes. When unsure, write it.
 
 ## Naming
-`<NNNN>-decision-as-a-sentence.md`. Next number; never reuse or renumber. One decision per file.
+`<NNNN>-decision-as-a-sentence.md`, at most sixty characters after the number, cut at a word. Next number; never reuse or renumber. One decision per file. Status is `accepted` when a human made the decision (in conversation, or recovered from history) and `proposed` when an agent recommends it.
 
 ## Statuses
 `proposed` (agents may create) · `accepted` (human sets) · `superseded by NNNN` · `rejected`. Never delete.
