@@ -235,7 +235,8 @@ Once the brainstorm, phase 1's design docs, and the roadmap are all written and 
    `<project>/DOCS.md §1`: one line per file, its class, and the design doc that supersedes it.
 4. Create the milestone files for the current and next milestone from
    `<project>/tools/templates/milestone.md`, with the feature lines decided at the roadmap gate;
-   everything beyond stays `sketch` in the roadmap only. Copy the instance README's *held for
+   the next milestone depends on the current one (`**Depends on:** M0`) unless the roadmap says
+   otherwise; everything beyond stays `sketch` in the roadmap only. Copy the instance README's *held for
    M0* gaps into M0's notes. Rewrite every open-question row's *Blocks* and *Needed by* to the
    milestone or feature IDs that now exist. Add `<project>/docs/evidence/.gitkeep` so the empty
    directory is tracked. Create no plans: a plan is written at the Ground step of the session
@@ -247,7 +248,9 @@ Once the brainstorm, phase 1's design docs, and the roadmap are all written and 
    the note and its date, and `**Date:**` that date or `recovered`), because a human made it and
    asking them to re-decide it would be noise; a decision the bootstrap recommended is
    `proposed`, with `**Deciders:**` "bootstrap recommendation, not confirmed". Merge entries that
-   stand or fall together into one ADR, even across docs. Keep the filename to the number plus
+   stand or fall together into one ADR, even across docs; split an entry that carries two
+   markers into one ADR per marker. A backfilled ADR's Context, Alternatives and Consequences
+   are one or two sentences each, taken from the design doc that states the decision. Keep the filename to the number plus
    at most sixty characters, cut at a word. Delete every open-question row marked *decided* as
    its ADR is written. Fill the backfill table in `<project>/docs/decisions/AGENTS.md` from the
    same list.
