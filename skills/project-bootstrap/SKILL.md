@@ -171,8 +171,11 @@ sentence and nothing more. Write `<project>/docs/roadmap.md` from
 `assets/templates/roadmap.md`. At the standard tier the roadmap still carries `P1` as its one
 phase and sketches anything after it; a single non-sketch phase is how the linter tells
 standard from full. Decide the current and next milestones' feature lines here — ID and title —
-ordered so that `M0-01` is claimable at once (no open-question row blocks it), and list them in
-the gate message so the user reviews them now; they are written into the
+ordered so that `M0-01` is claimable at once (no open-question row blocks it), three to ten per
+milestone (`references/core/layers.md §5`), and list them with each milestone's exit in the
+gate message so the user reviews them now; the roadmap holds only goals, so the exits and
+feature lines live in the scratch list until the milestone files are written at generation. The
+template's sketched second phase stays as it ships; they are written into the
 milestone files at generation. Then apply the same review gate as (b): stop and post the message
 above. Do not move on to generation (§4) until the user replies.
 
