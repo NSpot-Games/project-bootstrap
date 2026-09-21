@@ -171,10 +171,16 @@ def check(a: dict, project: Path, rd: Path, ev: dict) -> tuple[bool, str]:
         return not m, (f"found: {m.group(0)[:80]!r}" if m else "no match, as required")
     if kind == "grep_any":
         hits = [p for p in _files(project, a["glob"], a.get("exclude")) if re.search(a["pattern"], _read(p))]
-        hits += [p for p in [project / "final_message.md"] if p.is_file() and re.search(a["pattern"], _read(p)) and p not in hits]
-        return bool(hits), ("in " + ", ".join(h.relative_to(project).as_posix() for h in hits[:3])) if hits else "no file matches"
+        names = [h.relative_to(project).as_posix() for h in hits]
+        fm = rd / "final_message.md"
+        if fm.is_file() and re.search(a["pattern"], _read(fm)):
+            names.append("final_message.md")
+        return bool(names), ("in " + ", ".join(names[:3])) if names else "no file matches"
     if kind == "mentions_each":
         texts = {p.relative_to(project).as_posix(): _read(p) for p in _files(project, "**/*.md", a.get("exclude"))}
+        fm = rd / "final_message.md"
+        if fm.is_file():
+            texts["final_message.md"] = _read(fm)
         missing = [n for n in a["names"] if not any(n in t for t in texts.values())]
         return not missing, ("all named" if not missing else "not named: " + ", ".join(missing))
     if kind == "unchanged":
@@ -206,7 +212,6 @@ def check(a: dict, project: Path, rd: Path, ev: dict) -> tuple[bool, str]:
         return n >= a["n"], f"{n} commit(s)"
     if kind == "git_clean":
         s = git(project, "status", "--porcelain").stdout.strip()
-        s = "\n".join(ln for ln in s.splitlines() if "final_message.md" not in ln)
         return not s, ("clean" if not s else "dirty: " + s.splitlines()[0])
     if kind == "sha_recorded":
         sha_file = rd / "pre_bootstrap_sha.txt"
@@ -219,7 +224,7 @@ def check(a: dict, project: Path, rd: Path, ev: dict) -> tuple[bool, str]:
         ok = bool(in_docs) or in_log
         return ok, (f"SHA {short} in " + (", ".join(in_docs[:3]) if in_docs else "a commit message")) if ok else f"SHA {short} not recorded anywhere"
     if kind in ("final_contains", "final_not_contains"):
-        p = project / "final_message.md"
+        p = rd / "final_message.md"
         if not p.is_file():
             return False, "final_message.md missing"
         m = re.search(a["pattern"], _read(p))
@@ -235,6 +240,11 @@ def grade(name: str, runs: Path, label: str) -> dict:
     project = rd / "project"
     if not project.is_dir():
         sys.exit(f"{project} does not exist; run prepare first")
+    # The agent writes its message inside the project (the only directory it may touch); it is
+    # an eval artefact, not a project file, so it moves out before anything is checked.
+    inside = project / "final_message.md"
+    if inside.is_file():
+        inside.replace(rd / "final_message.md")
     results = []
     for a in ev["assertions"]:
         passed, evidence = check(a, project, rd, ev)

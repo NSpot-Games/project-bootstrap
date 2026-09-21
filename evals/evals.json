@@ -43,7 +43,7 @@
       "name": "git-guidance",
       "fixture": "plain-greenfield",
       "setup": {"git": true, "copy_linter": false},
-      "prompt": "Bootstrap this repository. {answers} The repository already has commits; keep its history intact and keep the bootstrap reviewable. Proceed as far as the procedure allows.",
+      "prompt": "Bootstrap this repository. {answers} {brainstorm} The repository already has commits; keep its history intact and keep the bootstrap reviewable. Proceed as far as the procedure allows.",
       "expected_output": "The agent records the pre-bootstrap commit, works on a bootstrap/<slug> branch, commits per step, and writes no transitional branch rule into AGENTS.md or WORKFLOW.md.",
       "assertions": [
         {"text": "Work happens on a bootstrap/ branch", "check": "git_branch_prefix", "prefix": "bootstrap/"},
