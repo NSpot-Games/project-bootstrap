@@ -22,16 +22,12 @@ is the only stage allowed to touch the file system.
 Unit tests per stage; the golden examples are integration tests; one benchmark against the
 500-note synthetic folder with the budget as its baseline.
 
-## 6. Decisions we're committing to
-- Notes are plain files; the index is derived and never hand-edited.
-- YAML frontmatter is optional; a missing date falls back to the filename.
-- Tags are case-insensitive and stored lowercase.
+## 6. Decisions
+1. Notes are plain files; the index is derived and never hand-edited — *owner*.
+2. YAML frontmatter is optional; a missing date falls back to the filename — *owner*.
+3. `markdown-it-py` and `pyyaml` are the only runtime dependencies — *recommended, not confirmed*.
+4. Tags are case-insensitive and stored lowercase — *owner*.
 
-## 7. Decisions
-1. `markdown-it-py` and `pyyaml` are the only runtime dependencies — *recommended, not confirmed*.
-2. Tags are case-insensitive and stored lowercase — *owner*.
-
-## 8. Open questions
 Questions live in `docs/OPEN-QUESTIONS.md`, never in this document.
 
 ## Changelog

@@ -115,3 +115,20 @@ def test_skill_routing_sends_every_path_through_the_setup_questions():
     text = _text(SKILL_DIR / "SKILL.md")
     routing = _section(text, 1)
     assert "Every path runs §1a and §2 first" in routing
+
+
+def test_no_profile_outline_mentions_open_questions_at_all():
+    """doc-kinds §3 mandates the Decisions section and the open-questions pointer at the end of
+    every design doc; an outline that lists either invites a second, mispositioned copy."""
+    for p in sorted((REFERENCES / "profiles").glob("*.md")):
+        if p.name == "README.md":
+            continue
+        for line in _section(_text(p), 2).splitlines():
+            if line.startswith("| `"):
+                assert "open questions" not in line.lower(), (p.name, line[:60])
+                assert "OPEN-QUESTIONS" not in line, (p.name, line[:60])
+
+
+def test_curated_directory_writes_its_own_architecture_doc():
+    text = _section(_text(REFERENCES / "profiles" / "curated-directory.md"), 2)
+    assert "`<project>/docs/design/architecture.md`" in text

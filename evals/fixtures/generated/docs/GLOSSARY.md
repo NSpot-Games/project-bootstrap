@@ -8,10 +8,10 @@ Use these exactly — in docs, code, prompts, telemetry, conversation. New conce
 **Place** — a slug grouping notes about one location; optional on a note.
 
 ## ID prefixes
+The kit's own IDs (`M<n>`, `M<n>-<nn>`, ADR `<NNNN>`) and the project's data IDs, one row each.
+
 | Prefix | Collection |
 |---|---|
-| `M<n>` | milestones |
-| `M<n>-<nn>` | features and plans |
 
 ## Words we avoid
 - **"post"** — say *note*.
