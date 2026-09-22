@@ -11,7 +11,7 @@ The central artefact is a question worth answering before committing to build an
 | File | Sections | Written at |
 |---|---|---|
 | `<project>/docs/design.md` — question and hypotheses | the question this prototype answers; hypotheses and what would falsify each one; what "answered" looks like (success criteria); constraints and the time box; non-goals (what this prototype will not answer) | bootstrap |
-| `<project>/docs/design.md` — architecture sketch | the one rule that must not be broken; a rough component sketch, kept throwaway-friendly; the worked example this sketch must support; what's deliberately not designed yet; a one-line pointer to `<project>/docs/OPEN-QUESTIONS.md` (questions live there, never in the doc) | bootstrap |
+| `<project>/docs/design.md` — architecture sketch | the one rule that must not be broken; a rough component sketch, kept throwaway-friendly; the worked example this sketch must support; what's deliberately not designed yet | bootstrap |
 
 This profile defaults to the Lite tier (`§5`), where there is one `<project>/docs/design.md` file rather than a `<project>/docs/design/` directory (`references/core/tiers.md §2`); both rows above are sections of that one file, not separate files.
 

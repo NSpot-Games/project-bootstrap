@@ -46,7 +46,7 @@ An outline in section 2 lists what is specific to the doc. Whatever it lists, ev
 
 ## 3a. Composing profiles
 
-A project may borrow one doc from another profile when its subject genuinely needs it — a data-driven product that keeps player accounts borrows `<project>/docs/design/security-and-privacy.md` from `references/profiles/web-app-saas.md`. The rules: borrow whole docs, not sections; the borrowed doc keeps its own profile's outline; list it in `<project>/DOCS.md §1` with the profile it came from; and write the composition on the `**Profile:**` line of `<project>/AGENTS.md` as `<profile> plus <doc> from <profile>`, so the next reader knows which outline governs which file. If a project borrows two or more docs, the profile is probably wrong — pick again before writing more.
+A project may borrow one doc from another profile when its subject genuinely needs it — a data-driven product that keeps player accounts borrows `<project>/docs/design/security-and-privacy.md` from `references/profiles/web-app-saas.md`. The rules: borrow whole docs, not sections; the borrowed doc keeps its own profile's outline; list it in `<project>/DOCS.md §1` with the profile it came from; and write the composition on the `**Profile:**` line of `<project>/AGENTS.md` as `<profile> plus docs/design/<doc>.md from <profile>` — the doc's full project path, never a bare filename, which the linter would read as a citation — so the next reader knows which outline governs which file. If a project borrows two or more docs, the profile is probably wrong — pick again before writing more.
 
 ## 4. Profiles at a glance
 

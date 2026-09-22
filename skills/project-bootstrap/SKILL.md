@@ -5,7 +5,7 @@ license: MIT
 compatibility: Requires Python 3.11+ for scripts/check_docs.py
 metadata:
   author: NSpotGames
-  version: "2.6.0"
+  version: "2.7.0"
 ---
 
 # Project Bootstrap
@@ -21,7 +21,9 @@ profiles in `references/profiles/`, templates in `assets/templates/`, the linter
 `scripts/check_docs.py`. Paths are relative to the skill root, so the skill works when installed
 on its own. Paths written `<project>/...` are in the project being bootstrapped. Inside the
 project's own docs, cite root-relative paths (`docs/design/<name>.md §N`); the linter resolves
-them from the project root.
+them from the project root. A project doc never cites a kit file (a reference, a profile, this
+file): those paths resolve only while the kit sits beside the project and break everywhere
+else. Say what the kit says, in prose.
 
 ## 1. Announce and classify
 
@@ -31,7 +33,9 @@ Look at the target repository and say which of these it is, per `references/core
   recover, no thinking written down yet.
 - **Docs-first** — no code, but the repository already carries thinking: vision notes, research,
   specs, journals, a notes file. Any written thinking counts, however small; a six-line notes
-  file is docs-first. Say so in those words ("docs-first: no code, existing docs under
+  file is docs-first. A vendored design reference — mock-ups, tokens, component source the
+  repository itself calls a reference and not a dependency — is not code for this purpose. Say
+  so in those words ("docs-first: no code, existing docs under
   `<project>/docs/vision/`" or wherever they are), because the brainstorm step changes shape.
 - **Brownfield** — any repository with real code in it, even rough or partial, or with code but
   no docs.
@@ -126,7 +130,10 @@ phase 1 only, in the order the profile lists.
 
 The example instance (C4: the profile's seed fixture, golden example or worked instance) is
 written in the session of the doc it belongs with — the data-model doc for most profiles —
-before that doc is finished, so the gaps it exposes are folded in while the doc is open. Every
+before that doc is finished, so the gaps it exposes are folded in while the doc is open. Where
+the profile gives the instance a design doc of its own (a walkthrough), that doc and the
+instance folder are one session, and the data-model doc follows in the next, folding the gaps
+the README lists. Every
 gap goes into the instance README's numbered *Gaps* section, marked *folded*, *held for M0*, or both
 when the model change is folded and the policy behind it is held;
 the data-model doc points at that section, and the held ones are copied into M0's notes at
@@ -177,7 +184,9 @@ ordered so that `M0-01` is claimable at once (no open-question row blocks it), t
 milestone (`references/core/layers.md §5`), and list them with each milestone's exit in the
 gate message so the user reviews them now; the roadmap holds only goals, so the exits and
 feature lines live in the scratch list until the milestone files are written at generation. The
-template's sketched second phase stays as it ships; they are written into the
+template's sketched second phase stays as it ships, its milestone taking the next free ID after
+the first phase's sketches — the template's `M2` and `M3` are placeholders, and IDs never
+restart; they are written into the
 milestone files at generation. Then apply the same review gate as (b): stop and post the message
 above. Do not move on to generation (§4) until the user replies.
 
@@ -231,14 +240,20 @@ Once the brainstorm, phase 1's design docs, and the roadmap are all written and 
    If a README already exists, keep whatever it offered a human that the template does not — a
    reading order, related repositories, a per-version map — and add the template's three
    sentences (what it is, for whom, its current state) and its "Where things are" table to it,
-   rather than replacing it. Seed the glossary's areas from the profile's vocabulary table and
-   the design docs' section headings.
+   rather than replacing it. If an `AGENTS.md` already exists, keep every rule it states as a
+   non-negotiable in the generated file, move any workflow it describes (branches, reviews,
+   pull requests) into `<project>/docs/WORKFLOW.md` as an appended numbered section, drop the
+   rest, and record the merge as an owner decision; `CLAUDE.md` becomes `@AGENTS.md` regardless.
+   Seed the glossary's areas from the profile's vocabulary table and the design docs' section
+   headings.
 3a. In docs-first and brownfield, write the pre-bootstrap document classification into
    `<project>/DOCS.md §1`: one line per file, its class, and the design doc that supersedes it.
 4. Create the milestone files for the current and next milestone from
    `<project>/tools/templates/milestone.md`, with the feature lines decided at the roadmap gate;
    the next milestone depends on the current one (`**Depends on:** M0`) unless the roadmap says
-   otherwise; everything beyond stays `sketch` in the roadmap only. Copy the instance README's *held for
+   otherwise; everything beyond stays `sketch` in the roadmap only. Fill `**Evidence of exit:**`
+   with the path the evidence file will have under `docs/evidence/`, never a sentence; the linter
+   warns (`W005`) until the file exists, which is the expected state. Copy the instance README's *held for
    M0* gaps into M0's notes. Rewrite every open-question row's *Blocks* and *Needed by* to the
    milestone or feature IDs that now exist. Add `<project>/docs/evidence/.gitkeep` so the empty
    directory is tracked. Create no plans: a plan is written at the Ground step of the session
@@ -305,7 +320,8 @@ Follow `references/core/adoption.md §4`. In outline:
    unless it already has a folder of its own, keeping each file's name unless it breaks the
    naming convention, in which case a kebab-case name for what the file is
    (`<project>/docs/history/first-conversations.md`, `<project>/docs/history/market-notes.md`),
-   never a date prefix. A plain-text mention of a moved file counts as an
+   never a date prefix. A renamed file keeps its title even when the title repeats the old
+   number: history is relinked, never edited. A plain-text mention of a moved file counts as an
    inbound link: relink it as a citation. This commit is the first on the bootstrap branch and
    carries the starting-SHA subject (§1a); it may share a session with step 3, since it writes
    no design doc.
