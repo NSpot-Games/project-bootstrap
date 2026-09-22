@@ -1,7 +1,7 @@
 # 0001. YAML frontmatter is optional; a missing date falls back to the filename
-**Status:** proposed
+**Status:** accepted
 **Date:** 2026-09-19
-**Deciders:** the team
+**Deciders:** the owner
 **Related:** `docs/design/architecture.md §6`
 **Blocking:** no
 

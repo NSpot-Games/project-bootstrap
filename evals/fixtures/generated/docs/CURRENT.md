@@ -10,10 +10,10 @@
 
 ## Next unclaimed features
 
-- M0-01 — Optional frontmatter with filename-date fallback
-- M0-02 — Tags normalised to lowercase kebab-case
+- M0-01 — Tags normalised to lowercase kebab-case
+- M0-02 — Optional frontmatter with filename-date fallback
 - M0-03 — Golden example runs as a test
 
 ## Blocking questions
 
-- M0-01 — Is a note with no date at all indexed as undated or rejected?
+- M0-02 — Is a note with no date at all indexed as undated or rejected?
