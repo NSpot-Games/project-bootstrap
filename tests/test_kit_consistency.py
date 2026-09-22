@@ -132,3 +132,14 @@ def test_no_profile_outline_mentions_open_questions_at_all():
 def test_curated_directory_writes_its_own_architecture_doc():
     text = _section(_text(REFERENCES / "profiles" / "curated-directory.md"), 2)
     assert "`<project>/docs/design/architecture.md`" in text
+
+
+def test_docs_map_template_uses_the_adoption_classes():
+    """The second real-repository run found the map template and the adoption reference naming
+    different classes for pre-bootstrap documents; one vocabulary, in both places."""
+    template = _section(_text(TEMPLATES / "DOCS.md"), 1)
+    adoption = _section(_text(REFERENCES / "core" / "adoption.md"), 4)
+    for cls in ("*contract*", "*history*", "*external reference*"):
+        assert cls in template, cls
+        assert cls in adoption, cls
+    assert "*research*" not in template

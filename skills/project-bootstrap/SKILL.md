@@ -5,7 +5,7 @@ license: MIT
 compatibility: Requires Python 3.11+ for scripts/check_docs.py
 metadata:
   author: NSpotGames
-  version: "2.7.0"
+  version: "2.8.0"
 ---
 
 # Project Bootstrap
@@ -72,12 +72,18 @@ example instance's folder, a milestone file — is a warning (`W007`), not an er
 A doc the profile schedules for a later phase is different: it is not created by the bootstrap,
 so name it in prose until it exists. Before the project has its own linter copy, run the kit's
 read-only after each commit (`python <skill>/scripts/check_docs.py --root <project>`); never
-`--fix` before generation.
+`--fix` before generation. In docs-first, that read-only run would drown in frozen history, so
+the relink commit (§6a, step 2) already carries `<project>/docs/.check_docs.toml` from
+`assets/templates/check_docs.toml`: the history folders in `citation_exclude`, any vendored
+bundle in `exclude`, and the tier pinned `minimal`. The pin follows the files — `lite` in the
+roadmap commit, the chosen tier at generation — because a pin behind the files reports every
+sketch as a placeholder and a pin ahead of them checks files that do not exist.
 
 ## 2. C0: five questions, one at a time
 
 Ask these one per message, in this order, and wait for the answer before asking the next.
-Record each answer in a scratch list; write nothing to disk yet.
+Record each answer in a scratch list — a file outside the project, never inside it; write
+nothing to disk in the project yet.
 
 1. **Name and codename.** What is the project called? Propose the name an existing README
    gives, if there is one. The codename is a kebab-case slug used for the branch
@@ -138,8 +144,13 @@ gap goes into the instance README's numbered *Gaps* section, marked *folded*, *h
 when the model change is folded and the policy behind it is held;
 the data-model doc points at that section, and the held ones are copied into M0's notes at
 generation (§4, step 4). Fold the clear gaps at once; hold the ones that need a decision. When
-the real instance cannot be obtained at bootstrap, write a constructed stand-in in the actual
-schema, say so in its README, and make replacing it with the real one an M0 feature. Any script
+the real instance cannot be obtained at bootstrap, or the project's own rules forbid real data
+in an example, write a constructed stand-in in the actual schema, say so in its README, mark
+every invented value so it cannot be taken for a real one (reserved example domains,
+impossible dates, all-zero identifiers — the README states the convention), include the
+related records the walkthrough cannot be read without, and make replacing it with the real
+one an M0 feature. The README's *Gaps* section is a numbered heading, so a gap is cited as
+`§N`. Any script
 that generated the instance stays out of the project unless it becomes a tool.
 
 Every design doc, whatever its profile outline says, ends with two things before its changelog:
@@ -186,8 +197,10 @@ gate message so the user reviews them now; the roadmap holds only goals, so the 
 feature lines live in the scratch list until the milestone files are written at generation. The
 template's sketched second phase stays as it ships, its milestone taking the next free ID after
 the first phase's sketches — the template's `M2` and `M3` are placeholders, and IDs never
-restart; they are written into the
-milestone files at generation. Then apply the same review gate as (b): stop and post the message
+restart. When the source names more — a build order, later phases from the history — add a
+sketch per named milestone or phase, one goal sentence each, IDs in order; a sketch costs a
+line and holds the name until its phase is active. The current and next milestones' feature
+lines are written into the milestone files at generation. Then apply the same review gate as (b): stop and post the message
 above. Do not move on to generation (§4) until the user replies.
 
 ## 3a. Compressed bootstrap
@@ -220,7 +233,11 @@ Once the brainstorm, phase 1's design docs, and the roadmap are all written and 
 2. Copy `scripts/check_docs.py` to `<project>/tools/check_docs.py`, and
    `assets/templates/check_docs.toml` to `<project>/docs/.check_docs.toml` with the tier
    pinned, any history folders (docs-first, §6a) in `citation_exclude`, and any vendored
-   bundle in `exclude`. The Stop hook is the user's choice: ask once, in the gate message that
+   bundle in `exclude`; in docs-first the file exists since the relink commit (§1a) and only
+   its pin changes here. `<project>/tools/` is shared ground: the kit's files
+   (`tools/check_docs.py`, `tools/templates/`, `tools/hooks/`) sit beside whatever tooling the
+   project keeps there, the layout line in `<project>/AGENTS.md` names both, and the project
+   never puts its own files under the kit's two subfolders. The Stop hook is the user's choice: ask once, in the gate message that
    ends this session, not as a stop in the middle of it. If they want the linter to run at the
    end of every session without being remembered, and the kit is not installed as a Claude Code
    plugin (which already runs it), copy `scripts/hooks/stop.sh` to
@@ -228,7 +245,8 @@ Once the brainstorm, phase 1's design docs, and the roadmap are all written and 
 2a. Copy `assets/templates/gitattributes` to `<project>/.gitattributes` if the project has
    none, and add `tools/__pycache__/` to `<project>/.gitignore` if it is not there, so the
    linter's LF output and a Windows checkout never produce a mixed-ending diff. Add any secrets
-   file the security doc names (`.env`, a key file) to the same ignore list.
+   file the design docs name (`.env`, a key file) to the same ignore list — the security doc
+   where the profile has one, otherwise whichever doc describes configuration or hosting.
 3. Substitute every `{{token}}` using the table in `assets/templates/README.md`; values come
    from C0's answers, the brainstorm's decisions, the design docs, and the roadmap just written.
    Before any code exists, `{{commands}}` is the linter command plus one line naming the
@@ -242,8 +260,8 @@ Once the brainstorm, phase 1's design docs, and the roadmap are all written and 
    sentences (what it is, for whom, its current state) and its "Where things are" table to it,
    rather than replacing it. If an `AGENTS.md` already exists, keep every rule it states as a
    non-negotiable in the generated file, move any workflow it describes (branches, reviews,
-   pull requests) into `<project>/docs/WORKFLOW.md` as an appended numbered section, drop the
-   rest, and record the merge as an owner decision; `CLAUDE.md` becomes `@AGENTS.md` regardless.
+   pull requests) into `<project>/docs/WORKFLOW.md` as an appended numbered section, as
+   written and without a note about the bootstrap branch (§1a, rule 4), drop the rest, and record the merge as an owner decision; `CLAUDE.md` becomes `@AGENTS.md` regardless.
    Seed the glossary's areas from the profile's vocabulary table and the design docs' section
    headings.
 3a. In docs-first and brownfield, write the pre-bootstrap document classification into
@@ -262,7 +280,7 @@ Once the brainstorm, phase 1's design docs, and the roadmap are all written and 
    `<project>/tools/templates/adr.md`, dated today, with the source section under Related.
    Status follows who decided: a decision the owner made — in this bootstrap's conversation, or
    recovered from pre-bootstrap history — is `accepted`, with `**Deciders:**` "the owner" (or
-   the note and its date, and `**Date:**` that date or `recovered`), because a human made it and
+   the note and its date, and `**Date:**` that date when the note has one, else `recovered`), because a human made it and
    asking them to re-decide it would be noise; a decision the bootstrap recommended is
    `proposed`, with `**Deciders:**` "bootstrap recommendation, not confirmed". Merge entries that
    stand or fall together into one ADR, even across docs; split an entry that carries two
@@ -313,8 +331,11 @@ Follow `references/core/adoption.md §4`. In outline:
 1. **Inventory and classify** every existing document as *contract* (it becomes, or feeds, a
    design doc), *history* (a dated record of thinking: vision, journals, research, notes;
    frozen, never edited, cited as history), or *external reference* (someone else's material).
-   A pre-existing README is none of these: it is merged at §4 step 3. Hold the classification
-   in the scratch list; it is written into `<project>/DOCS.md §1` at §4 step 3a.
+   A pre-existing README is none of these: it is merged at §4 step 3. Research is history. A
+   contract stays *contract* on its map line after its design doc supersedes it; one whose
+   design docs belong to a later phase is superseded by nothing yet, and the line names the
+   phase. Hold the classification in the scratch list; it is written into `<project>/DOCS.md §1`
+   at §4 step 3a, in these three classes and no other.
 2. **Fix names and inbound links first**, in one commit, if any file will be renamed or moved,
    so no later doc cites a path that then changes. History goes under `<project>/docs/history/`
    unless it already has a folder of its own, keeping each file's name unless it breaks the
@@ -322,9 +343,10 @@ Follow `references/core/adoption.md §4`. In outline:
    (`<project>/docs/history/first-conversations.md`, `<project>/docs/history/market-notes.md`),
    never a date prefix. A renamed file keeps its title even when the title repeats the old
    number: history is relinked, never edited. A plain-text mention of a moved file counts as an
-   inbound link: relink it as a citation. This commit is the first on the bootstrap branch and
-   carries the starting-SHA subject (§1a); it may share a session with step 3, since it writes
-   no design doc.
+   inbound link: relink it as a citation; the words around it may change only as far as the
+   citation needs (a number becomes a path), never the sentence. This commit is the first on the
+   bootstrap branch, carries the starting-SHA subject (§1a) and the linter config of step 5, and
+   may share a session with step 3, since it writes no design doc.
 3. **Reconcile instead of brainstorming from blank.** C1 becomes a reconciliation pass over the
    history: the decisions already taken (with their dates — an undated note's decisions take the
    note's commit date), the questions still open, and every contradiction between documents.
@@ -335,8 +357,11 @@ Follow `references/core/adoption.md §4`. In outline:
    citations back to it, and its first paragraph states what it supersedes ("supersedes
    `<project>/docs/history/<file>.md` for <topic>"). History is never edited to match.
 5. **Keep the linter off frozen prose.** History folders go into `citation_exclude` in
-   `<project>/docs/.check_docs.toml`, so an anchor that no longer resolves in a dated note never
-   forces a rewrite of the record.
+   `<project>/docs/.check_docs.toml`, written in the relink commit with the tier pinned
+   `minimal` (§1a), so an anchor that no longer resolves in a dated note never forces a rewrite
+   of the record. A folder that mixes contract and history is excluded whole. The questions the
+   reconciliation leaves open go into `<project>/docs/OPEN-QUESTIONS.md` in the same commit or
+   the next; the rule that the file travels with a design doc (§3(b)) applies once there is one.
 
 Then continue with §3(b): the profile's design docs, one per session, each behind its gate.
 

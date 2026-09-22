@@ -67,6 +67,19 @@ def test_e001_missing_cited_file(tmp_path):
     assert "E001" in codes(cd.run(root))
 
 
+def test_e001_bare_filename_carries_the_hint(tmp_path):
+    root = make_project(tmp_path, {
+        "docs/WORKFLOW.md": ("`docs/design/product-design.md §3`", "`product-design.md §3`"),
+    })
+    msgs = [f.message for f in cd.run(root) if f.code == "E001"]
+    assert msgs and all("bare filename" in m for m in msgs), msgs
+    root2 = make_project(tmp_path / "b", {
+        "docs/WORKFLOW.md": ("`docs/design/product-design.md §3`", "`docs/design/missing.md §3`"),
+    })
+    msgs2 = [f.message for f in cd.run(root2) if f.code == "E001"]
+    assert msgs2 and not any("bare filename" in m for m in msgs2), msgs2
+
+
 def test_e002_missing_section(tmp_path):
     root = make_project(tmp_path, {
         "docs/WORKFLOW.md": ("`docs/design/product-design.md §3`", "`docs/design/product-design.md §9.9`"),

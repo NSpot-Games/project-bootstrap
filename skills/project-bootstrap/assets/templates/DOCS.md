@@ -2,7 +2,7 @@
 How `docs/` is organised and kept honest.
 
 ## 1. Map
-One line per file: path and purpose. Documents that existed before the bootstrap are listed with their class — *history* (frozen; never edited; superseded by the design doc named on its line), *research*, or *external reference*.
+One line per file: path and purpose. Documents that existed before the bootstrap are listed with the class the bootstrap gave them — *contract* (it fed the design doc named on its line, which supersedes it; frozen from that day), *history* (a dated record of thinking, including research; frozen; never edited; superseded by nothing unless its line says so), or *external reference* — and a contract whose design docs belong to a later phase says `superseded by nothing yet (phase N)`.
 
 ## 2. Five kinds of document
 
