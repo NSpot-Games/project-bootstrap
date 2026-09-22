@@ -3,3 +3,5 @@
 __pycache__/
 *.pyc
 evals/runs/
+evals/seeds/*
+!evals/seeds/README.md
