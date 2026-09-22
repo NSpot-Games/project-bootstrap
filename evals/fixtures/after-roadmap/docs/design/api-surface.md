@@ -36,7 +36,6 @@ None before 1.0; after 1.0, one minor release of warning before removal.
 1. Frontmatter is optional; a missing date falls back to the filename prefix — *owner*.
 2. A note with no date anywhere is a warning and is indexed as undated — *recommended, not confirmed*.
 
-## 7. Open questions
 Questions live in `docs/OPEN-QUESTIONS.md`, never in this document.
 
 ## Changelog

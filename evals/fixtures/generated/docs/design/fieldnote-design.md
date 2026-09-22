@@ -37,7 +37,6 @@ Python 3.11 and later on Linux, macOS and Windows. Pure Python; no native extens
 1. Notes are plain files; the index is derived and never hand-edited — *owner*.
 2. Pure Python, no native extensions — *recommended, not confirmed*.
 
-## 7. Open questions
 Questions live in `docs/OPEN-QUESTIONS.md`, never in this document.
 
 ## Changelog
