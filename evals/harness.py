@@ -22,6 +22,7 @@ import re
 import shutil
 import subprocess
 import sys
+from datetime import datetime, timezone
 from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
@@ -281,6 +282,112 @@ def report(runs: Path) -> str:
     return "\n".join(lines + detail) + "\n"
 
 
+
+# ------------------------------------------------------------------------------ seeds: real repositories
+
+SEEDS = HERE / "seeds"
+ACCEPTANCE_RUNS = HERE / "runs" / "acceptance"
+
+ACCEPTANCE_PROMPT = """You are bootstrapping a real project with the project-bootstrap skill, in conversation with the project's owner.
+
+Skill: read `{skill}/SKILL.md` first and follow it exactly. Its references, templates and scripts live
+under `{skill}/`. Never modify anything under that directory.
+
+Project: `{project}`. It is a git repository on branch `{branch}` with history and existing content.
+It has no remote, and you must never add one, never push, and never run any command that reaches
+a network. Work only inside this directory. Paths the skill writes as `<project>/...` mean this
+directory.
+
+How the conversation works: the owner answers through follow-up messages. Whenever the skill says
+to ask the user something, or to stop at a review gate, post exactly what the skill says to post
+and then end your turn; the owner's reply arrives as your next message. Ask one question per turn
+where the skill says one per message. Do not invent answers to setup questions, do not skip gates,
+and do not write more per turn than the skill allows per session; treat each of your turns as one
+session. If something the skill requires is impossible in this environment (for example opening a
+pull request with no remote), say so in one line and continue.
+
+The owner's first message is: "Bootstrap this project, please."
+
+When the whole procedure is complete through SKILL.md section 5, end your last turn with a report
+in this shape: the files written and the commits made; and, separately, every point where the
+procedure did not tell you what to do and you had to decide for yourself (an improvisation), one
+line each, with the SKILL.md or reference section that should have covered it. Report even small
+ones.
+"""
+
+
+def _seed_meta(name: str) -> dict:
+    p = SEEDS / name / ".seed.json"
+    if not p.is_file():
+        sys.exit(f"no seed named {name!r} (no {p})")
+    return json.loads(p.read_text(encoding="utf-8"))
+
+
+def seed_add(name: str, source: Path, branch: str) -> Path:
+    """Snapshot a local repository at its current commit on `branch`, with no remote."""
+    dest = SEEDS / name
+    if dest.exists():
+        sys.exit(f"seed {name!r} exists; use `seed refresh {name}` to re-snapshot it")
+    source = source.resolve()
+    if not (source / ".git").exists():
+        sys.exit(f"{source} is not a git repository")
+    SEEDS.mkdir(parents=True, exist_ok=True)
+    r = subprocess.run(["git", "clone", "-q", "--branch", branch, str(source), str(dest)], capture_output=True, text=True)
+    if r.returncode:
+        sys.exit(r.stderr.strip())
+    git(dest, "remote", "remove", "origin")
+    git(dest, "config", "user.email", "owner@example.invalid")
+    git(dest, "config", "user.name", "Owner")
+    commit = git(dest, "rev-parse", "--short", "HEAD").stdout.strip()
+    meta = {"name": name, "source": source.as_posix(), "branch": branch, "commit": commit,
+            "taken": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%MZ")}
+    (dest / ".seed.json").write_text(json.dumps(meta, indent=2) + "\n", encoding="utf-8")
+    _seed_exclude(dest)
+    return dest
+
+
+def _seed_exclude(dest: Path) -> None:
+    """Keep the manifest out of the seed's own git status without touching its tracked files."""
+    info = dest / ".git" / "info"
+    info.mkdir(parents=True, exist_ok=True)
+    ex = info / "exclude"
+    lines = ex.read_text(encoding="utf-8").splitlines() if ex.is_file() else []
+    if ".seed.json" not in lines:
+        ex.write_text("\n".join(lines + [".seed.json"]) + "\n", encoding="utf-8")
+
+
+def seed_refresh(name: str) -> Path:
+    """Re-snapshot the seed from its recorded source at that source's current commit."""
+    meta = _seed_meta(name)
+    dest = SEEDS / name
+    _rmtree(dest)
+    return seed_add(name, Path(meta["source"]), meta["branch"])
+
+
+def seed_prepare(name: str, label: str | None, skill: Path) -> Path:
+    """Copy the seed into a dated run directory and write the owner-conversation prompt."""
+    meta = _seed_meta(name)
+    stamp = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+    rd = ACCEPTANCE_RUNS / (f"{name}-{stamp}" + (f"-{label}" if label else ""))
+    if rd.exists():
+        sys.exit(f"{rd} exists; pass --label to distinguish a second run today")
+    ACCEPTANCE_RUNS.mkdir(parents=True, exist_ok=True)
+    shutil.copytree(SEEDS / name, rd)
+    (rd / ".seed.json").unlink(missing_ok=True)
+    prompt = ACCEPTANCE_PROMPT.format(skill=skill.resolve().as_posix(), project=rd.resolve().as_posix(), branch=meta["branch"])
+    (rd.parent / f"{rd.name}.prompt.md").write_text(prompt, encoding="utf-8", newline="\n")
+    return rd
+
+
+def seed_list() -> str:
+    rows = []
+    for p in sorted(SEEDS.glob("*/.seed.json")):
+        m = json.loads(p.read_text(encoding="utf-8"))
+        runs = sorted(x.name for x in ACCEPTANCE_RUNS.glob(f"{m['name']}-*") if x.is_dir()) if ACCEPTANCE_RUNS.is_dir() else []
+        rows.append(f"{m['name']}: {m['branch']}@{m['commit']} taken {m['taken']} from {m['source']}; runs: {', '.join(runs) or 'none'}")
+    return "\n".join(rows) if rows else "no seeds"
+
+
 # ------------------------------------------------------------------------------ main
 
 
@@ -290,7 +397,24 @@ def main(argv: list[str] | None = None) -> int:
     p = sub.add_parser("prepare"); p.add_argument("scenario"); p.add_argument("runs"); p.add_argument("--label", default="with_skill"); p.add_argument("--skill", default=str(DEFAULT_SKILL))
     g = sub.add_parser("grade"); g.add_argument("scenario"); g.add_argument("runs"); g.add_argument("--label", default="with_skill")
     r = sub.add_parser("report"); r.add_argument("runs")
+    sd = sub.add_parser("seed", help="real-repository seeds for acceptance runs")
+    sds = sd.add_subparsers(dest="seed_cmd", required=True)
+    a = sds.add_parser("add"); a.add_argument("name"); a.add_argument("source"); a.add_argument("--branch", default="main")
+    sds.add_parser("refresh").add_argument("name")
+    pp = sds.add_parser("prepare"); pp.add_argument("name"); pp.add_argument("--label", default=None); pp.add_argument("--skill", default=str(DEFAULT_SKILL))
+    sds.add_parser("list")
     args = ap.parse_args(argv)
+    if args.cmd == "seed":
+        if args.seed_cmd == "add":
+            print(f"seed added: {seed_add(args.name, Path(args.source), args.branch)}")
+        elif args.seed_cmd == "refresh":
+            print(f"seed refreshed: {seed_refresh(args.name)}")
+        elif args.seed_cmd == "prepare":
+            rd = seed_prepare(args.name, args.label, Path(args.skill))
+            print(f"prepared {rd}\nprompt: {rd.parent / (rd.name + '.prompt.md')}")
+        else:
+            print(seed_list())
+        return 0
     names = [e["name"] for e in load_evals()["evals"]] if getattr(args, "scenario", None) == "all" else [getattr(args, "scenario", None)]
     if args.cmd == "prepare":
         for n in names:

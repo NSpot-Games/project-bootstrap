@@ -21,6 +21,9 @@ used, so the suite is project-agnostic and safe to publish with the kit.
 - `harness.py` — `prepare`, `grade`, `report`. Standard library only.
 - `runs/` — ignored by git; one directory per scenario and label holding the scratch project,
   the prompt, the grading and timing.
+- `seeds/` — ignored by git except its README; snapshots of real repositories, each a clone with
+  no remote, for acceptance runs (`harness.py seed add|refresh|prepare|list`); their runs go to
+  `runs/acceptance/<name>-<date>/`. See `seeds/README.md`.
 
 ## The six scenarios
 
