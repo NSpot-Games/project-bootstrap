@@ -9,7 +9,7 @@ Not every project needs every file the kit offers. Tiers scale the ceremony to t
 | Lite | `<project>/AGENTS.md`, `<project>/docs/design.md`, `<project>/docs/roadmap.md` with checkboxes, `<project>/docs/decisions/` | Solo, one phase, under ten features. The roadmap is the milestone. |
 | Standard | v1's set plus `<project>/docs/CURRENT.md` and the linter | Most projects |
 | Full | Standard plus more than one non-sketch phase, per-area design docs, evidence, profile optional docs | Multi-phase, multi-agent, or regulated |
-| Minimal | `<project>/docs/` with no roadmap yet | A project mid-bootstrap, before the roadmap exists; the linter checks citations and placeholders only |
+| Minimal | `<project>/docs/` with no roadmap yet | A project mid-bootstrap, before the roadmap exists; the linter checks citations and placeholders only. A pin at `minimal` moves to `lite` the moment the roadmap is written — at `minimal` the roadmap is not parsed and its sketch placeholders become errors — and to the chosen tier at generation |
 
 The linter runs at every tier (`tools/check_docs.py`); what it checks scales with the tier, detailed per tier below. The tier is auto-detected from the file layout, or pinned with the `tier` key in `<project>/docs/.check_docs.toml`; a value outside `minimal`, `lite`, `standard`, `full` is reported as `E012` and auto-detection is used instead, so a typo never silently disables checking.
 

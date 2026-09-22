@@ -591,7 +591,8 @@ def check_citations(cfg: Config, md_files: list[Path]) -> list[Finding]:
                 elif bootstrapping and _under_docs(cfg, path, target):
                     out.append(Finding("W007", r, ln, f"cited file not written yet (bootstrap in progress): {target}"))
                 else:
-                    out.append(Finding("E001", r, ln, f"cited file missing: {target}"))
+                    hint = "" if "/" in target else " (a bare filename resolves against the citing file's folder; cite the full path from the project root)"
+                    out.append(Finding("E001", r, ln, f"cited file missing: {target}{hint}"))
                 continue
             if anchor:
                 if resolved not in heading_cache:
