@@ -208,6 +208,8 @@ def test_generation_check_assertion_needs_a_command_or_its_milestone():
     assert re.search(pattern, with_cmd)
     with_milestone = f"## Commands\n- the docs linter; M0-02 adds the check command\n{template_line}\n\n## Conventions\n"
     assert re.search(pattern, with_milestone)
+    check_first = f"## Commands\n- `check` — not written yet. M0-01 adds it with the skeleton.\n{template_line}\n\n## Conventions\n"
+    assert re.search(pattern, check_first)
     fixture = (Path(__file__).resolve().parents[1] / "evals" / "fixtures" / "generated" / "AGENTS.md").read_text(encoding="utf-8")
     assert not re.search(pattern, fixture)
 
