@@ -1,5 +1,6 @@
 # M{{n}}-{{nn}} — {{Title}}
 **Status:** grounding
+**Shape:** lite
 **Milestone:** M{{n}}
 **Branch:** feat/M{{n}}-{{nn}}-{{slug}}
 **Design docs:**
@@ -12,11 +13,6 @@
 ## Done when
 ## Stop and ask if
 ## Current state
-## Approach
-### Alternatives considered
-### Risks
-### Docs to update
-### Tests this feature adds
 ## Tasks
 - [ ] T1 — ... **Verify:** `command`
 ## Progress notes

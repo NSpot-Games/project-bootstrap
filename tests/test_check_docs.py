@@ -1059,3 +1059,15 @@ def test_e013_unknown_plan_shape(tmp_path):
     root = make_project(tmp_path)
     write_lite_plan(root, 2, shape_line="**Shape:** tiny\n")
     assert "E013" in codes(cd.run(root))
+
+
+def test_plan_lite_template_filled_lints_clean(tmp_path):
+    root = make_project(tmp_path)
+    tpl = (Path(__file__).resolve().parents[1] / "skills" / "project-bootstrap" / "assets" / "templates" / "plan-lite.md").read_text(encoding="utf-8")
+    text = (tpl.replace("{{n}}", "1").replace("{{nn}}", "03").replace("{{Title}}", "Third thing")
+               .replace("{{slug}}", "third-thing").replace("**Status:** grounding", "**Status:** planned"))
+    (root / "docs" / "plans" / "M1" / "M1-03-third-thing.md").write_text(text, encoding="utf-8", newline="\n")
+    found = cd.run(root)
+    assert errors(found) == []
+    assert "W008" not in codes(found)
+    assert cd.parse_plan(root / "docs" / "plans" / "M1" / "M1-03-third-thing.md").shape == "lite"

@@ -143,3 +143,13 @@ def test_docs_map_template_uses_the_adoption_classes():
         assert cls in template, cls
         assert cls in adoption, cls
     assert "*research*" not in template
+
+
+def test_plan_templates_carry_the_orchestrator_sections():
+    full = (TEMPLATES / "plan.md").read_text(encoding="utf-8")
+    lite = (TEMPLATES / "plan-lite.md").read_text(encoding="utf-8")
+    for heading in ("## Done when", "## Stop and ask if", "## Tasks", "## Sessions", "## Progress notes"):
+        assert heading in full and heading in lite, heading
+    assert "### Tests this feature adds" in full
+    assert "**Shape:** lite" in lite and "**Shape:**" not in full
+    assert "## Approach" not in lite
