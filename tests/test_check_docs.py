@@ -1080,3 +1080,16 @@ def test_w008_not_raised_for_finished_lite_plans(tmp_path):
         p = root / "docs" / "plans" / "M1" / "M1-03-third-thing.md"
         p.write_text(p.read_text(encoding="utf-8").replace("**Status:** planned", f"**Status:** {status}"), encoding="utf-8", newline="\n")
         assert "W008" not in codes(cd.run(root)), status
+
+
+@pytest.mark.parametrize("value", ['"tomorrow"', "true", "0", "-5"])
+def test_e012_bad_stale_hours_reports_finding_not_traceback(tmp_path, value):
+    root = make_project(tmp_path, {"docs/.check_docs.toml": ("stale_hours = 876000", f"stale_hours = {value}")})
+    found = cd.run(root)  # the fixture has an in-progress plan, so check_claims runs
+    assert "E012" in codes(found)
+    assert cd.load_config(root).stale_hours == 24
+
+
+def test_fractional_stale_hours_is_valid(tmp_path):
+    root = make_project(tmp_path, {"docs/.check_docs.toml": ("stale_hours = 876000", "stale_hours = 0.5")})
+    assert cd.load_config(root).config_error is None

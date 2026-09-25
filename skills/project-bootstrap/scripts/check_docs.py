@@ -136,6 +136,10 @@ def load_config(root: Path) -> Config:
                 setattr(cfg, key, data[key])
         if "exclude" in data:
             cfg.exclude = list(DEFAULT_EXCLUDE) + list(data["exclude"])
+        stale = cfg.stale_hours
+        if isinstance(stale, bool) or not isinstance(stale, (int, float)) or stale <= 0:
+            cfg.config_error = f"stale_hours must be a positive number, not {stale!r}"
+            cfg.stale_hours = 24
         if cfg.tier != "auto" and cfg.tier not in TIERS:
             cfg.config_error = f"tier must be one of {', '.join(TIERS)} or auto, not {cfg.tier!r}"
             cfg.tier = "auto"
