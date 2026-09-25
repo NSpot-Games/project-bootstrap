@@ -167,3 +167,12 @@ def test_project_templates_carry_the_economy_rules_without_citing_the_kit():
     for text in (workflow, agents):
         assert "references/" not in text
     assert len(agents.rstrip("\n").split("\n")) < 120
+
+
+def test_every_architecture_row_names_the_ci_budget():
+    for p in sorted((SKILL_DIR / "references" / "profiles").glob("*.md")):
+        text = p.read_text(encoding="utf-8")
+        row = next((ln for ln in text.splitlines() if ln.startswith("| `<project>/docs/design/architecture.md`")), None)
+        if row is None:
+            continue  # research-prototype writes no architecture doc
+        assert "CI budget (`references/core/economy.md §3`)" in row, p.name
