@@ -971,3 +971,91 @@ def test_w007_covers_any_project_path_but_not_an_escape_while_bootstrapping(tmp_
     assert [f.code for f in found if "cases/first" in f.message] == ["W007"]
     assert [f.code for f in found if "nothing" in f.message] == ["W007"]
     assert [f.code for f in found if "elsewhere" in f.message] == ["E001"]
+
+
+LITE_PLAN = """# M1-03 — Third thing
+**Status:** planned
+**Shape:** lite
+**Milestone:** M1
+**Branch:** feat/M1-03-third-thing
+**Design docs:**
+**ADRs:**
+**Depends on:**
+
+## Sessions
+
+## Objective
+Do the third thing.
+
+## Done when
+- The third thing runs on the example instance.
+
+## Stop and ask if
+- The third thing needs a schema change.
+
+## Current state
+- Nothing exists yet; checked `src/`.
+
+## Tasks
+{tasks}
+## Progress notes
+
+## Verification log
+"""
+
+
+def write_lite_plan(root: Path, n_tasks: int, shape_line: str = "**Shape:** lite\n", ticked: bool = False) -> None:
+    box = "x" if ticked else " "
+    tasks = "".join(f"- [{box}] T{i} — Step {i}. **Verify:** `pytest tests/test_third.py`\n" for i in range(1, n_tasks + 1))
+    text = LITE_PLAN.format(tasks=tasks).replace("**Shape:** lite\n", shape_line)
+    p = root / "docs" / "plans" / "M1" / "M1-03-third-thing.md"
+    p.write_text(text, encoding="utf-8", newline="\n")
+
+
+def test_lite_plan_with_three_tasks_lints_clean(tmp_path):
+    root = make_project(tmp_path)
+    write_lite_plan(root, 3)
+    found = cd.run(root)
+    assert errors(found) == []
+    assert "W008" not in codes(found)
+
+
+def test_w008_lite_plan_over_three_tasks(tmp_path):
+    root = make_project(tmp_path)
+    write_lite_plan(root, 4)
+    found = cd.run(root)
+    assert "W008" in codes(found)
+    assert errors(found) == []
+
+
+def test_w008_counts_ticked_tasks_too(tmp_path):
+    root = make_project(tmp_path)
+    write_lite_plan(root, 4, ticked=True)
+    assert "W008" in codes(cd.run(root))
+
+
+def test_w008_not_raised_for_full_plan_with_many_tasks(tmp_path):
+    root = make_project(tmp_path)
+    write_lite_plan(root, 5, shape_line="")
+    found = cd.run(root)
+    assert "W008" not in codes(found) and "E013" not in codes(found)
+
+
+def test_empty_shape_value_is_a_full_plan(tmp_path):
+    root = make_project(tmp_path)
+    write_lite_plan(root, 5, shape_line="**Shape:**\n")
+    found = cd.run(root)
+    assert "W008" not in codes(found) and "E013" not in codes(found)
+
+
+def test_shape_is_case_and_space_insensitive(tmp_path):
+    root = make_project(tmp_path)
+    write_lite_plan(root, 4, shape_line="**Shape:** Lite  \n")
+    found = cd.run(root)
+    assert "W008" in codes(found) and "E013" not in codes(found)
+
+
+def test_e013_unknown_plan_shape(tmp_path):
+    root = make_project(tmp_path)
+    write_lite_plan(root, 2, shape_line="**Shape:** tiny\n")
+    assert "E013" in codes(cd.run(root))
