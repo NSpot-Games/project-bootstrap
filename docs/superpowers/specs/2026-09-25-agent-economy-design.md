@@ -21,9 +21,10 @@ is unchanged — this lightens process, it does not remove it.
 
 - Every rule below exists in the skill, cited from the lifecycle and templates.
 - `python -m pytest tests -q` passes; `check_docs.py --root .` reports 0 errors, 0 warnings.
-- Eval scenarios 61/61 (57 existing plus 4 new).
-- One real-repository run from a seed shows one full-suite run per feature (at Close), not one
-  at Ground plus per task plus Close.
+- Eval assertions 69/69 (57 existing, plus 5 in existing scenarios and 7 in the new
+  `ci-default` scenario).
+- One real-repository run from a seed scores 23/1/0 or better, and the generated `AGENTS.md`
+  and `WORKFLOW.md` carry the stopping rules, the check cadence and plan-lite.
 - No project already on the kit gets a new error on upgrade.
 
 **Out of scope:** the six release-H candidates already in the backlog ship separately. Opus- or
@@ -121,7 +122,7 @@ A lettered section, so no existing number moves.
 - **Eligible:** a feature the agent expects to take three commits or fewer.
 - **Shape:** the same header fields plus `**Shape:** lite`; `## Sessions`; `## Objective`;
   `## Current state` (at most three bullets — Ground still happens); `## Done when`;
-  `## Stop and ask if`; `## Tasks` with a verification per task; `## Verification log`. No
+  `## Stop and ask if`; `## Tasks` with a verification per task; `## Progress notes`; `## Verification log`. No
   Approach, Alternatives, Risks, Docs to update or Tests this feature adds; tests the feature
   needs are named in its task lines.
 - **Promotion:** a fourth task makes it a full plan — add the missing sections and remove the
@@ -139,6 +140,8 @@ A lettered section, so no existing number moves.
 
 ### 4.2 Edits inside the skill
 
+- Templates restate the rules in the project's words and never cite `references/...`: a
+  bootstrapped project does not carry the kit.
 - `references/core/lifecycle.md` — Ground: package-scoped tests. Plan: Done when, Stop and ask
   if, Tests this feature adds; cite `economy.md §1`. Execute: check cadence and summary-line
   evidence, cite `economy.md §2`. Close (§5): a lettered step for the blocking-only self-review,
@@ -158,7 +161,7 @@ A lettered section, so no existing number moves.
 
 ### 4.3 Profiles
 
-All seven: the architecture row's "testing strategy" becomes "testing strategy and CI budget
+The six profiles with an architecture row (research-prototype has none): the architecture row's "testing strategy" becomes "testing strategy and CI budget
 (`references/core/economy.md §3`)". Profiles with a reason to raise the bar add one line:
 infra-platform keeps failure-injection tests; library-sdk-cli keeps golden examples as tests and
 a supported-version matrix; data-ml runs eval runs in the slow job.
@@ -180,23 +183,28 @@ a supported-version matrix; data-ml runs eval runs in the slow job.
 
 ## 6. Tests and evals
 
-`tests/test_check_docs.py`:
+`tests/test_check_docs.py` (lite plans are written into a temporary copy of the valid fixture,
+so the fixture's generated indexes do not churn):
 
-- W008 fires on a lite plan with four tasks; not with three.
+- W008 fires on a lite plan with four tasks, ticked or not; not with three.
 - A lite plan with no Approach section lints clean.
-- An unknown Shape value raises E013.
-- `tests/fixture/` gains one lite plan.
+- A full plan (no Shape line, or an empty one) with five tasks raises nothing new.
+- `Lite` in any case parses as lite; an unknown Shape value raises E013.
+- The plan-lite template, tokens filled, lints clean.
 
-`evals/`: four new scenarios (57 → 61):
+`evals/`: the harness tests bootstrap steps, not feature work, so promotion and test admission
+are covered by the linter tests above. Eval additions, 57 → 69 assertions:
 
-1. A two-commit feature gets a lite plan; a fourth task promotes it.
-2. The agent declines a coverage-only test and prunes a duplicate with a note.
-3. The agent writes CI as one workflow with fast and slow jobs — no matrix, no deploy pipeline.
-4. The session-end report opens with Needs from you; a non-blocking question is logged with its
-   default.
+- `generation` (+3): `tools/templates/plan-lite.md` copied; `AGENTS.md` carries the stopping
+  rules; `AGENTS.md` Commands names a `check` command or the milestone that adds it.
+- `first-session` (+2): the claimed plan carries `## Done when`; the final message opens with
+  Needs from you.
+- New scenario `ci-default` (7): one workflow file; a PR trigger; a slow job gated to main or a
+  schedule; a path filter; no deploy or publish step; `AGENTS.md` names a concrete `check`
+  command; the project lints clean.
 
-Then one real-repository run from a seed, as in releases F and G, recording full-suite runs per
-feature.
+Then one real-repository run from a seed, as in releases F and G: the bootstrap still scores
+23/1/0 or better, and the generated process files carry the new rules.
 
 ## 7. Release
 
