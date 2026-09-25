@@ -65,7 +65,8 @@ A budget raised by a profile or an ADR says why in the same place.
 
 - **Stopping rules.** Keep going when a step needs no input, and put the status in the same
   message as the next action. Stop before anything destructive — deleting data, force-pushing,
-  rewriting history — anything outside the repository, or anything that spends money.
+  rewriting history — anything outside the repository (pushing its own branch is fine), or
+  anything that spends money.
 - **Done when and Stop and ask if.** Every plan, full or lite, states checkable end states and
   the conditions that bring the human in, before work starts.
 - **Questions.** A question that does not block the next step goes to

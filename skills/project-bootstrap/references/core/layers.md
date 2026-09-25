@@ -43,7 +43,7 @@ Moving a feature to another milestone: allocate a new ID in the target milestone
 | ADR | `proposed` · `accepted` · `superseded by NNNN` · `rejected` |
 | Design doc | `draft` · `stable` · `living` |
 
-The linter enforces these vocabularies: a `**Status:**` outside the list for its object is `E013` (design docs: `E014`). The check exists because a misspelt status would otherwise drop the file out of every other check that keys on status — a milestone marked `wip` would never be asked for exit criteria, and a plan marked `started` would never appear in `<project>/docs/CURRENT.md`.
+The linter enforces these vocabularies: a `**Status:**` outside the list for its object is `E013` (design docs: `E014`). The check exists because a misspelt status would otherwise drop the file out of every other check that keys on status — a milestone marked `wip` would never be asked for exit criteria, and a plan marked `started` would never appear in `<project>/docs/CURRENT.md`. A plan's `**Shape:**`, when present, must be `lite` (no line, or an empty one, means a full plan); any other value is `E013` too. Both checks run at the standard and full tiers, where milestones and plans exist.
 
 ## 4. Where status lives
 

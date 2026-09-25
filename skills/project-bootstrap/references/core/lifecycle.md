@@ -28,14 +28,14 @@ The promotion rule: if a small change grows past one commit, it is no longer sma
 
 A feature expected to take three commits or fewer may use `<project>/tools/templates/plan-lite.md`
 instead of the full plan: the same header plus `**Shape:** lite`, Sessions, Objective, Done when,
-Stop and ask if, Current state (at most three bullets — Ground still happens), Tasks with a check
+Stop and ask if, Current state (one to three bullets, replacing Ground's three to ten — Ground still happens), Tasks with a check
 each, Progress notes and a verification log. No Approach, alternatives, risks, docs to update or
 separate test list; any test the feature needs is named in its task line. Status, claiming and
 Close are unchanged.
 
 The promotion rule mirrors `§3`: a fourth task makes it a full plan. Copy the missing sections
 from `<project>/tools/templates/plan.md`, delete the Shape line, and continue; the linter warns
-(`W008`) on a lite plan holding more than three tasks. Lite and standard projects differ here:
+(`W008`) on an open lite plan holding more than three tasks. The plan shape is not the tier:
 a lite-tier project keeps its checkboxes on the roadmap and writes no plans at all
 (`references/core/tiers.md §2`).
 

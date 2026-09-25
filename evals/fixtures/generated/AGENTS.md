@@ -30,7 +30,7 @@ Small fixes skip the plan (`docs/WORKFLOW.md` §5).
 
 ## Stopping rules
 - Keep going when a step needs no input; put the status in the same message as the next action.
-- Stop and ask before anything destructive (deleting data, force-pushing, rewriting history), anything outside this repository, or anything that spends money.
+- Stop and ask before anything destructive (deleting data, force-pushing, rewriting history), anything outside this repository (pushing its own branch is fine), or anything that spends money.
 - A question that doesn't block goes to `docs/OPEN-QUESTIONS.md` with the default you chose; continue on it.
 - End each session with the report `docs/WORKFLOW.md` §3a orders: Needs from you first.
 

@@ -210,3 +210,43 @@ def test_generation_check_assertion_needs_a_command_or_its_milestone():
     assert re.search(pattern, with_milestone)
     fixture = (Path(__file__).resolve().parents[1] / "evals" / "fixtures" / "generated" / "AGENTS.md").read_text(encoding="utf-8")
     assert not re.search(pattern, fixture)
+
+
+def _skill() -> str:
+    """SKILL.md with whitespace collapsed, so a rewrap never breaks a phrase check."""
+    return " ".join((SKILL_DIR / "SKILL.md").read_text(encoding="utf-8").split())
+
+
+def test_skill_covers_the_release_g_gaps():
+    skill = _skill()
+    assert "A value the bootstrap chooses alone" in skill                 # gap 1: own choices while writing
+    assert "the result is an *owner* decision" in skill                  # gap 2: delegated contradiction
+    assert "named in the next gate message" in skill                     # gap 3: edits after a gate
+    assert "*to fold*" in skill and "interim behaviour" in skill        # gap 4: held and to-fold gaps
+    assert "any work its exit needs" in skill                           # gap 5: work that is not code
+    assert "drop any line that names the bootstrap branch" in skill     # gap 6: carried-over branch line
+    assert "without a note about the bootstrap branch" not in skill
+
+
+def test_layers_documents_the_plan_shape_and_tier_gating():
+    layers = (SKILL_DIR / "references" / "core" / "layers.md").read_text(encoding="utf-8")
+    assert "`**Shape:**`" in layers and "standard and full" in layers
+
+
+def test_open_questions_template_says_where_a_default_goes():
+    oq = (TEMPLATES / "OPEN-QUESTIONS.md").read_text(encoding="utf-8")
+    assert "none — default:" in oq
+
+
+def test_plan_lite_bullet_count_reads_one_way():
+    lifecycle = (SKILL_DIR / "references" / "core" / "lifecycle.md").read_text(encoding="utf-8")
+    workflow = (TEMPLATES / "WORKFLOW.md").read_text(encoding="utf-8")
+    assert "one to three bullets" in lifecycle and "one to three Current state bullets" in workflow
+    assert "a lite-tier project" in lifecycle
+
+
+def test_stopping_rules_allow_pushing_the_projects_own_branch():
+    agents = (TEMPLATES / "AGENTS.md").read_text(encoding="utf-8")
+    economy = (SKILL_DIR / "references" / "core" / "economy.md").read_text(encoding="utf-8")
+    for text in (agents, economy):
+        assert "pushing its own branch is fine" in text

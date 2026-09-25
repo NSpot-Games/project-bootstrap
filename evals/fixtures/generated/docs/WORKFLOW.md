@@ -29,7 +29,7 @@ Skip the plan for: obvious bug fixes with a reproducing test; typos and formatti
 Time-boxed, throwaway code to answer one question. Never committed to `main`. Record the question, the time box, and the result in the plan's Current state, or in an ADR if it decided something.
 
 ## 5b. Plan-lite
-A feature you expect to take three commits or fewer may use `tools/templates/plan-lite.md`: header with `**Shape:** lite`, Objective, Done when, Stop and ask if, up to three Current state bullets, Tasks, Progress notes, Verification log. Tests go in the task lines. A fourth task makes it a full plan: copy the missing sections from `tools/templates/plan.md` and delete the Shape line. The linter warns (W008) on a lite plan over three tasks.
+A feature you expect to take three commits or fewer may use `tools/templates/plan-lite.md`: header with `**Shape:** lite`, Sessions, Objective, Done when, Stop and ask if, one to three Current state bullets, Tasks, Progress notes, Verification log. Tests go in the task lines. A fourth task makes it a full plan: copy the missing sections from `tools/templates/plan.md` and delete the Shape line. The linter warns (W008) on a lite plan over three tasks.
 
 ## 6. When things don't fit
 Too big → split. Blocked on a decision → ADR `proposed`, move on. Exit criteria unmeetable → say so with numbers. Doc is wrong → fix it in the same change.

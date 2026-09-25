@@ -150,7 +150,7 @@ A lettered section, so no existing number moves.
   `## Tests this feature adds`.
 - `assets/templates/WORKFLOW.md` — Ground, Execute and Close in the project's words; new §5b
   plan-lite; new §3a session-end report order.
-- `assets/templates/AGENTS.md` — a three-line **Stopping rules** block; the Tests convention
+- `assets/templates/AGENTS.md` — a **Stopping rules** block (shipped as four lines: the fourth names the session report); the Tests convention
   points to the admission rule; Commands must include the single `check` command. Stays under
   120 lines.
 - `assets/templates/README.md` — a row for `plan-lite.md`.
