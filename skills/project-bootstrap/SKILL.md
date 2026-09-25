@@ -5,7 +5,7 @@ license: MIT
 compatibility: Requires Python 3.11+ for scripts/check_docs.py
 metadata:
   author: NSpotGames
-  version: "2.8.0"
+  version: "2.9.0"
 ---
 
 # Project Bootstrap
@@ -143,7 +143,9 @@ the README lists. Every
 gap goes into the instance README's numbered *Gaps* section, marked *folded*, *held for M0*, or both
 when the model change is folded and the policy behind it is held;
 the data-model doc points at that section, and the held ones are copied into M0's notes at
-generation (§4, step 4). Fold the clear gaps at once; hold the ones that need a decision. When
+generation (§4, step 4). Fold the clear gaps at once; hold the ones that need a decision. A gap
+found before the data-model doc exists is marked *to fold* until that doc folds it, and the
+data-model doc states each held gap's interim behaviour — what the model does until M0 decides. When
 the real instance cannot be obtained at bootstrap, or the project's own rules forbid real data
 in an example, write a constructed stand-in in the actual schema, say so in its README, mark
 every invented value so it cannot be taken for a real one (reserved example domains,
@@ -158,11 +160,18 @@ a numbered *Decisions* section listing the decisions the doc rests on — each m
 *recovered* (from pre-bootstrap history, with the date) or *recommended, not confirmed* — and
 the one-line pointer to the open-questions file (`references/core/doc-kinds.md §3`). The
 primary design doc's Decisions section is where the brainstorm's decision list is written down;
-the ADR backfill (§4, step 4a) reads these sections and nothing else. When a decision taken in
+the ADR backfill (§4, step 4a) reads these sections and nothing else. A value the bootstrap
+chooses alone while writing — a budget, a due date, a retention period, an invented name — is a
+decision like any other: it is marked *recommended, not confirmed*, and only a choice that would be expensive
+to change gets an open-questions row and a line in the gate message. When a decision taken in
 a later session contradicts an earlier doc, edit the earlier doc in the same commit, with a
 changelog line naming the decision; a design doc is never left saying something the project has
 decided against. When a later doc extends the schema, the data-model doc and the example
 instance change in the same commit too, and the instance README gains a numbered gap for it.
+An edit to a doc that has passed its gate is named in the next gate message when it changes a
+decision; any other edit — wording, a schema extension, a reordered step — needs only its
+changelog line. A contradiction the bootstrap finds between two of its own reviewed docs is put
+to the user like any other contradiction.
 
 A design doc never carries an open-questions section. Every question goes to
 `<project>/docs/OPEN-QUESTIONS.md` — create it from `assets/templates/OPEN-QUESTIONS.md` the
@@ -192,7 +201,8 @@ sentence and nothing more. Write `<project>/docs/roadmap.md` from
 phase and sketches anything after it; a single non-sketch phase is how the linter tells
 standard from full. Decide the current and next milestones' feature lines here — ID and title —
 ordered so that `M0-01` is claimable at once (no open-question row blocks it), three to ten per
-milestone (`references/core/layers.md §5`), and list them with each milestone's exit in the
+milestone (`references/core/layers.md §5`). A feature may be any work its exit needs — a user
+test, timed runs, labelling an evaluation set — not only code; and list them with each milestone's exit in the
 gate message so the user reviews them now; the roadmap holds only goals, so the exits and
 feature lines live in the scratch list until the milestone files are written at generation. The
 template's sketched second phase stays as it ships, its milestone taking the next free ID after
@@ -226,7 +236,7 @@ Once the brainstorm, phase 1's design docs, and the roadmap are all written and 
 
 1. Copy the files `assets/templates/` provides for the chosen tier into the project;
    `references/core/tiers.md` lists which files each tier gets. Skip `assets/templates/CURRENT.md`;
-   the linter writes that file. Copy the object templates `assets/templates/plan.md`,
+   the linter writes that file. Copy the object templates `assets/templates/plan.md`, `assets/templates/plan-lite.md`,
    `assets/templates/milestone.md`, `assets/templates/adr.md` and `assets/templates/evidence.md`
    unchanged to `<project>/tools/templates/`; sessions copy and fill one each time they create a
    plan, a milestone, an ADR or an evidence file.
@@ -250,7 +260,8 @@ Once the brainstorm, phase 1's design docs, and the roadmap are all written and 
 3. Substitute every `{{token}}` using the table in `assets/templates/README.md`; values come
    from C0's answers, the brainstorm's decisions, the design docs, and the roadmap just written.
    Before any code exists, `{{commands}}` is the linter command plus one line naming the
-   milestone that adds the rest; `{{rule}}` and `{{deferred}}` may each expand to several lines.
+   milestone that adds the rest, and the `check` command among them — the one command that runs
+   what CI's fast job runs (`references/core/economy.md §3`); `{{rule}}` and `{{deferred}}` may each expand to several lines.
    A template line written as an instruction ("one line per top-level entry", "note what is
    test-first") is replaced by the content it asks for, never kept. Cite design docs by their
    full path from the project root everywhere, including the layout section of
@@ -261,7 +272,7 @@ Once the brainstorm, phase 1's design docs, and the roadmap are all written and 
    rather than replacing it. If an `AGENTS.md` already exists, keep every rule it states as a
    non-negotiable in the generated file, move any workflow it describes (branches, reviews,
    pull requests) into `<project>/docs/WORKFLOW.md` as an appended numbered section, as
-   written and without a note about the bootstrap branch (§1a, rule 4), drop the rest, and record the merge as an owner decision; `CLAUDE.md` becomes `@AGENTS.md` regardless.
+   written except that you drop any line that names the bootstrap branch (§1a, rule 4), drop the rest, and record the merge as an owner decision, naming any dropped line; `CLAUDE.md` becomes `@AGENTS.md` regardless.
    Seed the glossary's areas from the profile's vocabulary table and the design docs' section
    headings.
 3a. In docs-first and brownfield, write the pre-bootstrap document classification into
@@ -311,7 +322,8 @@ once the bootstrap has merged (`feat/M0-01-<slug>`), not the branch of the stamp
 `<project>/docs/milestones/M0.md`, and — because this is the milestone's first claim — set `M0`
 itself to `in progress` in the same edit (`references/core/parallel-agents.md §1`). Run
 `python tools/check_docs.py --root . --fix` so `<project>/docs/CURRENT.md` shows the claim, and
-commit. The bootstrap ends here; the feature's Ground step is the next session's work unless
+commit. End with the session report `references/core/economy.md §4` orders, Needs from you
+first. The bootstrap ends here; the feature's Ground step is the next session's work unless
 the user says to continue. Follow `<project>/docs/WORKFLOW.md` from there.
 
 ## 6. Brownfield variant
@@ -352,7 +364,9 @@ Follow `references/core/adoption.md §4`. In outline:
    note's commit date), the questions still open, and every contradiction between documents.
    Each contradiction is a decision the user makes before the design doc that depends on it is
    written; put them to the user one per message, hardest constraint first, as C1 would, unless
-   the user batches. With no contradictions, lead with C1's hardest technical constraint. Settle the stack here too, as §3(a) says.
+   the user batches. When the user takes your recommendation on a contradiction, the result is
+   an *owner* decision, not a recommendation; a contradiction settled before `<project>/docs/OPEN-QUESTIONS.md` exists needs
+   no row. With no contradictions, lead with C1's hardest technical constraint. Settle the stack here too, as §3(a) says.
 4. **Derive, and say what supersedes what.** Each design doc is derived from the history with
    citations back to it, and its first paragraph states what it supersedes ("supersedes
    `<project>/docs/history/<file>.md` for <topic>"). History is never edited to match.

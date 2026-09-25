@@ -9,11 +9,14 @@
 ## Sessions
 
 ## Objective
+## Done when
+## Stop and ask if
 ## Current state
 ## Approach
 ### Alternatives considered
 ### Risks
 ### Docs to update
+### Tests this feature adds
 ## Tasks
 - [ ] T1 — ... **Verify:** `command`
 ## Progress notes

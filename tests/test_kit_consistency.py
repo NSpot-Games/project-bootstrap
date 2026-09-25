@@ -1,6 +1,7 @@
 """Agreement between what the kit's documents say and what its code does. Each test here
 guards a class of drift that a prose rule alone cannot: a tier the linter cannot see, a token
 the table does not explain, a finding code the references cite but the linter never emits."""
+import json
 import re
 from pathlib import Path
 
@@ -67,6 +68,7 @@ def test_hooks_readme_snippet_matches_the_shipped_project_hook():
 def test_workflow_template_points_at_the_object_templates_and_carries_no_tokens():
     workflow = _text(TEMPLATES / "WORKFLOW.md")
     assert "tools/templates/plan.md" in workflow
+    assert "tools/templates/plan-lite.md" in workflow
     assert "tools/templates/milestone.md" in workflow
     assert "{{" not in workflow, "format hints in WORKFLOW.md are angle-bracketed, never tokens"
 
@@ -143,3 +145,110 @@ def test_docs_map_template_uses_the_adoption_classes():
         assert cls in template, cls
         assert cls in adoption, cls
     assert "*research*" not in template
+
+
+def test_plan_templates_carry_the_orchestrator_sections():
+    full = (TEMPLATES / "plan.md").read_text(encoding="utf-8")
+    lite = (TEMPLATES / "plan-lite.md").read_text(encoding="utf-8")
+    for heading in ("## Done when", "## Stop and ask if", "## Tasks", "## Sessions", "## Progress notes"):
+        assert heading in full and heading in lite, heading
+    assert "### Tests this feature adds" in full
+    assert "**Shape:** lite" in lite and "**Shape:**" not in full
+    assert "## Approach" not in lite
+
+
+def test_project_templates_carry_the_economy_rules_without_citing_the_kit():
+    workflow = (TEMPLATES / "WORKFLOW.md").read_text(encoding="utf-8")
+    agents = (TEMPLATES / "AGENTS.md").read_text(encoding="utf-8")
+    assert "tools/templates/plan-lite.md" in workflow
+    assert "## 5b. Plan-lite" in workflow and "## 3a. Working for a human" in workflow
+    assert "Needs from you" in workflow
+    assert "## Stopping rules" in agents and "Stop and ask before" in agents
+    assert "`check`" in agents
+    for text in (workflow, agents):
+        assert "references/" not in text
+    assert len(agents.rstrip("\n").split("\n")) < 120
+
+
+def test_every_architecture_row_names_the_ci_budget():
+    for p in sorted((SKILL_DIR / "references" / "profiles").glob("*.md")):
+        text = p.read_text(encoding="utf-8")
+        row = next((ln for ln in text.splitlines() if ln.startswith("| `<project>/docs/design/architecture.md`")), None)
+        if row is None:
+            continue  # research-prototype writes no architecture doc
+        assert "CI budget (`references/core/economy.md §3`)" in row, p.name
+
+
+def test_close_reviews_the_diff_before_the_one_full_suite_run():
+    lifecycle = (SKILL_DIR / "references" / "core" / "lifecycle.md").read_text(encoding="utf-8")
+    close = lifecycle[lifecycle.index("## 5. Close in detail"):]
+    assert close.index("review the diff against `main`") < close.index("full suite")
+    assert "\n2a." not in close
+
+
+def test_check_line_is_conditional_until_the_command_exists():
+    agents = (TEMPLATES / "AGENTS.md").read_text(encoding="utf-8")
+    skill = (SKILL_DIR / "SKILL.md").read_text(encoding="utf-8")
+    assert "Once `check` exists" in agents
+    assert "the `check` command among them" in skill
+
+
+def _eval_assertion(scenario: str, text_start: str) -> str:
+    evals = json.loads((Path(__file__).resolve().parents[1] / "evals" / "evals.json").read_text(encoding="utf-8"))
+    ev = next(e for e in evals["evals"] if e["name"] == scenario)
+    return next(a["pattern"] for a in ev["assertions"] if a["text"].startswith(text_start))
+
+
+def test_generation_check_assertion_needs_a_command_or_its_milestone():
+    pattern = _eval_assertion("generation", "AGENTS.md names a check command")
+    template_line = "`check` runs exactly what CI's fast job runs; run it before pushing, never push to find out."
+    bare = f"## Commands\n- `python tools/check_docs.py --root .` — the docs linter\n{template_line}\n\n## Conventions\n- `check` mentioned later\n"
+    assert not re.search(pattern, bare)
+    with_cmd = f"## Commands\n- `make check` — what CI's fast job runs\n{template_line}\n\n## Conventions\n"
+    assert re.search(pattern, with_cmd)
+    with_milestone = f"## Commands\n- the docs linter; M0-02 adds the check command\n{template_line}\n\n## Conventions\n"
+    assert re.search(pattern, with_milestone)
+    check_first = f"## Commands\n- `check` — not written yet. M0-01 adds it with the skeleton.\n{template_line}\n\n## Conventions\n"
+    assert re.search(pattern, check_first)
+    fixture = (Path(__file__).resolve().parents[1] / "evals" / "fixtures" / "generated" / "AGENTS.md").read_text(encoding="utf-8")
+    assert not re.search(pattern, fixture)
+
+
+def _skill() -> str:
+    """SKILL.md with whitespace collapsed, so a rewrap never breaks a phrase check."""
+    return " ".join((SKILL_DIR / "SKILL.md").read_text(encoding="utf-8").split())
+
+
+def test_skill_covers_the_release_g_gaps():
+    skill = _skill()
+    assert "A value the bootstrap chooses alone" in skill                 # gap 1: own choices while writing
+    assert "the result is an *owner* decision" in skill                  # gap 2: delegated contradiction
+    assert "named in the next gate message" in skill                     # gap 3: edits after a gate
+    assert "*to fold*" in skill and "interim behaviour" in skill        # gap 4: held and to-fold gaps
+    assert "any work its exit needs" in skill                           # gap 5: work that is not code
+    assert "drop any line that names the bootstrap branch" in skill     # gap 6: carried-over branch line
+    assert "without a note about the bootstrap branch" not in skill
+
+
+def test_layers_documents_the_plan_shape_and_tier_gating():
+    layers = (SKILL_DIR / "references" / "core" / "layers.md").read_text(encoding="utf-8")
+    assert "`**Shape:**`" in layers and "standard and full" in layers
+
+
+def test_open_questions_template_says_where_a_default_goes():
+    oq = (TEMPLATES / "OPEN-QUESTIONS.md").read_text(encoding="utf-8")
+    assert "none — default:" in oq
+
+
+def test_plan_lite_bullet_count_reads_one_way():
+    lifecycle = (SKILL_DIR / "references" / "core" / "lifecycle.md").read_text(encoding="utf-8")
+    workflow = (TEMPLATES / "WORKFLOW.md").read_text(encoding="utf-8")
+    assert "one to three bullets" in lifecycle and "one to three Current state bullets" in workflow
+    assert "a lite-tier project" in lifecycle
+
+
+def test_stopping_rules_allow_pushing_the_projects_own_branch():
+    agents = (TEMPLATES / "AGENTS.md").read_text(encoding="utf-8")
+    economy = (SKILL_DIR / "references" / "core" / "economy.md").read_text(encoding="utf-8")
+    for text in (agents, economy):
+        assert "pushing its own branch is fine" in text

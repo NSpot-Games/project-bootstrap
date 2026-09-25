@@ -15,7 +15,7 @@ These files are copied into a new project during bootstrap and every double-brac
 | `{{slug}}` | Kebab-case slug of the title |
 | `{{date}}` | ISO date `YYYY-MM-DD` |
 | `{{agent}}` | Agent or tool name that collected an evidence file |
-| `{{commands}}` | Build, test, lint, run commands; before code exists, the linter command plus a line naming the milestone that adds the rest |
+| `{{commands}}` | Build, test, lint, run commands, always including one `check` command that runs exactly what CI's fast job runs; before code exists, the linter command plus a line naming the milestone that adds the rest |
 | `{{rule}}` | A non-negotiable rule; the line may repeat for several |
 | `{{deferred}}` | A deferred item; the line may repeat for several |
 | `{{Area}}` | Glossary area or design area, in heading form |
@@ -35,7 +35,7 @@ A template file has no `{{` left when copied into a project; the linter's E005 c
 
 Three files here are not filled in but copied as they are: `check_docs.toml` becomes
 `<project>/docs/.check_docs.toml` (every linter key, commented), `gitattributes` becomes
-`<project>/.gitattributes`, and the object templates `plan.md`, `milestone.md`, `adr.md` and
+`<project>/.gitattributes`, and the object templates `plan.md`, `plan-lite.md`, `milestone.md`, `adr.md` and
 `evidence.md` are copied, tokens intact, to `<project>/tools/templates/`, where a session copies
 one and fills it each time it creates a plan, a milestone, an ADR or an evidence file. That
 directory sits outside the linter's placeholder scope, so the tokens there are not E005.

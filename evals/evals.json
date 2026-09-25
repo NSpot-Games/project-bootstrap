@@ -35,7 +35,9 @@
         {"text": "CURRENT.md lists M0-01 as claimed", "check": "grep", "path": "docs/CURRENT.md", "pattern": "(?m)^- M0-01 — "},
         {"text": "Generated files are current, so they were regenerated rather than hand-edited", "check": "lint", "absent_codes": ["W003"]},
         {"text": "The project lints with zero errors", "check": "lint", "max_errors": 0},
-        {"text": "No stub plans were created for other features", "check": "count_glob", "glob": "docs/plans/M*/M*-*.md", "max": 1}
+        {"text": "No stub plans were created for other features", "check": "count_glob", "glob": "docs/plans/M*/M*-*.md", "max": 1},
+        {"text": "The claimed plan carries a Done when section", "check": "grep_any", "glob": "docs/plans/M0/M0-01-*.md", "pattern": "(?m)^## Done when"},
+        {"text": "The final message opens with what the human must decide", "check": "final_contains", "pattern": "(?is)\\A\\W{0,10}(#+\\s*)?\\**needs from you"}
       ]
     },
     {
@@ -117,7 +119,27 @@
         {"text": "The linter config is written with the project", "check": "file_exists", "path": "docs/.check_docs.toml"},
         {"text": "Line endings are pinned with .gitattributes", "check": "file_exists", "path": ".gitattributes"},
         {"text": "The object templates are copied into the project", "check": "files_exist", "paths": ["tools/templates/plan.md", "tools/templates/milestone.md", "tools/templates/adr.md"]},
-        {"text": "WORKFLOW.md points at the object templates instead of embedding them", "check": "grep", "path": "docs/WORKFLOW.md", "pattern": "tools/templates/plan.md"}
+        {"text": "WORKFLOW.md points at the object templates instead of embedding them", "check": "grep", "path": "docs/WORKFLOW.md", "pattern": "tools/templates/plan.md"},
+        {"text": "The plan-lite object template was copied", "check": "file_exists", "path": "tools/templates/plan-lite.md"},
+        {"text": "AGENTS.md carries the stopping rules", "check": "grep", "path": "AGENTS.md", "pattern": "(?m)^## Stopping rules"},
+        {"text": "AGENTS.md names a check command, or the milestone that adds it", "check": "grep", "path": "AGENTS.md", "pattern": "(?ms)^## Commands\\n(?:(?!^## ).)*?(`(?=[^`\\n]*\\s)(?=[^`\\n]*\\bcheck\\b)[^`\\n]+`|\\bM\\d+(?:-\\d+)?\\b[^\\n]*\\bcheck\\b|\\bcheck\\b[^\\n]*\\bM\\d+(?:-\\d+)?\\b)"}
+      ]
+    },
+    {
+      "id": 7,
+      "name": "ci-default",
+      "fixture": "generated",
+      "setup": {"git": false, "copy_linter": true},
+      "prompt": "The bootstrap of this project is complete and reviewed. Before M0 starts, the owner asks for the project's CI and its local check command, following the kit's defaults for this profile. Write them, record the command in AGENTS.md, and stop. Write no implementation code.",
+      "expected_output": "One workflow file with a fast job on pull requests (lint, typecheck, fast tests, docs linter) and a slow job gated to main or a schedule; a path filter so docs-only changes run only the docs linter; no deploy or publish step; a local check command that runs what the fast job runs, named in AGENTS.md; the project still lints clean; the final message opens with Needs from you.",
+      "assertions": [
+        {"text": "Exactly one CI workflow file", "check": "count_glob", "glob": ".github/workflows/*.y*ml", "min": 1, "max": 1},
+        {"text": "The fast job runs on pull requests", "check": "grep_any", "glob": ".github/workflows/*", "pattern": "pull_request"},
+        {"text": "The slow job is gated to main or a schedule", "check": "grep_any", "glob": ".github/workflows/*", "pattern": "(?s)(schedule:|refs/heads/main|github\\.ref\\s*==\\s*'refs/heads/main'|branches:\\s*\\[?\\s*-?\\s*['\\\"]?main)"},
+        {"text": "A path filter keeps docs-only changes off the test jobs", "check": "grep_any", "glob": ".github/workflows/*", "pattern": "(paths-ignore:|paths:|paths-filter|changed-files|git diff --name-only)"},
+        {"text": "No deploy or publish step before the milestone that ships", "check": "none_grep", "glob": ".github/workflows/*", "pattern": "(?im)^\\s*-?\\s*(name|uses|run):.*(deploy|pypi|twine|gh-pages|publish)"},
+        {"text": "AGENTS.md names a concrete check command, more than the bare word", "check": "grep", "path": "AGENTS.md", "pattern": "(?is)## Commands.*?`(?=[^`\\n]*\\s)(?=[^`\\n]*\\bcheck\\b)[^`\\n]+`"},
+        {"text": "The project lints with zero errors", "check": "lint", "max_errors": 0}
       ]
     }
   ]

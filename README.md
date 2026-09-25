@@ -56,7 +56,7 @@ from a Stop hook, a pre-commit hook, or CI.
 - `BOOTSTRAP.md` — the idea and the machinery, one page each, with pointers into the skill.
 - `skills/project-bootstrap/SKILL.md` — the guided procedure.
 - `skills/project-bootstrap/references/core/` — document kinds, layers, lifecycle,
-  long-horizon rules, parallel agents, tiers, adoption, lessons.
+  long-horizon rules, parallel agents, tiers, economy, adoption, lessons.
 - `skills/project-bootstrap/references/profiles/` — seven project profiles and how to pick one.
 - `skills/project-bootstrap/assets/templates/` — the files a project copies in.
 - `skills/project-bootstrap/scripts/` — `check_docs.py` and hook snippets.

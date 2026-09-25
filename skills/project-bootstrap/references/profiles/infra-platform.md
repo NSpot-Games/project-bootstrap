@@ -11,7 +11,7 @@ The central artefact is environments and the SLOs they must hold.
 | File | Sections | Written at |
 |---|---|---|
 | `<project>/docs/design/<product>-design.md` | who operates this and who consumes it; service-level objectives and how each is measured; capacity and scaling assumptions; non-goals for the first environment; success criteria for the first environment | bootstrap |
-| `<project>/docs/design/architecture.md` | topology (regions, networks, boundaries); the key interfaces (APIs, queues) as code or schema; data flow for the main request path with a latency budget; persistence and backup strategy; testing strategy, including failure injection | bootstrap |
+| `<project>/docs/design/architecture.md` | topology (regions, networks, boundaries); the key interfaces (APIs, queues) as code or schema; data flow for the main request path with a latency budget; persistence and backup strategy; testing strategy, including failure injection, and CI budget (`references/core/economy.md §3`) | bootstrap |
 | `<project>/docs/design/environments.md` | principles (what is authoritative — infrastructure-as-code vs. console changes); the environment and config schema with an annotated example; secrets and configuration management; the promotion path between environments; validation rules as a numbered list | bootstrap |
 | `<project>/docs/runbooks/<scenario>.md` | purpose and audience; standard operating procedures, one per scenario; incident-response steps; escalation paths; rollback and recovery procedures | when a real environment first exists |
 | `<project>/docs/design/security.md` | threat model summary; identity and access management; network security boundaries; secrets and key rotation; audit logging | bootstrap |

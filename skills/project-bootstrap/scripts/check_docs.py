@@ -17,6 +17,7 @@ Codes (the CODES table below is the same list, for tooling):
   W002 in-progress plan, unticked dep  W005 evidence file not written yet
   W003 generated file differs          W006 AGENTS.md over 120 lines
   W007 cited project file not written yet (no CURRENT.md, bootstrap in progress)
+  W008 lite plan over 3 tasks (promote to a full plan)
 """
 from __future__ import annotations
 
@@ -54,6 +55,7 @@ CODES: dict[str, str] = {
     "W005": "evidence file not written yet",
     "W006": "AGENTS.md over 120 lines",
     "W007": "cited project file not written yet (bootstrap in progress)",
+    "W008": "lite plan over 3 tasks; promote to a full plan",
 }
 
 # Tiers, least to most machinery. `minimal` is a project with no roadmap yet (mid-bootstrap):
@@ -63,6 +65,8 @@ STANDARD_LIKE = ("standard", "full")
 
 MILESTONE_STATUSES = ("sketch", "planned", "in progress", "done", "dropped")
 PLAN_STATUSES = ("grounding", "planned", "in progress", "blocked", "done", "moved", "superseded")
+PLAN_SHAPES = ("lite",)  # no Shape line, or an empty one, means a full plan
+LITE_MAX_TASKS = 3
 PHASE_STATUSES = ("sketch", "active", "done")
 ADR_STATUSES = ("proposed", "accepted", "rejected")  # plus `superseded by NNNN`
 DESIGN_STATUSES = ("draft", "stable", "living")
@@ -132,6 +136,10 @@ def load_config(root: Path) -> Config:
                 setattr(cfg, key, data[key])
         if "exclude" in data:
             cfg.exclude = list(DEFAULT_EXCLUDE) + list(data["exclude"])
+        stale = cfg.stale_hours
+        if isinstance(stale, bool) or not isinstance(stale, (int, float)) or stale <= 0:
+            cfg.config_error = f"stale_hours must be a positive number, not {stale!r}"
+            cfg.stale_hours = 24
         if cfg.tier != "auto" and cfg.tier not in TIERS:
             cfg.config_error = f"tier must be one of {', '.join(TIERS)} or auto, not {cfg.tier!r}"
             cfg.tier = "auto"
@@ -271,6 +279,8 @@ class Plan:
     stamps: list[tuple[datetime, str]]
     last_note: str
     tasks_open: int
+    shape: str = ""
+    tasks_total: int = 0
 
 
 @dataclass
@@ -417,10 +427,12 @@ def parse_plan(path: Path) -> Plan:
         if dt:
             stamps.append((dt, (m.group(2) or "").strip()))
     notes = [ln[2:].strip() for ln in section_body(text, "Progress notes").splitlines() if ln.startswith("- ")]
-    tasks_open = sum(1 for m in TASK_RE.finditer(section_body(text, "Tasks")) if m.group(1) == " ")
+    task_boxes = [m.group(1) for m in TASK_RE.finditer(section_body(text, "Tasks"))]
+    tasks_open = sum(1 for b in task_boxes if b == " ")
     milestone = field_value(text, "Milestone") or pid.split("-")[0]
+    shape = (field_value(text, "Shape") or "").lower()
     return Plan(pid, path, title, status, moved_to, milestone, parse_ids(field_value(text, "Depends on")),
-                stamps, notes[-1] if notes else "", tasks_open)
+                stamps, notes[-1] if notes else "", tasks_open, shape, len(task_boxes))
 
 
 def parse_adr(path: Path) -> Adr:
@@ -749,6 +761,9 @@ def check_vocabulary(project: Project) -> list[Finding]:
     for pl in project.plans.values():
         if pl.status not in PLAN_STATUSES:
             out.append(Finding("E013", rel(cfg, pl.path), 1, bad("plan", pl.status, PLAN_STATUSES)))
+        if pl.shape and pl.shape not in PLAN_SHAPES:
+            out.append(Finding("E013", rel(cfg, pl.path), 1,
+                               f"plan shape {pl.shape!r} is not one of: {', '.join(PLAN_SHAPES)} (omit the line for a full plan)"))
     for a in project.adrs:
         if a.status not in ADR_STATUSES and not ADR_SUPERSEDED_RE.match(a.status):
             out.append(Finding("E013", rel(cfg, a.path), 1,
@@ -798,7 +813,8 @@ def check_design_docs(project: Project) -> list[Finding]:
 
 def check_sizes(project: Project) -> list[Finding]:
     """W004: a planned or in-progress milestone holds 3-10 features (layers.md §5). W006:
-    AGENTS.md stays under 120 lines (lessons.md §1.17)."""
+    AGENTS.md stays under 120 lines (lessons.md §1.17). W008: an open lite plan holds at most
+    three tasks (lifecycle.md §3a); a finished one is history and is not re-litigated."""
     cfg = project.cfg
     out: list[Finding] = []
     for m in project.milestones.values():
@@ -808,6 +824,10 @@ def check_sizes(project: Project) -> list[Finding]:
         if not MILESTONE_MIN_FEATURES <= n <= MILESTONE_MAX_FEATURES:
             out.append(Finding("W004", rel(cfg, m.path), 1,
                                f"{m.id} has {n} feature(s); a milestone holds {MILESTONE_MIN_FEATURES}-{MILESTONE_MAX_FEATURES}"))
+    for pl in project.plans.values():
+        if pl.shape == "lite" and pl.tasks_total > LITE_MAX_TASKS and pl.status not in ("done", "moved", "superseded"):
+            out.append(Finding("W008", rel(cfg, pl.path), 1,
+                               f"{pl.id} is a lite plan with {pl.tasks_total} tasks; promote it to a full plan"))
     agents = cfg.root / "AGENTS.md"
     if agents.is_file():
         try:
