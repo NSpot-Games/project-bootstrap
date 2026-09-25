@@ -67,6 +67,7 @@ def test_hooks_readme_snippet_matches_the_shipped_project_hook():
 def test_workflow_template_points_at_the_object_templates_and_carries_no_tokens():
     workflow = _text(TEMPLATES / "WORKFLOW.md")
     assert "tools/templates/plan.md" in workflow
+    assert "tools/templates/plan-lite.md" in workflow
     assert "tools/templates/milestone.md" in workflow
     assert "{{" not in workflow, "format hints in WORKFLOW.md are angle-bracketed, never tokens"
 
@@ -153,3 +154,16 @@ def test_plan_templates_carry_the_orchestrator_sections():
     assert "### Tests this feature adds" in full
     assert "**Shape:** lite" in lite and "**Shape:**" not in full
     assert "## Approach" not in lite
+
+
+def test_project_templates_carry_the_economy_rules_without_citing_the_kit():
+    workflow = (TEMPLATES / "WORKFLOW.md").read_text(encoding="utf-8")
+    agents = (TEMPLATES / "AGENTS.md").read_text(encoding="utf-8")
+    assert "tools/templates/plan-lite.md" in workflow
+    assert "## 5b. Plan-lite" in workflow and "## 3a. Working for a human" in workflow
+    assert "Needs from you" in workflow
+    assert "## Stopping rules" in agents and "Stop and ask before" in agents
+    assert "`check`" in agents
+    for text in (workflow, agents):
+        assert "references/" not in text
+    assert len(agents.rstrip("\n").split("\n")) < 120
