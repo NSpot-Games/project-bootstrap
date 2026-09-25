@@ -809,8 +809,8 @@ def check_design_docs(project: Project) -> list[Finding]:
 
 def check_sizes(project: Project) -> list[Finding]:
     """W004: a planned or in-progress milestone holds 3-10 features (layers.md §5). W006:
-    AGENTS.md stays under 120 lines (lessons.md §1.17). W008: a lite plan holds at most three
-    tasks (lifecycle.md §3a)."""
+    AGENTS.md stays under 120 lines (lessons.md §1.17). W008: an open lite plan holds at most
+    three tasks (lifecycle.md §3a); a finished one is history and is not re-litigated."""
     cfg = project.cfg
     out: list[Finding] = []
     for m in project.milestones.values():
@@ -821,7 +821,7 @@ def check_sizes(project: Project) -> list[Finding]:
             out.append(Finding("W004", rel(cfg, m.path), 1,
                                f"{m.id} has {n} feature(s); a milestone holds {MILESTONE_MIN_FEATURES}-{MILESTONE_MAX_FEATURES}"))
     for pl in project.plans.values():
-        if pl.shape == "lite" and pl.tasks_total > LITE_MAX_TASKS:
+        if pl.shape == "lite" and pl.tasks_total > LITE_MAX_TASKS and pl.status not in ("done", "moved", "superseded"):
             out.append(Finding("W008", rel(cfg, pl.path), 1,
                                f"{pl.id} is a lite plan with {pl.tasks_total} tasks; promote it to a full plan"))
     agents = cfg.root / "AGENTS.md"

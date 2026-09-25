@@ -46,8 +46,7 @@ Under the data-ml profile, a feature is often an experiment rather than a build.
 ## 5. Close in detail
 
 1. Every task in the plan is ticked, each with verification evidence pasted in.
-2. The full suite, run once at Close, is green, or the plan states exactly what is red and why that is acceptable at this point.
-2a. Before asking for review, review the diff against `main` and list only blocking problems — each with the file, the line, why it is wrong, and how to show it failing — then fix each or record it in the plan (`references/core/economy.md §4`).
+2. Before asking for review, review the diff against `main` and list only blocking problems — each with the file, the line, why it is wrong, and how to show it failing — and fix each or record it in the plan (`references/core/economy.md §4`). Then run the full suite, once: it is green, or the plan states exactly what is red and why that is acceptable at this point.
 3. Every doc whose described behaviour changed is updated in the same commit.
 4. ADRs opened during the feature are reviewed; a `proposed` ADR does not block Close unless it is marked `**Blocking:** yes`.
 5. The feature's checkbox is ticked in the milestone file, and the plan's status is set to `done`.

@@ -122,7 +122,7 @@
         {"text": "WORKFLOW.md points at the object templates instead of embedding them", "check": "grep", "path": "docs/WORKFLOW.md", "pattern": "tools/templates/plan.md"},
         {"text": "The plan-lite object template was copied", "check": "file_exists", "path": "tools/templates/plan-lite.md"},
         {"text": "AGENTS.md carries the stopping rules", "check": "grep", "path": "AGENTS.md", "pattern": "(?m)^## Stopping rules"},
-        {"text": "AGENTS.md names a check command, or the milestone that adds it", "check": "grep", "path": "AGENTS.md", "pattern": "(?is)## Commands.*?`[^`\\n]*\\bcheck\\b[^`\\n]*`"}
+        {"text": "AGENTS.md names a check command, or the milestone that adds it", "check": "grep", "path": "AGENTS.md", "pattern": "(?ms)^## Commands\\n(?:(?!^## ).)*?(`(?=[^`\\n]*\\s)(?=[^`\\n]*\\bcheck\\b)[^`\\n]+`|\\bM\\d+(?:-\\d+)?\\b[^\\n]*\\bcheck\\b)"}
       ]
     },
     {

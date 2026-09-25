@@ -1071,3 +1071,12 @@ def test_plan_lite_template_filled_lints_clean(tmp_path):
     assert errors(found) == []
     assert "W008" not in codes(found)
     assert cd.parse_plan(root / "docs" / "plans" / "M1" / "M1-03-third-thing.md").shape == "lite"
+
+
+def test_w008_not_raised_for_finished_lite_plans(tmp_path):
+    for status in ("done", "moved to M1-02", "superseded"):
+        root = make_project(tmp_path / status.split()[0])
+        write_lite_plan(root, 4, ticked=True)
+        p = root / "docs" / "plans" / "M1" / "M1-03-third-thing.md"
+        p.write_text(p.read_text(encoding="utf-8").replace("**Status:** planned", f"**Status:** {status}"), encoding="utf-8", newline="\n")
+        assert "W008" not in codes(cd.run(root)), status

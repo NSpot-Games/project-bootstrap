@@ -250,8 +250,8 @@ Once the brainstorm, phase 1's design docs, and the roadmap are all written and 
 3. Substitute every `{{token}}` using the table in `assets/templates/README.md`; values come
    from C0's answers, the brainstorm's decisions, the design docs, and the roadmap just written.
    Before any code exists, `{{commands}}` is the linter command plus one line naming the
-   milestone that adds the rest, including the one `check` command that runs what CI's fast job
-   runs (`references/core/economy.md §3`); `{{rule}}` and `{{deferred}}` may each expand to several lines.
+   milestone that adds the rest, and the `check` command among them — the one command that runs
+   what CI's fast job runs (`references/core/economy.md §3`); `{{rule}}` and `{{deferred}}` may each expand to several lines.
    A template line written as an instruction ("one line per top-level entry", "note what is
    test-first") is replaced by the content it asks for, never kept. Cite design docs by their
    full path from the project root everywhere, including the layout section of

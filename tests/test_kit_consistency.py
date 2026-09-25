@@ -1,6 +1,7 @@
 """Agreement between what the kit's documents say and what its code does. Each test here
 guards a class of drift that a prose rule alone cannot: a tier the linter cannot see, a token
 the table does not explain, a finding code the references cite but the linter never emits."""
+import json
 import re
 from pathlib import Path
 
@@ -176,3 +177,36 @@ def test_every_architecture_row_names_the_ci_budget():
         if row is None:
             continue  # research-prototype writes no architecture doc
         assert "CI budget (`references/core/economy.md §3`)" in row, p.name
+
+
+def test_close_reviews_the_diff_before_the_one_full_suite_run():
+    lifecycle = (SKILL_DIR / "references" / "core" / "lifecycle.md").read_text(encoding="utf-8")
+    close = lifecycle[lifecycle.index("## 5. Close in detail"):]
+    assert close.index("review the diff against `main`") < close.index("full suite")
+    assert "\n2a." not in close
+
+
+def test_check_line_is_conditional_until_the_command_exists():
+    agents = (TEMPLATES / "AGENTS.md").read_text(encoding="utf-8")
+    skill = (SKILL_DIR / "SKILL.md").read_text(encoding="utf-8")
+    assert "Once `check` exists" in agents
+    assert "the `check` command among them" in skill
+
+
+def _eval_assertion(scenario: str, text_start: str) -> str:
+    evals = json.loads((Path(__file__).resolve().parents[1] / "evals" / "evals.json").read_text(encoding="utf-8"))
+    ev = next(e for e in evals["evals"] if e["name"] == scenario)
+    return next(a["pattern"] for a in ev["assertions"] if a["text"].startswith(text_start))
+
+
+def test_generation_check_assertion_needs_a_command_or_its_milestone():
+    pattern = _eval_assertion("generation", "AGENTS.md names a check command")
+    template_line = "`check` runs exactly what CI's fast job runs; run it before pushing, never push to find out."
+    bare = f"## Commands\n- `python tools/check_docs.py --root .` — the docs linter\n{template_line}\n\n## Conventions\n- `check` mentioned later\n"
+    assert not re.search(pattern, bare)
+    with_cmd = f"## Commands\n- `make check` — what CI's fast job runs\n{template_line}\n\n## Conventions\n"
+    assert re.search(pattern, with_cmd)
+    with_milestone = f"## Commands\n- the docs linter; M0-02 adds the check command\n{template_line}\n\n## Conventions\n"
+    assert re.search(pattern, with_milestone)
+    fixture = (Path(__file__).resolve().parents[1] / "evals" / "fixtures" / "generated" / "AGENTS.md").read_text(encoding="utf-8")
+    assert not re.search(pattern, fixture)

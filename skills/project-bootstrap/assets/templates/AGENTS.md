@@ -34,7 +34,7 @@ Small fixes skip the plan (`docs/WORKFLOW.md` §5).
 
 ## Commands
 {{commands}}
-`check` runs exactly what CI's fast job runs; run it before pushing, never push to find out.
+Once `check` exists, it runs exactly what CI's fast job runs; run it before pushing, never push to find out.
 
 ## Conventions
 - Words: `docs/GLOSSARY.md`. Say the precise term, not the loose one.
