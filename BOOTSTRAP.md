@@ -59,6 +59,10 @@ so two sessions working at once never collide on the same file.
 **Tiers** (`skills/project-bootstrap/references/core/tiers.md`) — lite, standard, or full scale the file set to the project's size,
 with rules for promoting from one to the next as a project grows.
 
+**Economy** (`skills/project-bootstrap/references/core/economy.md`) — tests that earn their place,
+checks sized to the moment (the full suite once, at Close), one CI workflow with a fast and a slow
+job, stopping rules and a session report that opens with what the human must decide.
+
 ## 3. Start here
 
 - New project → `skills/project-bootstrap/references/core/adoption.md §1`.

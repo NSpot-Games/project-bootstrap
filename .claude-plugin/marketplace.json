@@ -7,7 +7,7 @@
       "name": "project-bootstrap",
       "source": "./",
       "description": "Docs-as-contract bootstrap for agent-driven projects.",
-      "version": "2.8.0"
+      "version": "2.9.0"
     }
   ]
 }

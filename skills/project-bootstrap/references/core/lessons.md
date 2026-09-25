@@ -56,3 +56,7 @@ The first project bootstrapped by someone other than the kit's author, in 2026-0
 5. **A claim that does not flip the milestone reports an idle project.** `<project>/docs/CURRENT.md` said "next unclaimed: none" with five features waiting. The first claim now sets the milestone `in progress`, and the generator lists the first `planned` milestone when nothing is in progress.
 6. **The bootstrap needs a git shape of its own.** Asked mid-run for a branch and a pull request, the run wrote a transitional branch rule into the project's permanent files. `SKILL.md §1a` gives the shape and forbids the rule.
 7. **A citation to a file the next step creates is not a broken citation.** Three separate runs invented three workarounds. The linter now warns instead of erroring on such citations until generation has run (`W007`).
+
+## 4. Sized to the agent
+
+1. **Verifying everything, every time, is not rigour.** Through v2.8 the lifecycle ran the whole suite at Ground, a check per task with its output pasted, and the suite again at Close, and said nothing about which tests were worth writing. Projects built by agents grew slow sessions, long plans full of logs, and test suites no one had chosen. What changed: `references/core/economy.md` — tests that earn their place, checks sized to the moment, one lean CI workflow, stopping rules and a session report that puts the human's decisions first — and plan-lite for features of three commits or fewer (`references/core/lifecycle.md §3a`).

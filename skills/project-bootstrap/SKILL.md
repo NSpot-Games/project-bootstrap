@@ -5,7 +5,7 @@ license: MIT
 compatibility: Requires Python 3.11+ for scripts/check_docs.py
 metadata:
   author: NSpotGames
-  version: "2.8.0"
+  version: "2.9.0"
 ---
 
 # Project Bootstrap
@@ -226,7 +226,7 @@ Once the brainstorm, phase 1's design docs, and the roadmap are all written and 
 
 1. Copy the files `assets/templates/` provides for the chosen tier into the project;
    `references/core/tiers.md` lists which files each tier gets. Skip `assets/templates/CURRENT.md`;
-   the linter writes that file. Copy the object templates `assets/templates/plan.md`,
+   the linter writes that file. Copy the object templates `assets/templates/plan.md`, `assets/templates/plan-lite.md`,
    `assets/templates/milestone.md`, `assets/templates/adr.md` and `assets/templates/evidence.md`
    unchanged to `<project>/tools/templates/`; sessions copy and fill one each time they create a
    plan, a milestone, an ADR or an evidence file.
@@ -250,7 +250,8 @@ Once the brainstorm, phase 1's design docs, and the roadmap are all written and 
 3. Substitute every `{{token}}` using the table in `assets/templates/README.md`; values come
    from C0's answers, the brainstorm's decisions, the design docs, and the roadmap just written.
    Before any code exists, `{{commands}}` is the linter command plus one line naming the
-   milestone that adds the rest; `{{rule}}` and `{{deferred}}` may each expand to several lines.
+   milestone that adds the rest, including the one `check` command that runs what CI's fast job
+   runs (`references/core/economy.md §3`); `{{rule}}` and `{{deferred}}` may each expand to several lines.
    A template line written as an instruction ("one line per top-level entry", "note what is
    test-first") is replaced by the content it asks for, never kept. Cite design docs by their
    full path from the project root everywhere, including the layout section of
@@ -311,7 +312,8 @@ once the bootstrap has merged (`feat/M0-01-<slug>`), not the branch of the stamp
 `<project>/docs/milestones/M0.md`, and — because this is the milestone's first claim — set `M0`
 itself to `in progress` in the same edit (`references/core/parallel-agents.md §1`). Run
 `python tools/check_docs.py --root . --fix` so `<project>/docs/CURRENT.md` shows the claim, and
-commit. The bootstrap ends here; the feature's Ground step is the next session's work unless
+commit. End with the session report `references/core/economy.md §4` orders, Needs from you
+first. The bootstrap ends here; the feature's Ground step is the next session's work unless
 the user says to continue. Follow `<project>/docs/WORKFLOW.md` from there.
 
 ## 6. Brownfield variant
