@@ -10,6 +10,8 @@ reached; 3 claim held by someone else.
 """
 from __future__ import annotations
 
+import argparse
+import json
 import re
 import subprocess
 import sys
@@ -340,3 +342,156 @@ def cmd_claim(project: cd.Project, fid: str, api, take: bool = False, release: b
         return EXIT_HELD
     out(f"claimed {fid} (#{issue.number}) for {me}")
     return EXIT_OK
+
+
+# --------------------------------------------------------------------------- GitHub, through gh
+
+ISSUE_BODY = ("Mirrored from this repository's milestone files by tools/sync_tracker.py. The "
+              "repository is the source of status: a card moved by hand is moved back on the next sync.")
+
+
+class GhBoard:
+    """The board, through the gh CLI. The only code in the kit that talks to GitHub."""
+
+    def __init__(self, root: Path, owner: str, project: int, gh: str = "gh", run=None):
+        self.root, self.owner, self.project, self.gh = Path(root), owner, project, gh
+        self._run = run or self._subprocess
+        self._repo = ""                        # owner/name of the checked-out repository
+        self._project_id = ""
+        self._field = ""
+        self._options: dict[str, str] = {}     # status name -> option id
+        self._items: dict[int, str] = {}       # issue number -> project item id
+        self._milestones: dict[str, int] = {}  # milestone title -> number
+
+    def _subprocess(self, args: list[str]) -> tuple[int, str, str]:
+        cmd = [sys.executable, self.gh] if self.gh.endswith(".py") else [self.gh]
+        try:
+            r = subprocess.run(cmd + args, cwd=self.root, capture_output=True, text=True, encoding="utf-8")
+        except FileNotFoundError:
+            raise Unreachable(f"{self.gh} not found; install the GitHub CLI and run gh auth login")
+        return r.returncode, r.stdout, r.stderr
+
+    def _gh(self, *args: str, read: bool = False) -> str:
+        code, out, err = self._run(list(args))
+        if code != 0:
+            first = ((err or out).strip().splitlines() or [f"gh exited {code}"])[0]
+            raise (Unreachable if read else BoardError)(first)
+        return out
+
+    def _json(self, *args: str):
+        return json.loads(self._gh(*args, read=True) or "null")
+
+    def read(self) -> BoardState:
+        self._gh("auth", "status", read=True)
+        repo = self._json("repo", "view", "--json", "nameWithOwner,defaultBranchRef")
+        self._repo = repo["nameWithOwner"]
+        p, o = str(self.project), self.owner
+        self._project_id = self._json("project", "view", p, "--owner", o, "--format", "json")["id"]
+        fields = self._json("project", "field-list", p, "--owner", o, "--format", "json")["fields"]
+        status = next((f for f in fields if f.get("name") == "Status"), None)
+        if status is None:
+            raise Unreachable(f"project {p} has no Status field")
+        self._field = status["id"]
+        self._options = {x["name"]: x["id"] for x in status.get("options", [])}
+        on_board: dict[int, str] = {}
+        for it in self._json("project", "item-list", p, "--owner", o, "--format", "json", "--limit", "1000")["items"]:
+            c = it.get("content") or {}
+            if c.get("type") == "Issue" and c.get("repository") == self._repo:
+                self._items[c["number"]] = it["id"]
+                on_board[c["number"]] = it.get("status") or ""
+        state = BoardState(default_branch=(repo.get("defaultBranchRef") or {}).get("name", ""))
+        for raw in self._json("issue", "list", "--state", "all", "--limit", "1000",
+                              "--json", "number,title,state,assignees,milestone"):
+            n = raw["number"]
+            state.issues[n] = Issue(n, raw["title"], raw["state"],
+                                    [a["login"] for a in raw.get("assignees") or []],
+                                    on_board.get(n), (raw.get("milestone") or {}).get("title"))
+        for ms in self._json("api", f"repos/{self._repo}/milestones?state=all&per_page=100"):
+            state.milestones[ms["title"]] = ms["state"]
+            self._milestones[ms["title"]] = ms["number"]
+        return state
+
+    def whoami(self) -> str:
+        return self._gh("api", "user", "--jq", ".login", read=True).strip()
+
+    def create_milestone(self, title: str) -> None:
+        out = self._gh("api", f"repos/{self._repo}/milestones", "-f", f"title={title}")
+        self._milestones[title] = json.loads(out)["number"]
+
+    def close_milestone(self, title: str) -> None:
+        if title not in self._milestones:
+            raise BoardError(f"no GitHub milestone named {title!r}")
+        self._gh("api", "-X", "PATCH", f"repos/{self._repo}/milestones/{self._milestones[title]}",
+                 "-f", "state=closed")
+
+    def create_issue(self, title: str, milestone: str) -> int:
+        out = self._gh("issue", "create", "--title", title, "--milestone", milestone, "--body", ISSUE_BODY)
+        return int(out.strip().rsplit("/", 1)[-1])
+
+    def rename(self, n: int, title: str) -> None:
+        self._gh("issue", "edit", str(n), "--title", title)
+
+    def add_to_project(self, n: int) -> None:
+        out = self._gh("project", "item-add", str(self.project), "--owner", self.owner,
+                       "--url", f"https://github.com/{self._repo}/issues/{n}", "--format", "json")
+        self._items[n] = json.loads(out)["id"]
+
+    def set_status(self, n: int, status: str) -> None:
+        if status not in self._options:
+            raise BoardError(f"the project's Status field has no option {status!r}")
+        if n not in self._items:
+            raise BoardError(f"#{n} is not on the project")
+        self._gh("project", "item-edit", "--id", self._items[n], "--project-id", self._project_id,
+                 "--field-id", self._field, "--single-select-option-id", self._options[status])
+
+    def close(self, n: int, reason: str, comment: str) -> None:
+        args = ["issue", "close", str(n), "--reason", reason]
+        self._gh(*(args + ["--comment", comment] if comment else args))
+
+    def reopen(self, n: int, comment: str) -> None:
+        self._gh("issue", "reopen", str(n), "--comment", comment)
+
+    def assign(self, n: int, login: str) -> None:
+        self._gh("issue", "edit", str(n), "--add-assignee", login)
+
+    def unassign(self, n: int, login: str) -> None:
+        self._gh("issue", "edit", str(n), "--remove-assignee", login)
+
+
+# --------------------------------------------------------------------------- command line
+
+
+def main(argv: list[str] | None = None) -> int:
+    ap = argparse.ArgumentParser(description="Mirror milestones and features onto a GitHub Project.")
+    ap.add_argument("--root", default=".", help="project root (default: current directory)")
+    sub = ap.add_subparsers(dest="cmd", required=True)
+    s = sub.add_parser("sync", help="make the board match the repo; writes from the default branch only")
+    s.add_argument("--dry-run", action="store_true", help="print the changes, apply none")
+    sub.add_parser("check", help="list where the board and the repo disagree")
+    c = sub.add_parser("claim", help="the claim lock: assign the feature's issue and move it to In Progress")
+    c.add_argument("feature", help="a feature ID, M<n>-<nn>")
+    g = c.add_mutually_exclusive_group()
+    g.add_argument("--take", action="store_true", help="reassign a held feature (a human said so)")
+    g.add_argument("--release", action="store_true", help="give up a claim abandoned without Close")
+    args = ap.parse_args(argv)
+    cfg = cd.load_config(Path(args.root).resolve())
+    project = cd.load_project(cfg)
+    t = cfg.tracker
+    if t.kind != "github-projects" or project.tier not in cd.STANDARD_LIKE:
+        why = ("no tracker configured" if t.kind != "github-projects"
+               else f"the tracker needs the standard or full tier, not {project.tier}")
+        print(f"sync_tracker: {why} ([tracker] in docs/.check_docs.toml)")
+        return EXIT_USAGE if args.cmd == "claim" else EXIT_OK
+    gh = t.gh
+    if ("/" in gh or "\\" in gh) and not Path(gh).is_absolute():
+        gh = str(cfg.root / gh)
+    api = GhBoard(cfg.root, t.owner, t.project, gh)
+    if args.cmd == "sync":
+        return cmd_sync(project, api, dry_run=args.dry_run)
+    if args.cmd == "check":
+        return cmd_check(project, api)
+    return cmd_claim(project, args.feature, api, take=args.take, release=args.release)
+
+
+if __name__ == "__main__":
+    sys.exit(main())

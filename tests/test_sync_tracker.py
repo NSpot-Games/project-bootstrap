@@ -1,5 +1,9 @@
 """tools/sync_tracker.py: the diff between the repo and the board, applied through a fake."""
 import copy
+import json
+import shutil
+import subprocess
+import sys
 from pathlib import Path
 
 import pytest
@@ -348,3 +352,71 @@ def test_claim_race_two_assignees_is_exit_3(tmp_path):
     out = []
     assert st.cmd_claim(p, "M1-03", api, out=out.append) == st.EXIT_HELD
     assert "bob" in out[-1]
+
+
+# --------------------------------------------------------------------------- GhBoard and the CLI, through the fake gh
+
+FAKE_GH = Path(__file__).resolve().parents[1] / "evals" / "fake_gh.py"
+SYNC = Path(__file__).resolve().parents[1] / "skills" / "project-bootstrap" / "scripts" / "sync_tracker.py"
+
+
+def fake_gh(root: Path, issues=(), offline=False) -> Path:
+    d = root / ".fake-gh"
+    d.mkdir()
+    shutil.copy(FAKE_GH, d / "fake_gh.py")
+    (d / "fake_gh.json").write_text(json.dumps({"repo": "acme/ledger", "me": "ann", "next": 1 + len(issues),
+                                                "milestones": [], "issues": list(issues), "offline": offline}),
+                                    encoding="utf-8")
+    cfg = root / "docs" / ".check_docs.toml"
+    cfg.write_text(cfg.read_text(encoding="utf-8") + 'gh = ".fake-gh/fake_gh.py"\n', encoding="utf-8", newline="\n")
+    return d
+
+
+def run_cli(root: Path, *args: str) -> subprocess.CompletedProcess:
+    return subprocess.run([sys.executable, str(SYNC), "--root", str(root), *args], capture_output=True, text=True)
+
+
+HELD_M1_03 = {"number": 1, "title": "M1-03 — Reverse entry", "state": "OPEN", "assignees": ["alice"],
+              "milestone": None, "on_board": True, "status": "In Progress"}
+
+
+def test_ghboard_reads_and_writes_through_gh(tmp_path):
+    p = make(tmp_path)
+    d = fake_gh(p.cfg.root, issues=[HELD_M1_03])
+    api = st.GhBoard(p.cfg.root, "acme", 1, str(d / "fake_gh.py"))
+    b = api.read()
+    assert (b.default_branch, b.issues[1].assignees, b.issues[1].status) == ("main", ["alice"], st.IN_PROGRESS)
+    n = api.create_issue("M1-02 — Add entry", "M1 — Ledger")
+    api.add_to_project(n)
+    api.set_status(n, st.DONE)
+    state = json.loads((d / "fake_gh.json").read_text(encoding="utf-8"))
+    assert next(i for i in state["issues"] if i["number"] == n)["status"] == "Done"
+
+
+def test_ghboard_failures_classify(tmp_path):
+    p = make(tmp_path)
+    with pytest.raises(st.Unreachable):
+        st.GhBoard(p.cfg.root, "acme", 1, "no-such-gh-binary").read()
+    d = fake_gh(p.cfg.root, offline=True)
+    with pytest.raises(st.Unreachable, match="error connecting"):
+        st.GhBoard(p.cfg.root, "acme", 1, str(d / "fake_gh.py")).read()
+    api = st.GhBoard(p.cfg.root, "acme", 1, run=lambda a: (1, "", "HTTP 403: forbidden\nmore"))
+    with pytest.raises(st.BoardError, match="^HTTP 403: forbidden$"):
+        api.rename(1, "x")
+
+
+def test_cli_claim_held_then_taken(tmp_path):
+    p = make(tmp_path)
+    fake_gh(p.cfg.root, issues=[HELD_M1_03])
+    r = run_cli(p.cfg.root, "claim", "M1-03")
+    assert r.returncode == 3 and "alice" in r.stdout, r.stdout + r.stderr
+    r = run_cli(p.cfg.root, "claim", "M1-03", "--take")
+    assert r.returncode == 0, r.stdout + r.stderr
+
+
+def test_cli_without_tracker(tmp_path):
+    p = make(tmp_path)
+    (p.cfg.root / "docs" / ".check_docs.toml").write_text('tier = "standard"\n', encoding="utf-8")
+    assert run_cli(p.cfg.root, "sync").returncode == 0
+    r = run_cli(p.cfg.root, "claim", "M1-03")
+    assert r.returncode == 1 and "no tracker" in r.stdout
