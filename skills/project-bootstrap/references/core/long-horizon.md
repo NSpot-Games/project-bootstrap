@@ -19,7 +19,7 @@ Bootstrap writes the vision, the core data model, the architecture skeleton, and
 The Close step of a milestone's last feature includes a roadmap review (`references/core/lifecycle.md §5`, item 7), run in this order:
 
 1. Check the milestone's exit criteria against the evidence collected.
-2. Promote the next `sketch` milestone to `planned` with a real, measurable exit.
+2. Promote the next `sketch` milestone to `planned` with a real, measurable exit; with a tracker, run `tools/sync_tracker.py sync` once it is merged, so its features get issues.
 3. Re-order or split milestones if what was learned during the milestone demands it.
 4. Record any reordering, with its reason, as an ADR.
 5. Batch-accept any ADRs still `proposed` from the milestone just closed.

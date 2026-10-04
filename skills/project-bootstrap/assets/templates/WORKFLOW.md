@@ -14,13 +14,14 @@ IDs are allocated in order and never reused. A moved feature gets a new ID; the 
 
 ## 3. Sessions
 Claim before you start: plan status `in progress` plus a stamp line `- <date>T<hh>:<mm>Z — <agent> — <branch>` (UTC; the agent is the tool's name, `claude-code`, `codex`; the branch is the one you are on) under `## Sessions`, and the plan's path appended to the feature line in the milestone. The first claim in a milestone also sets that milestone's `**Status:**` to `in progress`. Never take a feature stamped under 24 hours ago by someone else.
+With a tracker (`[tracker]` in `docs/.check_docs.toml`), run `python tools/sync_tracker.py claim M<n>-<nn>` before writing the plan: exit 3 means someone else holds it — stop and say who; exit 2 means the board was not reached — claim anyway and say so under Needs from you. The board mirrors the repo and never changes it: a card moved by hand is moved back on the next `python tools/sync_tracker.py sync`, which runs from an up-to-date `main`.
 Start: `AGENTS.md` → `docs/CURRENT.md` → your plan → first unticked task. End: plan matches reality; notes say where you stopped; tree green or the plan says what's red. One feature per session by default.
 
 ## 3a. Working for a human
 A question that doesn't block the next step goes to `docs/OPEN-QUESTIONS.md` with the default you chose; carry on with that default. Only a blocking question stops the session. End every session with a report in this order: **Needs from you** (decisions, approvals, answers) → **Done** (with evidence summary lines) → **Findings** → **Next**.
 
 ## 4. Branches and commits
-`feat/M1-03-title`. Commit messages start with the feature ID. PRs link the plan; don't duplicate it. `main` is always green.
+`feat/M1-03-title`. Commit messages start with the feature ID. PRs link the plan; don't duplicate it. With a tracker, the PR body carries `Closes #N` for the feature's issue. `main` is always green.
 
 ## 5. Small changes
 Skip the plan for: obvious bug fixes with a reproducing test; typos and formatting; no-API-change dependency bumps. If it grows past one commit, it's a feature.
@@ -46,7 +47,7 @@ Copy `tools/templates/milestone.md` to `docs/milestones/M<n>.md` and fill every 
 ## 10. Roadmap review checklist
 Run this when a milestone's last feature closes:
 1. Check the milestone's exit criteria with evidence.
-2. Promote the next `sketch` milestone to `planned` with a real exit.
+2. Promote the next `sketch` milestone to `planned` with a real exit; with a tracker, `python tools/sync_tracker.py sync` once merged.
 3. Re-order or split milestones if what was learned demands it.
 4. Record a reasoned re-order as an ADR.
 5. Batch-accept proposed ADRs.

@@ -270,3 +270,16 @@ def test_stopping_rules_allow_pushing_the_projects_own_branch():
     economy = (SKILL_DIR / "references" / "core" / "economy.md").read_text(encoding="utf-8")
     for text in (agents, economy):
         assert "pushing its own branch is fine" in text
+
+
+def test_tracker_procedure_is_written_where_sessions_read_it():
+    workflow = _text(TEMPLATES / "WORKFLOW.md")
+    assert "tools/sync_tracker.py claim" in workflow
+    assert "Closes #" in workflow
+    assert "moved back" in workflow, "WORKFLOW.md says the board never changes the repo"
+    assert "tools/sync_tracker.py claim" in _text(TEMPLATES / "AGENTS.md")
+    skill = _text(SKILL_DIR / "SKILL.md")
+    assert "sync_tracker.py" in skill and "GitHub Project" in skill
+    assert "## 7. Tracker mirror" in _text(REFERENCES / "core" / "parallel-agents.md")
+    assert "Closes #" in _text(REFERENCES / "core" / "lifecycle.md")
+    assert "sync_tracker.py sync" in _text(REFERENCES / "core" / "long-horizon.md")

@@ -18,7 +18,7 @@ Then the design doc for the area you're touching.
 One line per top-level entry; cite `<file>.md §N`.
 
 ## How to work
-1. Open `docs/CURRENT.md`. Resume a feature you claimed, or claim the next unclaimed one: set its plan to `in progress` and add a session stamp under `## Sessions`.
+1. Open `docs/CURRENT.md`. Resume a feature you claimed, or claim the next unclaimed one: with a tracker, run `python tools/sync_tracker.py claim <id>` first (`docs/WORKFLOW.md` §3); set its plan to `in progress` and add a session stamp under `## Sessions`.
 2. No plan? Ground → Brainstorm → Plan. No code before the plan.
 3. Plan exists? Read it fully; resume at the first unticked task.
 4. Work a task, run its verification, paste evidence, tick, commit as `M1-03: what changed`.
