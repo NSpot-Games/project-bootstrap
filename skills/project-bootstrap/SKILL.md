@@ -5,7 +5,7 @@ license: MIT
 compatibility: Requires Python 3.11+ for scripts/check_docs.py
 metadata:
   author: NSpotGames
-  version: "2.10.0"
+  version: "2.10.1"
 ---
 
 # Project Bootstrap
@@ -326,7 +326,7 @@ Once the brainstorm, phase 1's design docs, and the roadmap are all written and 
 Open `<project>/docs/CURRENT.md` and claim `M0-01`. With a tracker, run
 `python tools/sync_tracker.py claim M0-01` first: exit 3 means someone else holds it, so stop
 and report who; exit 2 means the board was not reached, so claim in the repo and say so under
-Needs from you. Then copy `<project>/tools/templates/plan.md` to
+Needs from you; exit 1 means the board refused or answered wrong, so stop and report it. Then copy `<project>/tools/templates/plan.md` to
 `<project>/docs/plans/M0/M0-01-<slug>.md`, set `**Status:** in progress`, add a session stamp
 in the form `<project>/docs/WORKFLOW.md §3` gives (`- <date>T<hh>:<mm>Z — <agent> — <branch>`,
 UTC; `<agent>` is the tool's name, `claude-code`, `codex`, and `<branch>` the branch you are on,

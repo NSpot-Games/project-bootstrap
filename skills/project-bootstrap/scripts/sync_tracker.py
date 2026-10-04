@@ -259,13 +259,24 @@ def _links(wants: list[Want]) -> list[int]:
     return [w.link for w in wants if w.link is not None]
 
 
-def cmd_sync(project: cd.Project, api, dry_run: bool = False, out=print, git=None) -> int:
-    wants = wants_from(project)
+def _read(api, links: list[int], out) -> tuple[BoardState | None, int]:
+    """Read the board, or say why not: exit 2 when it cannot be reached (gh missing, offline,
+    not logged in), exit 1 when it answers wrong (no such project, no Status field, odd output)."""
     try:
-        board = api.read(_links(wants))
+        return api.read(links), EXIT_OK
     except Unreachable as e:
         out(f"board not reached: {e}")
-        return EXIT_UNREACHED
+        return None, EXIT_UNREACHED
+    except BoardError as e:
+        out(f"board not read: {e}. Check [tracker] in docs/.check_docs.toml and the gh token's project scope.")
+        return None, EXIT_USAGE
+
+
+def cmd_sync(project: cd.Project, api, dry_run: bool = False, out=print, git=None) -> int:
+    wants = wants_from(project)
+    board, code = _read(api, _links(wants), out)
+    if board is None:
+        return code
     changes = plan_changes(wants, board)
     if not changes:
         out("board matches the repo")
@@ -293,16 +304,21 @@ def cmd_sync(project: cd.Project, api, dry_run: bool = False, out=print, git=Non
 
 def cmd_check(project: cd.Project, api, out=print) -> int:
     wants = wants_from(project)
-    try:
-        board = api.read(_links(wants))
-    except Unreachable as e:
-        out(f"board not reached: {e}")
-        return EXIT_UNREACHED
+    board, code = _read(api, _links(wants), out)
+    if board is None:
+        return code
     drift = [describe(c) for c in plan_changes(wants, board)]
     for w in wants:
         dupes = sorted(n for n, i in board.issues.items() if i.title.startswith(f"{w.fid} — "))
         if len(dupes) > 1:
             drift.append(f"duplicate issues for {w.fid}: " + ", ".join(f"#{n}" for n in dupes))
+    by_link: dict[int, list[str]] = {}
+    for w in wants:
+        if w.link is not None:
+            by_link.setdefault(w.link, []).append(w.fid)
+    for n, fids in by_link.items():
+        if len(fids) > 1:  # sync would rename the one issue back and forth on every run
+            drift.append(f"shared link #{n}: " + ", ".join(fids) + "; give each feature its own issue")
     for d in drift:
         out(d)
     out("board matches the repo" if not drift else f"{len(drift)} difference(s)")
@@ -317,18 +333,19 @@ def cmd_claim(project: cd.Project, fid: str, api, take: bool = False, release: b
     if want.status in (DONE, NOT_PLANNED):
         out(f"{fid} is not open in the repo ({want.reason or 'ticked'}); nothing to claim")
         return EXIT_USAGE
-    try:
-        board = api.read(_links([want]))
-        me = api.whoami()
-    except Unreachable as e:
-        out(f"board not reached: {e}. Claim in the repo and say so under Needs from you.")
-        return EXIT_UNREACHED
+    board, code = _read(api, _links([want]), out)
+    if board is None:
+        if code == EXIT_UNREACHED:
+            out("Claim in the repo and say so under Needs from you.")
+        return code
     issue = find_issue(want, board)
     try:
+        me = api.whoami()
         if release:
             if issue and me in issue.assignees:
                 api.unassign(issue.number, me)
-                api.set_status(issue.number, TODO)
+                if not [a for a in issue.assignees if a != me]:
+                    api.set_status(issue.number, TODO)  # only when nobody else still holds it
             out(f"released {fid}")
             return EXIT_OK
         if issue is None:
@@ -352,17 +369,20 @@ def cmd_claim(project: cd.Project, fid: str, api, take: bool = False, release: b
             api.assign(issue.number, me)
         api.set_status(issue.number, IN_PROGRESS)
         after = api.read([issue.number])
-    except (BoardError, Unreachable) as e:
-        out(f"board write failed: {e}. Claim in the repo and say so under Needs from you.")
+    except Unreachable as e:
+        out(f"board not reached: {e}. Claim in the repo and say so under Needs from you.")
         return EXIT_UNREACHED
+    except BoardError as e:  # a refusal (no rights, no such project) is not an outage: stop and report it
+        out(f"board write failed: {e}. The claim is not made; stop and report it.")
+        return EXIT_USAGE
     # A rival may hold this issue, or a second issue for the same feature that someone created
     # at the same moment because neither of you found one.
     mine = [after.issues[issue.number]] if issue.number in after.issues else []
     same = mine + [i for n, i in after.issues.items() if n != issue.number and i.title.startswith(f"{fid} — ")]
     rivals = sorted({a for i in same for a in i.assignees if a != me})
     if rivals:
-        out(f"{fid} was claimed at the same moment by {', '.join(rivals)} (#{issue.number}); "
-            "both claims stand on the board. Stop and let a human decide who keeps it.")
+        out(f"{fid} is also claimed by {', '.join(rivals)} (#{issue.number}), at the same moment as "
+            "you. Stop and let a human decide who keeps it.")
         return EXIT_HELD
     out(f"claimed {fid} (#{issue.number}) for {me}")
     return EXIT_OK
@@ -397,20 +417,39 @@ class GhBoard:
             raise Unreachable(f"{self.gh} not found; install the GitHub CLI and run gh auth login")
         return r.returncode, r.stdout, r.stderr
 
-    def _gh(self, *args: str, read: bool = False) -> str:
+    @staticmethod
+    def _first_line(code: int, out: str, err: str) -> str:
+        return ((err or out).strip().splitlines() or [f"gh exited {code}"])[0]
+
+    def _gh(self, *args: str) -> str:
         code, out, err = self._run(list(args))
         if code != 0:
-            first = ((err or out).strip().splitlines() or [f"gh exited {code}"])[0]
-            raise (Unreachable if read else BoardError)(first)
+            raise BoardError(self._first_line(code, out, err))
         return out
 
+    @staticmethod
+    def _parsed(what: str, parse):
+        """`parse()`, with output gh was not expected to give turned into a BoardError."""
+        try:
+            return parse()
+        except (ValueError, KeyError, TypeError, IndexError, AttributeError) as e:
+            raise BoardError(f"unexpected gh output for {what}: {type(e).__name__}: {e}")
+
     def _json(self, *args: str):
-        return json.loads(self._gh(*args, read=True) or "null")
+        out = self._gh(*args)
+        return self._parsed(" ".join(args[:2]), lambda: json.loads(out or "null"))
 
     def read(self, links=()) -> BoardState:
         """The board. `links` are issue numbers the repo cites: any the issue list did not
-        return (a repository past the list limit) are fetched one by one."""
-        self._gh("auth", "status", read=True)
+        return (a repository past the list limit) are fetched one by one. Only a failed login
+        check is Unreachable (offline, logged out); any later failure is the board answering
+        wrong — no such project, no Status field — and is a BoardError."""
+        code, out, err = self._run(["auth", "status", "--hostname", "github.com"])
+        if code != 0:
+            raise Unreachable(self._first_line(code, out, err))
+        return self._parsed("the board", lambda: self._read_board(links))
+
+    def _read_board(self, links) -> BoardState:
         repo = self._json("repo", "view", "--json", "nameWithOwner,defaultBranchRef")
         self._repo = repo["nameWithOwner"]
         p, o = str(self.project), self.owner
@@ -418,7 +457,7 @@ class GhBoard:
         fields = self._json("project", "field-list", p, "--owner", o, "--format", "json")["fields"]
         status = next((f for f in fields if f.get("name") == "Status"), None)
         if status is None:
-            raise Unreachable(f"project {p} has no Status field")
+            raise BoardError(f"project {p} has no Status field")
         self._field = status["id"]
         self._options = {x["name"]: x["id"] for x in status.get("options", [])}
         on_board: dict[int, str] = {}
@@ -430,8 +469,7 @@ class GhBoard:
         default = (repo.get("defaultBranchRef") or {}).get("name", "")
         state = BoardState(default_branch=default)
         if default:
-            state.default_sha = self._gh("api", f"repos/{self._repo}/commits/{default}", "--jq", ".sha",
-                                         read=True).strip()
+            state.default_sha = self._gh("api", f"repos/{self._repo}/commits/{default}", "--jq", ".sha").strip()
 
         def add(raw: dict) -> None:
             n = raw["number"]
@@ -447,7 +485,7 @@ class GhBoard:
                 if code == 0:  # a link to a deleted or transferred issue is simply not there
                     add(json.loads(out))
         listing = self._gh("api", "--paginate", f"repos/{self._repo}/milestones?state=all&per_page=100",
-                           "--jq", ".[] | {title, state, number}", read=True)
+                           "--jq", ".[] | {title, state, number}")
         for row in listing.splitlines():
             if row.strip():
                 ms = json.loads(row)
@@ -456,11 +494,11 @@ class GhBoard:
         return state
 
     def whoami(self) -> str:
-        return self._gh("api", "user", "--jq", ".login", read=True).strip()
+        return self._gh("api", "user", "--jq", ".login").strip()
 
     def create_milestone(self, title: str) -> None:
         out = self._gh("api", f"repos/{self._repo}/milestones", "-f", f"title={title}")
-        self._milestones[title] = json.loads(out)["number"]
+        self._milestones[title] = self._parsed("milestone create", lambda: json.loads(out)["number"])
 
     def close_milestone(self, title: str) -> None:
         if title not in self._milestones:
@@ -470,7 +508,7 @@ class GhBoard:
 
     def create_issue(self, title: str, milestone: str) -> int:
         out = self._gh("issue", "create", "--title", title, "--milestone", milestone, "--body", ISSUE_BODY)
-        return int(out.strip().rsplit("/", 1)[-1])
+        return self._parsed("issue create", lambda: int(out.strip().rsplit("/", 1)[-1]))
 
     def rename(self, n: int, title: str) -> None:
         self._gh("issue", "edit", str(n), "--title", title)
@@ -478,7 +516,7 @@ class GhBoard:
     def add_to_project(self, n: int) -> None:
         out = self._gh("project", "item-add", str(self.project), "--owner", self.owner,
                        "--url", f"https://github.com/{self._repo}/issues/{n}", "--format", "json")
-        self._items[n] = json.loads(out)["id"]
+        self._items[n] = self._parsed("project item-add", lambda: json.loads(out)["id"])
 
     def set_status(self, n: int, status: str) -> None:
         if status not in self._options:
@@ -518,6 +556,8 @@ def main(argv: list[str] | None = None) -> int:
     g.add_argument("--take", action="store_true", help="reassign a held feature (a human said so)")
     g.add_argument("--release", action="store_true", help="give up a claim abandoned without Close")
     args = ap.parse_args(argv)
+    if hasattr(sys.stdout, "reconfigure"):  # a console that cannot show a title gets "?" rather than a traceback
+        sys.stdout.reconfigure(errors="replace")
     cfg = cd.load_config(Path(args.root).resolve())
     project = cd.load_project(cfg)
     t = cfg.tracker

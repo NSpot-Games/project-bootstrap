@@ -1,6 +1,7 @@
 """tools/sync_tracker.py: the diff between the repo and the board, applied through a fake."""
 import copy
 import json
+import os
 import shutil
 import subprocess
 import sys
@@ -502,3 +503,75 @@ def test_harness_prepares_tracker_scenarios(tmp_path):
         assert r.returncode == (0 if holder is None else 3), r.stdout + r.stderr
         log = (project / ".fake-gh" / "fake_gh.log").read_text(encoding="utf-8")
         assert log.startswith("plans=0 auth status")
+
+
+# --------------------------------------------------------------------------- 2.10.1: the deferred review minors
+
+
+class MisconfiguredBoard(FakeBoard):
+    def read(self, links=()):
+        raise st.BoardError("Could not resolve to a ProjectV2 with the number 7.")
+
+
+def test_a_board_that_reads_wrong_is_exit_1_not_offline(tmp_path):
+    p, out = make(tmp_path), []
+    assert st.cmd_sync(p, MisconfiguredBoard(), out=out.append, git=up_to_date) == st.EXIT_USAGE
+    assert st.cmd_check(p, MisconfiguredBoard(), out=out.append) == st.EXIT_USAGE
+    assert st.cmd_claim(p, "M1-03", MisconfiguredBoard(), out=out.append) == st.EXIT_USAGE
+    assert all("ProjectV2" in o for o in out)
+
+
+def test_a_failed_claim_write_is_exit_1_not_offline(tmp_path):
+    out = []
+    assert st.cmd_claim(make(tmp_path), "M1-03", FakeBoard(fail=("assign",)), out=out.append) == st.EXIT_USAGE
+    assert "assign refused" in out[-1]
+
+
+def test_ghboard_only_auth_failure_means_unreachable(tmp_path):
+    calls = []
+
+    def run(args):
+        calls.append(args)
+        return (0, "", "") if args[:2] == ["auth", "status"] else (1, "", "Could not resolve to a ProjectV2")
+
+    with pytest.raises(st.BoardError) as e:
+        st.GhBoard(tmp_path, "acme", 7, run=run).read()
+    assert not isinstance(e.value, st.Unreachable)
+    assert calls[0] == ["auth", "status", "--hostname", "github.com"]
+    with pytest.raises(st.Unreachable):
+        st.GhBoard(tmp_path, "acme", 7, run=lambda a: (1, "", "error connecting to api.github.com")).read()
+
+
+def test_ghboard_unexpected_output_is_a_board_error(tmp_path):
+    garbage = st.GhBoard(tmp_path, "acme", 7, run=lambda a: (0, "<html>maintenance</html>", ""))
+    with pytest.raises(st.BoardError):
+        garbage.read()
+    with pytest.raises(st.BoardError):
+        garbage.create_issue("M1-03 — Reverse entry", "M1 — Ledger")
+    with pytest.raises(st.BoardError):
+        garbage.add_to_project(3)
+
+
+def test_cli_output_survives_a_console_that_cannot_encode_a_title(tmp_path):
+    p = make(tmp_path, {"M1.md": M1.replace("# M1 — Ledger", "# M1 — Ledger \U0001F680")})
+    fake_gh(p.cfg.root)
+    env = {**os.environ, "PYTHONIOENCODING": "cp1252"}
+    r = subprocess.run([sys.executable, str(SYNC), "--root", str(p.cfg.root), "sync", "--dry-run"],
+                       capture_output=True, env=env)
+    assert r.returncode == 0, r.stderr.decode("utf-8", "replace")
+
+
+def test_release_leaves_the_card_in_progress_while_others_hold_it(tmp_path):
+    api = FakeBoard(st.BoardState({3: st.Issue(3, "M1-03 — Reverse entry", "OPEN", ["ann", "bob"], st.IN_PROGRESS)},
+                                  {"M1 — Ledger": "open"}))
+    assert st.cmd_claim(make(tmp_path), "M1-03", api, release=True, out=lambda s: None) == st.EXIT_OK
+    assert (api.state.issues[3].assignees, api.state.issues[3].status) == (["bob"], st.IN_PROGRESS)
+
+
+def test_check_reports_two_features_sharing_one_link(tmp_path):
+    m1 = (M1.replace("- [ ] M1-02 — Add entry — `docs/plans/M1/M1-02-add.md`",
+                     "- [ ] M1-02 — Add entry — `docs/plans/M1/M1-02-add.md` (tracker: #2)")
+            .replace("- [ ] M1-03 — Reverse entry", "- [ ] M1-03 — Reverse entry (tracker: #2)"))
+    out = []
+    assert st.cmd_check(make(tmp_path, {"M1.md": m1}), FakeBoard(synced_board()), out=out.append) == st.EXIT_USAGE
+    assert any("#2" in o and "M1-02" in o and "M1-03" in o and "shared" in o for o in out)

@@ -118,7 +118,7 @@ Run at the claim step, before the plan file is written.
 | 0 | claimed: issue assigned to the caller (`@me`), Status In Progress | writes the plan and stamp as today |
 | 3 | held: assigned to someone else; prints who | stops and reports; claims only on a human's say-so, via `--take` |
 | 2 | board not reached: `gh` missing, not logged in, or offline | claims in the repo, names it in the session report's Needs from you |
-| 1 | usage error: unknown feature, no tracker configured | stops and reports |
+| 1 | usage error (unknown feature, no tracker configured), or the board refused a write or answered wrong (no rights, no such project, no Status field) | stops and reports |
 
 A feature with no issue yet gets one created first. `--take` reassigns to the caller.
 `--release` unassigns and sets Todo, for a claim abandoned without Close. `claim` writes nothing
@@ -126,8 +126,9 @@ to the repo; `sync` writes the link later, from the default branch, so a feature
 `main` never both edit the same feature line for the link.
 
 Two claims at the same moment both see the issue free and both assign. After assigning,
-`claim` reads the issue again; with another assignee present it exits 3 for both, naming the
-other, and a human decides who keeps it (`references/core/parallel-agents.md §6`).
+`claim` reads the issue again; with another assignee present it exits 3, naming the other,
+and a human decides who keeps it. Whoever re-reads after both assigned sees the rival; with
+sequential timing the first claimer may already have exited 0 (`references/core/parallel-agents.md §6`).
 
 ### 3.4 `check`
 

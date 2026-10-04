@@ -1190,3 +1190,9 @@ def test_w009_silent_with_links_or_without_tracker(tmp_path):
                       lambda m: f"{m.group(1)} (tracker: #{int(m.group(2))})", text)
         p.write_text(text, encoding="utf-8", newline="\n")
     assert "W009" not in codes(cd.run(root))
+
+
+def test_milestone_heading_link_is_not_part_of_the_title(tmp_path):
+    root = make_project(tmp_path, {"docs/milestones/M1.md": (
+        "# M1 — First playable", "# M1 — First playable (tracker: #12)")})
+    assert cd.parse_milestone(root / "docs" / "milestones" / "M1.md").title == "First playable"
