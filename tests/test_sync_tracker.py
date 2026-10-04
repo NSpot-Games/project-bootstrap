@@ -166,6 +166,7 @@ class FakeBoard:
                  fail: tuple[str, ...] = (), on_assign=None):
         self.state = state or st.BoardState(default_branch="main")
         self.me, self.unreachable, self.fail, self.on_assign = me, unreachable, fail, on_assign
+        self.on_create = None
         self.calls: list[str] = []
 
     def _do(self, name):
@@ -173,7 +174,7 @@ class FakeBoard:
         if name in self.fail:
             raise st.BoardError(f"{name} refused")
 
-    def read(self):
+    def read(self, links=()):
         if self.unreachable:
             raise st.Unreachable("gh is not logged in")
         return copy.deepcopy(self.state)
@@ -191,6 +192,8 @@ class FakeBoard:
 
     def create_issue(self, title, milestone):
         self._do("create_issue")
+        if self.on_create:
+            self.on_create(title, milestone)
         n = max(self.state.issues, default=0) + 1
         self.state.issues[n] = st.Issue(n, title, "OPEN", [], None, milestone)
         return n
@@ -226,18 +229,13 @@ class FakeBoard:
         self.state.issues[n].assignees.remove(login)
 
 
-def on_main(args):
-    return (0, "main\n") if "--abbrev-ref" in args else (0, "abc\n")
+def up_to_date(args):
+    """git: GitHub's default-branch head is an ancestor of HEAD (`merge-base --is-ancestor` exits 0)."""
+    return 0, ""
 
 
-def off_main(args):
-    return (0, "feat/M1-03-x\n") if "--abbrev-ref" in args else (0, "abc\n")
-
-
-def behind_origin(args):
-    if "--abbrev-ref" in args:
-        return 0, "main\n"
-    return 0, ("abc\n" if args[-1] == "HEAD" else "def\n")
+def not_up_to_date(args):
+    return 1, ""
 
 
 def lines(p):
@@ -246,7 +244,7 @@ def lines(p):
 
 def test_sync_creates_everything_writes_links_and_is_idempotent(tmp_path):
     p, api, out = make(tmp_path), FakeBoard(), []
-    assert st.cmd_sync(p, api, out=out.append, git=on_main) == st.EXIT_OK
+    assert st.cmd_sync(p, api, out=out.append, git=up_to_date) == st.EXIT_OK
     assert {i.title: (i.state, i.status) for i in api.state.issues.values()} == {
         "M1-01 — Schema": ("CLOSED", st.DONE),
         "M1-02 — Add entry": ("OPEN", st.IN_PROGRESS),
@@ -255,14 +253,14 @@ def test_sync_creates_everything_writes_links_and_is_idempotent(tmp_path):
     p2 = cd.load_project(p.cfg)
     assert [f.tracker for f in p2.milestones["M1"].features] == [1, 2, 3]
     out.clear()
-    assert st.cmd_sync(p2, api, out=out.append, git=on_main) == st.EXIT_OK
+    assert st.cmd_sync(p2, api, out=out.append, git=up_to_date) == st.EXIT_OK
     assert out == ["board matches the repo"]
 
 
 def test_dry_run_writes_nothing(tmp_path):
     p, api, out = make(tmp_path), FakeBoard(), []
     before = lines(p)
-    assert st.cmd_sync(p, api, dry_run=True, out=out.append, git=on_main) == st.EXIT_OK
+    assert st.cmd_sync(p, api, dry_run=True, out=out.append, git=up_to_date) == st.EXIT_OK
     assert api.calls == [] and lines(p) == before
     assert out[0].startswith("would create_milestone M1 — Ledger")
 
@@ -271,21 +269,67 @@ def test_one_failing_write_does_not_stop_the_rest(tmp_path):
     p, api, out = make(tmp_path), FakeBoard(fail=("rename",)), []
     api.state.milestones["M1 — Ledger"] = "open"
     api.state.issues[7] = st.Issue(7, "M1-03 — Old", "OPEN", [], st.TODO)
-    assert st.cmd_sync(p, api, out=out.append, git=on_main) == st.EXIT_USAGE
+    assert st.cmd_sync(p, api, out=out.append, git=up_to_date) == st.EXIT_USAGE
     assert any("failed" in o and "rename" in o for o in out)
     assert len(api.state.issues) == 3
 
 
 def test_sync_unreachable_is_exit_2(tmp_path):
     api = FakeBoard(unreachable=True)
-    assert st.cmd_sync(make(tmp_path), api, out=lambda s: None, git=on_main) == st.EXIT_UNREACHED
+    assert st.cmd_sync(make(tmp_path), api, out=lambda s: None, git=up_to_date) == st.EXIT_UNREACHED
 
 
-@pytest.mark.parametrize("git,needle", [(off_main, "from main"), (behind_origin, "pull")])
-def test_sync_refuses_off_main_or_behind_origin(tmp_path, git, needle):
-    out = []
-    assert st.cmd_sync(make(tmp_path), FakeBoard(), out=out.append, git=git) == st.EXIT_USAGE
-    assert needle in out[0]
+def synced_board():
+    return st.BoardState({1: st.Issue(1, "M1-01 — Schema", "CLOSED", [], st.DONE),
+                          2: st.Issue(2, "M1-02 — Add entry", "OPEN", ["ann"], st.IN_PROGRESS),
+                          3: st.Issue(3, "M1-03 — Reverse entry", "OPEN", [], st.TODO)},
+                         {"M1 — Ledger": "open"}, default_branch="main", default_sha="abc")
+
+
+def test_off_an_up_to_date_tree_sync_skips_only_what_would_undo_a_done(tmp_path):
+    p = make(tmp_path)  # M1-03 is unticked in this tree; a PR merged elsewhere closed its issue
+    state = synced_board()
+    state.issues[3] = st.Issue(3, "M1-03 — Reverse entry", "CLOSED", ["ann"], st.DONE)
+    state.issues.pop(1)
+    api, out = FakeBoard(state), []
+    assert st.cmd_sync(p, api, out=out.append, git=not_up_to_date) == st.EXIT_OK
+    assert (api.state.issues[3].state, api.state.issues[3].status) == ("CLOSED", st.DONE)
+    assert any(i.title == "M1-01 — Schema" for i in api.state.issues.values()), "safe changes still apply"
+    assert any("skipped" in o and "M1-03" in o for o in out)
+    assert st.cmd_sync(cd.load_project(p.cfg), api, out=out.append, git=up_to_date) == st.EXIT_OK
+    assert api.state.issues[3].state == "OPEN"
+
+
+def test_sync_moves_a_link_that_is_not_last(tmp_path):
+    m1 = (M1.replace("- [x] M1-01 — Schema — `docs/plans/M1/M1-01-schema.md`",
+                     "- [x] M1-01 — Schema — `docs/plans/M1/M1-01-schema.md` (tracker: #1)")
+            .replace("- [ ] M1-02 — Add entry — `docs/plans/M1/M1-02-add.md`",
+                     "- [ ] M1-02 — Add entry (tracker: #2) — `docs/plans/M1/M1-02-add.md`")
+            .replace("- [ ] M1-03 — Reverse entry", "- [ ] M1-03 — Reverse entry (tracker: #3)"))
+    p = make(tmp_path, {"M1.md": m1})
+    assert st.cmd_sync(p, FakeBoard(synced_board()), out=lambda s: None, git=up_to_date) == st.EXIT_OK
+    assert "- [ ] M1-02 — Add entry — `docs/plans/M1/M1-02-add.md` (tracker: #2)\n" in lines(p)
+
+
+def test_done_milestone_matches_existing_issues_but_creates_nothing(tmp_path):
+    m0 = "# M0 — Spike\n**Status:** done\n\n## Features\n- [x] M0-01 — Probe\n- [x] M0-02 — Notes\n"
+    wants = st.wants_from(make(tmp_path, {"M0.md": m0, "M1.md": M1}))
+    created = [c.target for c in st.plan_changes(wants, st.BoardState())]
+    assert not any(t.startswith("M0") for t in created), created
+    b = st.BoardState({5: st.Issue(5, "M0-01 — Probe", "OPEN", ["ann"], st.IN_PROGRESS)}, {})
+    got = [(c.kind, c.target) for c in st.plan_changes([w for w in wants if w.fid == "M0-01"], b)]
+    assert ("complete", "M0-01") in got
+
+
+def test_claim_race_on_a_new_issue_sees_the_rival_issue(tmp_path):
+    p, api, out = make(tmp_path), FakeBoard(), []
+
+    def rival(title, milestone):  # bob created his own issue for the same feature a moment earlier
+        api.state.issues[50] = st.Issue(50, title, "OPEN", ["bob"], st.IN_PROGRESS, milestone)
+
+    api.on_create = rival
+    assert st.cmd_claim(p, "M1-03", api, out=out.append) == st.EXIT_HELD
+    assert "bob" in out[-1]
 
 
 def test_write_links_keeps_crlf_and_moves_a_misplaced_link(tmp_path):
@@ -301,7 +345,7 @@ def test_write_links_keeps_crlf_and_moves_a_misplaced_link(tmp_path):
 def test_check_reports_drift_and_duplicates(tmp_path):
     p, out = make(tmp_path), []
     api = FakeBoard()
-    st.cmd_sync(p, api, out=lambda s: None, git=on_main)
+    st.cmd_sync(p, api, out=lambda s: None, git=up_to_date)
     p = cd.load_project(p.cfg)
     assert st.cmd_check(p, api, out=out.append) == st.EXIT_OK
     api.state.issues[9] = st.Issue(9, "M1-03 — Reverse entry", "OPEN", [], st.TODO)
@@ -403,6 +447,26 @@ def test_ghboard_failures_classify(tmp_path):
     api = st.GhBoard(p.cfg.root, "acme", 1, run=lambda a: (1, "", "HTTP 403: forbidden\nmore"))
     with pytest.raises(st.BoardError, match="^HTTP 403: forbidden$"):
         api.rename(1, "x")
+
+
+def test_ghboard_fetches_a_linked_issue_the_list_did_not_return(tmp_path):
+    p = make(tmp_path)
+    d = fake_gh(p.cfg.root, issues=[dict(HELD_M1_03, hidden=True)])  # past `issue list --limit`
+    api = st.GhBoard(p.cfg.root, "acme", 1, str(d / "fake_gh.py"))
+    assert 1 not in api.read().issues
+    b = api.read(links=[1, 99])
+    assert (b.issues[1].assignees, b.issues[1].status) == (["alice"], st.IN_PROGRESS)
+    assert 99 not in b.issues
+
+
+def test_ghboard_reads_the_default_branch_head_and_paginated_milestones(tmp_path):
+    p = make(tmp_path)
+    d = fake_gh(p.cfg.root)
+    state = json.loads((d / "fake_gh.json").read_text(encoding="utf-8"))
+    state.update(head="abc123", milestones=[{"number": n, "title": f"M{n} — x", "state": "open"} for n in range(1, 151)])
+    (d / "fake_gh.json").write_text(json.dumps(state), encoding="utf-8")
+    b = st.GhBoard(p.cfg.root, "acme", 1, str(d / "fake_gh.py")).read()
+    assert b.default_sha == "abc123" and len(b.milestones) == 150
 
 
 def test_cli_claim_held_then_taken(tmp_path):

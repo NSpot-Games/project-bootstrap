@@ -36,6 +36,8 @@ class Want:
     status: str         # TODO, IN_PROGRESS, DONE or NOT_PLANNED
     link: int | None    # the feature line's (tracker: #N)
     reason: str = ""    # why NOT_PLANNED: DROPPED or "moved to M7-02"
+    link_last: bool = True   # False when the link sits before the plan path; sync moves it
+    create: bool = True      # False in a done milestone: match an existing issue, never create one
 
 
 @dataclass
@@ -53,6 +55,7 @@ class BoardState:
     issues: dict[int, Issue] = field(default_factory=dict)
     milestones: dict[str, str] = field(default_factory=dict)   # title -> "open" | "closed"
     default_branch: str = ""
+    default_sha: str = ""      # GitHub's head of the default branch; "" for an empty repository
 
 
 @dataclass(frozen=True)
@@ -77,7 +80,10 @@ def wants_from(project: cd.Project) -> list[Want]:
         m = project.milestones.get(mid)
         if m is None:
             continue  # a sketch: no milestone file, nothing on the board
+        text = m.path.read_bytes().decode("utf-8").replace("\r\n", "\n").split("\n")
         for f in m.features:
+            line = text[f.line - 1].rstrip() if 0 < f.line <= len(text) else ""
+            last = f.tracker is None or line.endswith(f"(tracker: #{f.tracker})")
             reason = ""
             if m.status == "dropped":
                 status, reason = NOT_PLANNED, DROPPED
@@ -88,7 +94,8 @@ def wants_from(project: cd.Project) -> list[Want]:
             else:
                 plan = project.plans.get(f.id)
                 status = IN_PROGRESS if plan and plan.status in CLAIMED_PLAN_STATUSES else TODO
-            out.append(Want(f.id, f"{f.id} — {f.title}", f"{m.id} — {m.title}", status, f.tracker, reason))
+            out.append(Want(f.id, f"{f.id} — {f.title}", f"{m.id} — {m.title}", status, f.tracker, reason,
+                            link_last=last, create=m.status != "done"))
     return out
 
 
@@ -103,16 +110,16 @@ def find_issue(want: Want, board: BoardState) -> Issue | None:
 def plan_changes(wants: list[Want], board: BoardState) -> list[Change]:
     """The changes that make the board match the repo (spec §3.2). Pure: reads, never writes."""
     changes: list[Change] = []
-    for title in dict.fromkeys(w.milestone for w in wants if w.status != NOT_PLANNED):
+    for title in dict.fromkeys(w.milestone for w in wants if w.status != NOT_PLANNED and w.create):
         if title not in board.milestones:
             changes.append(Change("create_milestone", title))
     for w in wants:
         issue = find_issue(w, board)
         if issue is None:
-            if w.status != NOT_PLANNED:
+            if w.status != NOT_PLANNED and w.create:
                 changes.append(Change("create_issue", w.fid, w.status))
             continue
-        if w.link != issue.number:
+        if w.link != issue.number or not w.link_last:
             changes.append(Change("link", w.fid, number=issue.number))
         if w.status == NOT_PLANNED:
             if issue.state == "OPEN":
@@ -231,23 +238,31 @@ def git_runner(root: Path):
     return run
 
 
-def _branch_problem(git, default: str) -> str | None:
-    """Why `sync` must not write from here: it sees only the checked-out tree, so a feature
-    branch or a stale default branch would reopen issues that a merged PR already closed."""
-    branch = git(["rev-parse", "--abbrev-ref", "HEAD"])[1].strip()
-    if default and branch != default:
-        return f"sync writes from {default} only (checked out: {branch}); switch to {default} and pull"
-    if default:
-        git(["fetch", "-q", "origin", default])
-        if git(["rev-parse", "HEAD"])[1].strip() != git(["rev-parse", f"origin/{default}"])[1].strip():
-            return f"{default} is not at origin/{default}; pull first, then sync"
-    return None
+def _undoes_done(c: Change, board: BoardState) -> bool:
+    """A change that would take a feature back out of Done: reopening its issue, or moving its
+    card off Done."""
+    if c.kind == "reopen":
+        return True
+    issue = board.issues.get(c.number) if c.number is not None else None
+    return c.kind == "set_status" and issue is not None and issue.status == DONE
+
+
+def _tree_has_every_merge(git, board: BoardState) -> bool:
+    """Whether the checked-out tree contains GitHub's default-branch head, so every merged PR's
+    tick is in it. Compared against GitHub's own SHA, not a remote name or a fetch that may fail."""
+    if not board.default_sha:
+        return True  # an empty repository: nothing has been merged
+    return git(["merge-base", "--is-ancestor", board.default_sha, "HEAD"])[0] == 0
+
+
+def _links(wants: list[Want]) -> list[int]:
+    return [w.link for w in wants if w.link is not None]
 
 
 def cmd_sync(project: cd.Project, api, dry_run: bool = False, out=print, git=None) -> int:
     wants = wants_from(project)
     try:
-        board = api.read()
+        board = api.read(_links(wants))
     except Unreachable as e:
         out(f"board not reached: {e}")
         return EXIT_UNREACHED
@@ -259,22 +274,27 @@ def cmd_sync(project: cd.Project, api, dry_run: bool = False, out=print, git=Non
         for c in changes:
             out(f"would {describe(c)}")
         return EXIT_OK
-    problem = _branch_problem(git or git_runner(project.cfg.root), board.default_branch)
-    if problem:
-        out(problem)
-        return EXIT_USAGE
+    skipped: list[Change] = []
+    if not _tree_has_every_merge(git or git_runner(project.cfg.root), board):
+        # A tree without every merge sees merged features as unticked; it must not undo their Done.
+        skipped = [c for c in changes if _undoes_done(c, board)]
+        changes = [c for c in changes if c not in skipped]
     applied, failed, links = apply_changes(changes, api, wants)
     written = write_links(project, links)
     for line in applied + failed:
         out(line)
-    out(f"{len(applied)} applied, {len(failed)} failed, links written in {len(written)} file(s)")
+    for c in skipped:
+        out(f"skipped {describe(c)}: this tree lacks merges on {board.default_branch or 'the default branch'}; "
+            "sync from an up-to-date default branch to apply it")
+    out(f"{len(applied)} applied, {len(failed)} failed, {len(skipped)} skipped, "
+        f"links written in {len(written)} file(s)")
     return EXIT_USAGE if failed else EXIT_OK
 
 
 def cmd_check(project: cd.Project, api, out=print) -> int:
     wants = wants_from(project)
     try:
-        board = api.read()
+        board = api.read(_links(wants))
     except Unreachable as e:
         out(f"board not reached: {e}")
         return EXIT_UNREACHED
@@ -298,7 +318,7 @@ def cmd_claim(project: cd.Project, fid: str, api, take: bool = False, release: b
         out(f"{fid} is not open in the repo ({want.reason or 'ticked'}); nothing to claim")
         return EXIT_USAGE
     try:
-        board = api.read()
+        board = api.read(_links([want]))
         me = api.whoami()
     except Unreachable as e:
         out(f"board not reached: {e}. Claim in the repo and say so under Needs from you.")
@@ -331,11 +351,15 @@ def cmd_claim(project: cd.Project, fid: str, api, take: bool = False, release: b
         if me not in issue.assignees:
             api.assign(issue.number, me)
         api.set_status(issue.number, IN_PROGRESS)
-        after = api.read().issues.get(issue.number)
+        after = api.read([issue.number])
     except (BoardError, Unreachable) as e:
         out(f"board write failed: {e}. Claim in the repo and say so under Needs from you.")
         return EXIT_UNREACHED
-    rivals = [a for a in (after.assignees if after else []) if a != me]
+    # A rival may hold this issue, or a second issue for the same feature that someone created
+    # at the same moment because neither of you found one.
+    mine = [after.issues[issue.number]] if issue.number in after.issues else []
+    same = mine + [i for n, i in after.issues.items() if n != issue.number and i.title.startswith(f"{fid} — ")]
+    rivals = sorted({a for i in same for a in i.assignees if a != me})
     if rivals:
         out(f"{fid} was claimed at the same moment by {', '.join(rivals)} (#{issue.number}); "
             "both claims stand on the board. Stop and let a human decide who keeps it.")
@@ -346,6 +370,8 @@ def cmd_claim(project: cd.Project, fid: str, api, take: bool = False, release: b
 
 # --------------------------------------------------------------------------- GitHub, through gh
 
+LIST_LIMIT = "10000"  # gh pages through internally; linked issues past it are fetched one by one
+ISSUE_FIELDS = "number,title,state,assignees,milestone"
 ISSUE_BODY = ("Mirrored from this repository's milestone files by tools/sync_tracker.py. The "
               "repository is the source of status: a card moved by hand is moved back on the next sync.")
 
@@ -381,7 +407,9 @@ class GhBoard:
     def _json(self, *args: str):
         return json.loads(self._gh(*args, read=True) or "null")
 
-    def read(self) -> BoardState:
+    def read(self, links=()) -> BoardState:
+        """The board. `links` are issue numbers the repo cites: any the issue list did not
+        return (a repository past the list limit) are fetched one by one."""
         self._gh("auth", "status", read=True)
         repo = self._json("repo", "view", "--json", "nameWithOwner,defaultBranchRef")
         self._repo = repo["nameWithOwner"]
@@ -394,21 +422,37 @@ class GhBoard:
         self._field = status["id"]
         self._options = {x["name"]: x["id"] for x in status.get("options", [])}
         on_board: dict[int, str] = {}
-        for it in self._json("project", "item-list", p, "--owner", o, "--format", "json", "--limit", "1000")["items"]:
+        for it in self._json("project", "item-list", p, "--owner", o, "--format", "json", "--limit", LIST_LIMIT)["items"]:
             c = it.get("content") or {}
             if c.get("type") == "Issue" and c.get("repository") == self._repo:
                 self._items[c["number"]] = it["id"]
                 on_board[c["number"]] = it.get("status") or ""
-        state = BoardState(default_branch=(repo.get("defaultBranchRef") or {}).get("name", ""))
-        for raw in self._json("issue", "list", "--state", "all", "--limit", "1000",
-                              "--json", "number,title,state,assignees,milestone"):
+        default = (repo.get("defaultBranchRef") or {}).get("name", "")
+        state = BoardState(default_branch=default)
+        if default:
+            state.default_sha = self._gh("api", f"repos/{self._repo}/commits/{default}", "--jq", ".sha",
+                                         read=True).strip()
+
+        def add(raw: dict) -> None:
             n = raw["number"]
             state.issues[n] = Issue(n, raw["title"], raw["state"],
                                     [a["login"] for a in raw.get("assignees") or []],
                                     on_board.get(n), (raw.get("milestone") or {}).get("title"))
-        for ms in self._json("api", f"repos/{self._repo}/milestones?state=all&per_page=100"):
-            state.milestones[ms["title"]] = ms["state"]
-            self._milestones[ms["title"]] = ms["number"]
+
+        for raw in self._json("issue", "list", "--state", "all", "--limit", LIST_LIMIT, "--json", ISSUE_FIELDS):
+            add(raw)
+        for n in links:
+            if n not in state.issues:
+                code, out, _ = self._run(["issue", "view", str(n), "--json", ISSUE_FIELDS])
+                if code == 0:  # a link to a deleted or transferred issue is simply not there
+                    add(json.loads(out))
+        listing = self._gh("api", "--paginate", f"repos/{self._repo}/milestones?state=all&per_page=100",
+                           "--jq", ".[] | {title, state, number}", read=True)
+        for row in listing.splitlines():
+            if row.strip():
+                ms = json.loads(row)
+                state.milestones[ms["title"]] = ms["state"]
+                self._milestones[ms["title"]] = ms["number"]
         return state
 
     def whoami(self) -> str:

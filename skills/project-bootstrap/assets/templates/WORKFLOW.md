@@ -14,7 +14,7 @@ IDs are allocated in order and never reused. A moved feature gets a new ID; the 
 
 ## 3. Sessions
 Claim before you start: plan status `in progress` plus a stamp line `- <date>T<hh>:<mm>Z — <agent> — <branch>` (UTC; the agent is the tool's name, `claude-code`, `codex`; the branch is the one you are on) under `## Sessions`, and the plan's path appended to the feature line in the milestone. The first claim in a milestone also sets that milestone's `**Status:**` to `in progress`. Never take a feature stamped under 24 hours ago by someone else.
-With a tracker (`[tracker]` in `docs/.check_docs.toml`), run `python tools/sync_tracker.py claim M<n>-<nn>` before writing the plan: exit 3 means someone else holds it — stop and say who; exit 2 means the board was not reached — claim anyway and say so under Needs from you. The board mirrors the repo and never changes it: a card moved by hand is moved back on the next `python tools/sync_tracker.py sync`, which runs from an up-to-date `main`.
+With a tracker (`[tracker]` in `docs/.check_docs.toml`), run `python tools/sync_tracker.py claim M<n>-<nn>` before writing the plan: exit 3 means someone else holds it — stop and say who; exit 2 means the board was not reached — claim anyway and say so under Needs from you. The board mirrors the repo and never changes it: a card moved by hand is moved back on the next `python tools/sync_tracker.py sync`, best run from an up-to-date `main`.
 Start: `AGENTS.md` → `docs/CURRENT.md` → your plan → first unticked task. End: plan matches reality; notes say where you stopped; tree green or the plan says what's red. One feature per session by default.
 
 ## 3a. Working for a human

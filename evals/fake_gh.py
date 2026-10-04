@@ -16,6 +16,12 @@ def opt(a, name):
     return a[a.index(name) + 1] if name in a else None
 
 
+def as_json(i):
+    return {"number": i["number"], "title": i["title"], "state": i["state"],
+            "assignees": [{"login": x} for x in i["assignees"]],
+            "milestone": {"title": i["milestone"]} if i.get("milestone") else None}
+
+
 def handle(st, a):
     if st.get("offline"):
         return None, "error connecting to api.github.com", 1
@@ -38,15 +44,19 @@ def handle(st, a):
                   **({"status": i["status"]} if i.get("status") else {})}
                  for i in st["issues"] if i.get("on_board")]
         return {"items": items}, "", 0
-    if a[:2] == ["issue", "list"]:
-        return [{"number": i["number"], "title": i["title"], "state": i["state"],
-                 "assignees": [{"login": x} for x in i["assignees"]],
-                 "milestone": {"title": i["milestone"]} if i.get("milestone") else None}
-                for i in st["issues"]], "", 0
+    if a[:2] == ["issue", "list"]:  # an issue marked "hidden" stands for one past gh's list limit
+        return [as_json(i) for i in st["issues"] if not i.get("hidden")], "", 0
+    if a[:2] == ["issue", "view"]:
+        found = [i for i in st["issues"] if i["number"] == int(a[2])]
+        if not found:
+            return None, f"GraphQL: Could not resolve to an issue with the number of {a[2]}.", 1
+        return as_json(found[0]), "", 0
     if a[:2] == ["api", "user"]:
         return st["me"] + "\n", "", 0
     if a[0] == "api":
         path = next(x for x in a[1:] if x.startswith("repos/"))
+        if "/commits/" in path:
+            return st.get("head", "") + "\n", "", 0
         if "-X" in a:
             num = int(path.rsplit("/", 1)[1])
             for m in st["milestones"]:
@@ -57,6 +67,8 @@ def handle(st, a):
             num = len(st["milestones"]) + 1
             st["milestones"].append({"number": num, "title": opt(a, "-f").split("=", 1)[1], "state": "open"})
             return {"number": num}, "", 0
+        if "--jq" in a:  # `--paginate --jq '.[] | ...'`: one object per line, across every page
+            return "".join(json.dumps(m) + "\n" for m in st["milestones"]), "", 0
         return st["milestones"], "", 0
     if a[:2] == ["issue", "create"]:
         n = st["next"]

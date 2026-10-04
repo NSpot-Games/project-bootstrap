@@ -78,7 +78,10 @@ For every feature in a `planned` or `in progress` milestone:
 4. A feature line without a link gets `(tracker: #N)` written in (§2). This is the only write
    to the repo: a link, not a status. Generated files are never touched.
 
-A dropped milestone closes its GitHub milestone and its open issues as *not planned*. A moved
+A `done` milestone's features are matched to existing issues, so a last feature ticked at
+milestone close still reaches Done, but no issue or milestone is created for them. The board
+read fetches, one by one, any linked issue the issue list did not return (a repository past the
+list limit). A dropped milestone closes its GitHub milestone and its open issues as *not planned*. A moved
 feature's old issue is closed *not planned* with a comment naming the new ID. A changed title
 in the repo renames the issue. `--dry-run` prints every change and applies none. Running `sync`
 twice changes nothing the second time.
@@ -97,10 +100,14 @@ therefore never moves an assigned In Progress item back to Todo. Everything else
 repo: an issue closed on the board while its feature is unticked is reopened, and a card dragged
 to Done early is moved back, each with a one-line reason in the output.
 
-For the same reason `sync` writes only from the default branch, after a fetch shows it at its
-remote: a feature branch or a stale local `main` has not seen the tick a merged PR brought, and
-would reopen that feature's Done issue. Off the default branch, or behind it, `sync` refuses
-with exit 1 and says why; `--dry-run` and `check` run anywhere, since they write nothing.
+For the same reason, a tree that lacks a merge on the default branch — a feature branch, the
+bootstrap branch, a stale local `main` — has not seen the tick a merged PR brought, and would
+reopen that feature's Done issue. `sync` asks GitHub for the default branch's head and checks
+that it is an ancestor of `HEAD` (no remote name, no fetch to fail). When it is not, `sync`
+applies everything else and skips only the changes that would take a feature back out of Done
+(a reopen, a card moved off Done), listing each as skipped; a sync from an up-to-date tree
+applies them. This is what lets generation sync from the bootstrap branch before anything is
+pushed.
 
 ### 3.3 `claim <feature-id> [--take] [--release]`
 
