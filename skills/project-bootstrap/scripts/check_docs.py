@@ -250,6 +250,7 @@ class Feature:
     plan_path: str | None
     depends_on: list[str]
     line: int
+    tracker: int | None = None
 
 
 @dataclass
@@ -358,6 +359,10 @@ ID_LIST_RE = re.compile(r"\bM\d+(?:-\d+)?\b")
 FEATURE_RE = re.compile(
     r"^- \[([ xX])\] (M\d+-\d+) — (.*?)(?: — `([^`]+)`)?(?: \(depends on: ([^)]*)\))?[ \t]*$", re.M
 )
+# A feature line may carry `(tracker: #N)` (tools/sync_tracker.py writes it last on the line).
+# It is read wherever it sits and removed before FEATURE_RE runs, so a plan path appended after
+# the link still parses.
+TRACKER_LINK_RE = re.compile(r" \(tracker: #(\d+)\)")
 MOVED_FEATURE_RE = re.compile(r"^- ~~(M\d+-\d+) — (.*?)~~ moved to (M\d+-\d+)[ \t]*$", re.M)
 SESSION_RE = re.compile(r"^- (\S+)(?: — ([^—\n]*?))?(?: — ([^\n]*))?[ \t]*$", re.M)
 TASK_RE = re.compile(r"^- \[([ xX])\] T\d+", re.M)
@@ -378,13 +383,23 @@ def _id_and_title(heading: str, pattern: str, fallback_id: str) -> tuple[str, st
 def parse_milestone(path: Path) -> Milestone:
     text = read_text(path)
     mid, title = _id_and_title(first_heading(text), r"M\d+", path.stem)
+    links: dict[int, int] = {}
+    lines = text.split("\n")
+    for i, ln in enumerate(lines):
+        m = TRACKER_LINK_RE.search(ln)
+        if m and (ln.startswith("- [") or ln.startswith("- ~~")):
+            links[i + 1] = int(m.group(1))
+            lines[i] = TRACKER_LINK_RE.sub("", ln)
+    clean = "\n".join(lines)
     features: list[Feature] = []
-    for m in FEATURE_RE.finditer(text):
+    for m in FEATURE_RE.finditer(clean):
+        ln = line_of(clean, m.start())
         features.append(Feature(m.group(2), m.group(3).strip(), m.group(1) in "xX", None,
-                                m.group(4), parse_ids(m.group(5)), line_of(text, m.start())))
-    for m in MOVED_FEATURE_RE.finditer(text):
-        features.append(Feature(m.group(1), m.group(2).strip(), False, m.group(3), None, [],
-                                line_of(text, m.start())))
+                                m.group(4), parse_ids(m.group(5)), ln, links.get(ln)))
+    for m in MOVED_FEATURE_RE.finditer(clean):
+        ln = line_of(clean, m.start())
+        features.append(Feature(m.group(1), m.group(2).strip(), False, m.group(3), None, [], ln,
+                                links.get(ln)))
     features.sort(key=lambda f: f.line)
     return Milestone(
         id=mid, path=path, title=title,

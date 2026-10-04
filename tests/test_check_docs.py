@@ -1093,3 +1093,41 @@ def test_e012_bad_stale_hours_reports_finding_not_traceback(tmp_path, value):
 def test_fractional_stale_hours_is_valid(tmp_path):
     root = make_project(tmp_path, {"docs/.check_docs.toml": ("stale_hours = 876000", "stale_hours = 0.5")})
     assert cd.load_config(root).config_error is None
+
+
+# --------------------------------------------------------------------------- 2.10.0: tracker links
+
+TRACKER_LINES = [
+    ("- [ ] M1-03 — Third thing (tracker: #7)", None, [], 7),
+    ("- [x] M1-03 — Third thing — `docs/plans/M1/M1-03-x.md` (tracker: #7)", "docs/plans/M1/M1-03-x.md", [], 7),
+    ("- [ ] M1-03 — Third thing — `docs/plans/M1/M1-03-x.md` (depends on: M0-01) (tracker: #7)",
+     "docs/plans/M1/M1-03-x.md", ["M0-01"], 7),
+    ("- [ ] M1-03 — Third thing (tracker: #7) — `docs/plans/M1/M1-03-x.md`", "docs/plans/M1/M1-03-x.md", [], 7),
+    ("- [ ] M1-03 — Parse (raw) notes — v2", None, [], None),
+]
+
+
+@pytest.mark.parametrize("line,plan,deps,tracker", TRACKER_LINES)
+def test_feature_line_parses_a_tracker_link_anywhere(tmp_path, line, plan, deps, tracker):
+    root = make_project(tmp_path, {"docs/milestones/M1.md": ("- [ ] M1-03 — Third thing", line)})
+    f = cd.parse_milestone(root / "docs" / "milestones" / "M1.md").feature("M1-03")
+    assert (f.plan_path, f.depends_on, f.tracker) == (plan, deps, tracker)
+    assert "tracker" not in f.title
+
+
+def test_moved_feature_line_parses_a_tracker_link(tmp_path):
+    root = make_project(tmp_path, {"docs/milestones/M1.md": (
+        "- [ ] M1-03 — Third thing", "- ~~M1-03 — Third thing~~ moved to M1-01 (tracker: #9)")})
+    f = cd.parse_milestone(root / "docs" / "milestones" / "M1.md").feature("M1-03")
+    assert (f.moved_to, f.tracker) == ("M1-01", 9)
+
+
+def test_dependency_before_a_trailing_link_is_still_checked(tmp_path):
+    root = make_full(tmp_path)
+    p = root / "docs" / "milestones" / "M2.md"  # in progress, so E008 checks its lines
+    line = "- [ ] M2-01 — Push endpoint — `docs/plans/M2/M2-01-push-endpoint.md`"
+    p.write_text(p.read_text(encoding="utf-8").replace(line, line + " (depends on: M9-01) (tracker: #12)"),
+                 encoding="utf-8", newline="\n")
+    found = cd.run(root)
+    assert any(x.code == "E008" and "M9-01" in x.message for x in found)
+    assert "E006" not in codes(found)
