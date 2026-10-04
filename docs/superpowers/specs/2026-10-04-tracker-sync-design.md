@@ -37,17 +37,19 @@ moves its card to Done with no manual step.
 
 ## 2. The feature-line link
 
-A feature line gains an optional trailing link, in one fixed position — last:
+A feature line gains an optional link, written last on the line and read wherever it sits:
 
 ```
 - [ ] M3-02 — Title — `docs/plans/M3/M3-02-slug.md` (depends on: M2-01) (tracker: #123)
 ```
 
-Order is title, plan path, dependencies, tracker; every part after the title is optional.
-`FEATURE_RE` in `scripts/check_docs.py` gains a final optional group
-`(?: \(tracker: #(\d+)\))?`, and `Feature` gains `tracker: str | None`. Without this group a
-link at the end is swallowed into the title and the plan path with it, so a ticked feature
-would raise `E006`; this is the template-shape rule in the repository's `AGENTS.md`. The
+Every part after the title is optional. `parse_milestone` in `scripts/check_docs.py` reads the
+link from anywhere on a feature line (plain or struck-through) and removes it before
+`FEATURE_RE` runs, and `Feature` gains `tracker: int | None`. Unparsed, a link at the end is
+swallowed into the title and the plan path with it, so a ticked feature would raise `E006` —
+the template-shape rule in the repository's `AGENTS.md`. Reading it anywhere matters because a
+session appends the plan path at claim time, after `sync` may already have written the link;
+`sync` moves a misplaced link back to the end. The
 brownfield form already in `references/core/adoption.md §2` step 6 (`(tracker: #123)`) is the
 same link; that step is edited to say where on the line it goes.
 
@@ -93,8 +95,12 @@ The exception exists because `sync` sees only the checked-out tree: a claim made
 branch is invisible to it, and its only trace is the board item (In Progress, assigned). `sync`
 therefore never moves an assigned In Progress item back to Todo. Everything else follows the
 repo: an issue closed on the board while its feature is unticked is reopened, and a card dragged
-to Done early is moved back, each with a one-line reason in the output. `sync` is meant to run
-from `main`; from a feature branch it is still safe, by the exception.
+to Done early is moved back, each with a one-line reason in the output.
+
+For the same reason `sync` writes only from the default branch, after a fetch shows it at its
+remote: a feature branch or a stale local `main` has not seen the tick a merged PR brought, and
+would reopen that feature's Done issue. Off the default branch, or behind it, `sync` refuses
+with exit 1 and says why; `--dry-run` and `check` run anywhere, since they write nothing.
 
 ### 3.3 `claim <feature-id> [--take] [--release]`
 
@@ -108,7 +114,13 @@ Run at the claim step, before the plan file is written.
 | 1 | usage error: unknown feature, no tracker configured | stops and reports |
 
 A feature with no issue yet gets one created first. `--take` reassigns to the caller.
-`--release` unassigns and sets Todo, for a claim abandoned without Close.
+`--release` unassigns and sets Todo, for a claim abandoned without Close. `claim` writes nothing
+to the repo; `sync` writes the link later, from the default branch, so a feature branch and
+`main` never both edit the same feature line for the link.
+
+Two claims at the same moment both see the issue free and both assign. After assigning,
+`claim` reads the issue again; with another assignee present it exits 3 for both, naming the
+other, and a human decides who keeps it (`references/core/parallel-agents.md §6`).
 
 ### 3.4 `check`
 
@@ -132,6 +144,7 @@ A `[tracker]` table in `<project>/docs/.check_docs.toml`:
 kind = "github-projects"   # or "none" (the default when the table is absent)
 owner = "<user-or-org>"
 project = 7                # the project number
+gh = "gh"                  # optional: the gh executable; a path is relative to the project root
 ```
 
 `check_docs.py` reads and validates it (it stays offline): a `kind` outside the two, a missing
@@ -164,8 +177,8 @@ documents the table, commented out.
   issue.
 - `assets/templates/WORKFLOW.md` — the claim and Close steps in the project's words, and one
   line: the board never changes the repo; a card moved by hand is moved back.
-- `assets/templates/AGENTS.md` — the `sync` and `claim` commands, under the commands block,
-  only when a tracker is configured (a template instruction line, replaced at generation).
+- `assets/templates/AGENTS.md` — How to work, step 1: with a tracker, `claim` first, pointing
+  at `docs/WORKFLOW.md` §3 for the exit codes.
 - `references/core/adoption.md §2` step 6 — the link's place on the line (§2).
 - `README.md` — a short *Tracker sync* section.
 
@@ -192,11 +205,13 @@ links, so the full fixture lints clean with them.
 **`tests/test_kit_consistency.py`:** the config-template test reads nested tables, so it
 covers `[tracker]`; the `WORKFLOW.md` template carries `Closes #`.
 
-**Evals:** a new `tracker-claim` scenario on the `generated` fixture with `[tracker]`
-configured; the harness puts a fake `gh` first on `PATH` that logs calls and answers from a
-script. Assertions: `claim M0-01` runs before the plan file exists; a scripted "held by alice"
-stops the claim with no plan written; the plan and milestone edits match the `first-session`
-assertions on the free path. The `generation` scenario gains one assertion: with a GitHub
+**Evals:** two new scenarios on the `generated` fixture with `[tracker]` configured, since one
+run cannot take both paths. The harness copies `evals/fake_gh.py` into `<project>/.fake-gh/`
+and points `[tracker] gh` at it (an optional key, default `gh`); the fake answers from a JSON
+state file and logs each call with the number of plan files present at that moment.
+`tracker-claim`: `claim M0-01` assigns before any plan file exists, and the plan and milestone
+edits match `first-session`. `tracker-held`: with M0-01 assigned to alice, no plan is written,
+M0 stays `planned`, and the final message names alice. The `generation` scenario gains one assertion: with a GitHub
 remote in the fixture, the gate message asks about the project.
 
 **Live check:** once, before release, on a throwaway repository under the owner's account,
