@@ -419,7 +419,7 @@ def _id_and_title(heading: str, pattern: str, fallback_id: str) -> tuple[str, st
 
 def parse_milestone(path: Path) -> Milestone:
     text = read_text(path)
-    mid, title = _id_and_title(first_heading(text), r"M\d+", path.stem)
+    mid, title = _id_and_title(TRACKER_LINK_RE.sub("", first_heading(text)), r"M\d+", path.stem)
     links: dict[int, int] = {}
     lines = text.split("\n")
     for i, ln in enumerate(lines):
