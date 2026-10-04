@@ -420,3 +420,21 @@ def test_cli_without_tracker(tmp_path):
     assert run_cli(p.cfg.root, "sync").returncode == 0
     r = run_cli(p.cfg.root, "claim", "M1-03")
     assert r.returncode == 1 and "no tracker" in r.stdout
+
+
+# --------------------------------------------------------------------------- the eval harness's tracker setup
+
+
+def test_harness_prepares_tracker_scenarios(tmp_path):
+    sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "evals"))
+    import harness
+    skill = Path(__file__).resolve().parents[1] / "skills" / "project-bootstrap"
+    for name, holder in (("tracker-claim", None), ("tracker-held", "alice")):
+        project = harness.prepare(name, tmp_path, "t", skill) / "project"
+        state = json.loads((project / ".fake-gh" / "fake_gh.json").read_text(encoding="utf-8"))
+        assert [i["assignees"] for i in state["issues"]] == ([] if holder is None else [[holder]])
+        assert (project / "tools" / "sync_tracker.py").is_file()
+        r = run_cli(project, "claim", "M0-01")
+        assert r.returncode == (0 if holder is None else 3), r.stdout + r.stderr
+        log = (project / ".fake-gh" / "fake_gh.log").read_text(encoding="utf-8")
+        assert log.startswith("plans=0 auth status")

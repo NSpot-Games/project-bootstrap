@@ -31,6 +31,8 @@ EVALS = HERE / "evals.json"
 FIXTURES = HERE / "fixtures"
 DEFAULT_SKILL = ROOT / "skills" / "project-bootstrap"
 LINTER = DEFAULT_SKILL / "scripts" / "check_docs.py"
+SYNC = DEFAULT_SKILL / "scripts" / "sync_tracker.py"
+FAKE_GH = HERE / "fake_gh.py"
 PRE_BOOTSTRAP_MSG = "pre-bootstrap: the repository as it was before the docs-as-contract bootstrap"
 
 PROMPT = """You are exercising the project-bootstrap skill exactly as an agent would use it.
@@ -88,6 +90,26 @@ def _rmtree(path: Path) -> None:
         shutil.rmtree(path, onerror=_force)
 
 
+def _fake_tracker(project: Path, held_by: str | None) -> None:
+    """A fake gh in <project>/.fake-gh and a [tracker] table pointing at it. When `held_by` is
+    set, the first feature of M0 already has an issue assigned to that login, In Progress."""
+    d = project / ".fake-gh"
+    d.mkdir()
+    shutil.copy(FAKE_GH, d / "fake_gh.py")
+    issues = []
+    if held_by:
+        m0 = (project / "docs" / "milestones" / "M0.md").read_text(encoding="utf-8")
+        first = re.search(r"(?m)^- \[ \] (M0-01 — .*?)(?: — `.*)?[ \t]*$", m0)
+        issues.append({"number": 1, "title": first.group(1).strip(), "state": "OPEN", "assignees": [held_by],
+                       "milestone": None, "on_board": True, "status": "In Progress"})
+    (d / "fake_gh.json").write_text(json.dumps({"repo": "example/fieldnote", "me": "bootstrap-agent",
+                                                "next": len(issues) + 1, "milestones": [], "issues": issues}),
+                                    encoding="utf-8")
+    cfg = project / "docs" / ".check_docs.toml"
+    cfg.write_text(cfg.read_text(encoding="utf-8") + '\n[tracker]\nkind = "github-projects"\nowner = "example"\n'
+                   'project = 1\ngh = ".fake-gh/fake_gh.py"\n', encoding="utf-8", newline="\n")
+
+
 def prepare(name: str, runs: Path, label: str, skill: Path) -> Path:
     ev = scenario(name)
     rd = run_dir(runs, name, label)
@@ -99,7 +121,12 @@ def prepare(name: str, runs: Path, label: str, skill: Path) -> Path:
     if setup.get("copy_linter"):
         (project / "tools").mkdir(exist_ok=True)
         shutil.copy(LINTER, project / "tools" / "check_docs.py")
-    if setup.get("git"):
+    if setup.get("copy_sync"):
+        (project / "tools").mkdir(exist_ok=True)
+        shutil.copy(SYNC, project / "tools" / "sync_tracker.py")
+    if "tracker" in setup:
+        _fake_tracker(project, setup["tracker"].get("held_by"))
+    if setup.get("git") or setup.get("remote"):
         git(project, "init", "-q", "-b", "main")
         git(project, "config", "user.email", "fixture@example.invalid")
         git(project, "config", "user.name", "Fixture")
@@ -107,6 +134,8 @@ def prepare(name: str, runs: Path, label: str, skill: Path) -> Path:
         git(project, "commit", "-q", "-m", PRE_BOOTSTRAP_MSG)
         sha = git(project, "rev-parse", "HEAD").stdout.strip()
         (rd / "pre_bootstrap_sha.txt").write_text(sha + "\n", encoding="utf-8")
+        if setup.get("remote"):
+            git(project, "remote", "add", "origin", setup["remote"])
     data = load_evals()
     task = ev["prompt"].format(answers=data["answers"], brainstorm=data["brainstorm"])
     prompt = PROMPT.format(skill=skill.resolve().as_posix(), project=project.resolve().as_posix(), task=task)
