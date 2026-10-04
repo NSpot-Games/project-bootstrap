@@ -5,7 +5,7 @@ license: MIT
 compatibility: Requires Python 3.11+ for scripts/check_docs.py
 metadata:
   author: NSpotGames
-  version: "2.9.1"
+  version: "2.10.0"
 ---
 
 # Project Bootstrap
@@ -252,6 +252,10 @@ Once the brainstorm, phase 1's design docs, and the roadmap are all written and 
    end of every session without being remembered, and the kit is not installed as a Claude Code
    plugin (which already runs it), copy `scripts/hooks/stop.sh` to
    `<project>/tools/hooks/stop.sh` and wire it as `scripts/hooks/README.md` shows.
+   The tracker is the user's choice too, asked in the same gate message and only when the
+   repository has a GitHub remote: "This repository has a GitHub remote. Create a
+   GitHub Project and sync the milestones to it?" Nothing is created on GitHub before a yes
+   (step 7).
 2a. Copy `assets/templates/gitattributes` to `<project>/.gitattributes` if the project has
    none, and add `tools/__pycache__/` to `<project>/.gitignore` if it is not there, so the
    linter's LF output and a Windows checkout never produce a mixed-ending diff. Add any secrets
@@ -306,12 +310,23 @@ Once the brainstorm, phase 1's design docs, and the roadmap are all written and 
    until the milestone closes. Open-question rows that block a later milestone do not appear in
    `<project>/docs/CURRENT.md` until that milestone is listed; that is by design.
 6. Commit, then end the session with the review-gate line for `<project>/AGENTS.md` and the
-   milestone files, the hook question from step 2, and the ADRs awaiting acceptance. §5 starts
-   when the user replies.
+   milestone files, the hook and tracker questions from step 2, and the ADRs awaiting
+   acceptance. §5 starts when the user replies.
+7. On a yes to the tracker: `gh project create --owner <owner> --title "<Project>"` (the owner
+   from the remote), `gh project link <number> --owner <owner> --repo <owner>/<name>`, copy
+   `scripts/sync_tracker.py` to `<project>/tools/sync_tracker.py`, uncomment the `[tracker]`
+   table in `<project>/docs/.check_docs.toml` with that owner and number, then run
+   `python tools/sync_tracker.py sync` and commit the `(tracker: #N)` links it writes. The
+   project's built-in "Item closed" workflow sets Done when a PR with `Closes #N` merges; say so
+   in one line. A `gh` that is missing or not logged in is the user's to fix: name the command
+   (`gh auth login --scopes project`) and carry on without the tracker.
 
 ## 5. First session
 
-Open `<project>/docs/CURRENT.md` and claim `M0-01`: copy `<project>/tools/templates/plan.md` to
+Open `<project>/docs/CURRENT.md` and claim `M0-01`. With a tracker, run
+`python tools/sync_tracker.py claim M0-01` first: exit 3 means someone else holds it, so stop
+and report who; exit 2 means the board was not reached, so claim in the repo and say so under
+Needs from you. Then copy `<project>/tools/templates/plan.md` to
 `<project>/docs/plans/M0/M0-01-<slug>.md`, set `**Status:** in progress`, add a session stamp
 in the form `<project>/docs/WORKFLOW.md §3` gives (`- <date>T<hh>:<mm>Z — <agent> — <branch>`,
 UTC; `<agent>` is the tool's name, `claude-code`, `codex`, and `<branch>` the branch you are on,

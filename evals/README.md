@@ -12,20 +12,22 @@ used, so the suite is project-agnostic and safe to publish with the kit.
 
 ## Layout
 
-- `evals.json` — the seven scenarios: fixture, setup, prompt, expected outcome, and typed
+- `evals.json` — the nine scenarios: fixture, setup, prompt, expected outcome, and typed
   assertions. The prompt substitutes `{answers}` and `{brainstorm}` from the top-level fields.
 - `fixtures/<name>/` — starting repositories: `plain-greenfield` (a README), `docs-rich-greenfield`
   (no code, three vision docs with one deliberate contradiction), `after-roadmap` (design docs and
   roadmap written, no process files), `generated` (a project the moment generation finished,
   nothing claimed).
 - `harness.py` — `prepare`, `grade`, `report`. Standard library only.
+- `fake_gh.py` — a stand-in for the gh CLI that the tracker scenarios put in `<project>/.fake-gh/`;
+  it answers from a JSON state file and logs every call with the number of plan files present.
 - `runs/` — ignored by git; one directory per scenario and label holding the scratch project,
   the prompt, the grading and timing.
 - `seeds/` — ignored by git except its README; snapshots of real repositories, each a clone with
   no remote, for acceptance runs (`harness.py seed add|refresh|prepare|list`); their runs go to
   `runs/acceptance/<name>-<date>/`. See `seeds/README.md`.
 
-## The seven scenarios
+## The nine scenarios
 
 | Scenario | Step under test | What it measures |
 |---|---|---|
@@ -36,6 +38,8 @@ used, so the suite is project-agnostic and safe to publish with the kit.
 | `one-design-doc` | C2 and its gate | header, numbering, changelog, no in-doc open-questions section, the verbatim gate message |
 | `generation` | SKILL.md §4 | every process file, no tokens, no stubs, config and line-ending files, a green linter |
 | `ci-default` | CI written in feature work | one workflow, a fast job on PRs and a slow one on main or a schedule, a path filter, no deploy step, a local `check` command in AGENTS.md |
+| `tracker-claim` | SKILL.md §5 with a tracker | `claim` runs before the plan is written and assigns the feature |
+| `tracker-held` | the claim lock | a feature assigned to someone else is not claimed, and the human is told who holds it |
 
 Some assertions are *targets*: they fail against the current skill on purpose and pass once the
 procedure change they measure has shipped. A baseline run records which.

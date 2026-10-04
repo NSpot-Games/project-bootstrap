@@ -50,5 +50,5 @@ Under the data-ml profile, a feature is often an experiment rather than a build.
 3. Every doc whose described behaviour changed is updated in the same commit.
 4. ADRs opened during the feature are reviewed; a `proposed` ADR does not block Close unless it is marked `**Blocking:** yes`.
 5. The feature's checkbox is ticked in the milestone file, and the plan's status is set to `done`.
-6. Run `tools/check_docs.py --fix` and commit the regenerated indexes alongside the rest of the change.
+6. Run `tools/check_docs.py --fix` and commit the regenerated indexes alongside the rest of the change. With a tracker, the PR body carries `Closes #N` for the feature's issue, so the merge moves its card to Done (`references/core/parallel-agents.md §7`).
 7. If this is the milestone's last feature, run the roadmap review checklist (`references/core/long-horizon.md §4`) before ending the session.

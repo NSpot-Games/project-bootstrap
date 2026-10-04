@@ -276,6 +276,14 @@ def test_skill_directory_works_when_copied_alone(tmp_path):
     assert r.returncode == 0, r.stderr
 
 
+def test_sync_tracker_runs_when_the_skill_is_copied_alone(tmp_path):
+    dest = tmp_path / "skill"
+    shutil.copytree(SKILL_DIR, dest)
+    r = subprocess.run([sys.executable, str(dest / "scripts" / "sync_tracker.py"), "--root", str(tmp_path), "sync"],
+                       capture_output=True, text=True)
+    assert r.returncode == 0 and "no tracker configured" in r.stdout, r.stdout + r.stderr
+
+
 # --------------------------------------------------------------------------- release A: hooks warn until CURRENT.md exists
 
 def _failing_linter(cwd: Path) -> None:

@@ -102,10 +102,13 @@ def test_session_stamp_form_agrees_with_the_workflow_template():
 def test_config_template_documents_every_linter_key():
     import dataclasses
     import tomllib
-    keys = {f.name for f in dataclasses.fields(cd.Config)} - {"root", "config_error"}
+    keys = {f.name for f in dataclasses.fields(cd.Config)} - {"root", "config_error", "tracker"}
     text = _text(TEMPLATES / "check_docs.toml")
     mentioned = set(re.findall(r"^#?\s*([a-z_]+)\s*=", text, re.M))
     assert keys <= mentioned, keys - mentioned
+    assert re.search(r"(?m)^#\s*\[tracker\]", text), "the [tracker] table is documented"
+    sub = {f.name for f in dataclasses.fields(cd.TrackerConfig)}
+    assert sub <= mentioned, sub - mentioned
     active = tomllib.loads(text)
     assert set(active) <= keys, set(active) - keys
 
@@ -267,3 +270,16 @@ def test_stopping_rules_allow_pushing_the_projects_own_branch():
     economy = (SKILL_DIR / "references" / "core" / "economy.md").read_text(encoding="utf-8")
     for text in (agents, economy):
         assert "pushing its own branch is fine" in text
+
+
+def test_tracker_procedure_is_written_where_sessions_read_it():
+    workflow = _text(TEMPLATES / "WORKFLOW.md")
+    assert "tools/sync_tracker.py claim" in workflow
+    assert "Closes #" in workflow
+    assert "moved back" in workflow, "WORKFLOW.md says the board never changes the repo"
+    assert "tools/sync_tracker.py claim" in _text(TEMPLATES / "AGENTS.md")
+    skill = _text(SKILL_DIR / "SKILL.md")
+    assert "sync_tracker.py" in skill and "GitHub Project" in skill
+    assert "## 7. Tracker mirror" in _text(REFERENCES / "core" / "parallel-agents.md")
+    assert "Closes #" in _text(REFERENCES / "core" / "lifecycle.md")
+    assert "sync_tracker.py sync" in _text(REFERENCES / "core" / "long-horizon.md")

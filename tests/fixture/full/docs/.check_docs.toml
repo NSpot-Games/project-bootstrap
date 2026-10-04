@@ -1,3 +1,8 @@
 tier = "full"
 stale_hours = 876000
 allow_tbd_in = ["docs/OPEN-QUESTIONS.md"]
+
+[tracker]
+kind = "github-projects"
+owner = "acme"
+project = 1

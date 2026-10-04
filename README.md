@@ -51,6 +51,16 @@ Projects built on the kit run the linter and generator as
 standard library only. `skills/project-bootstrap/scripts/hooks/README.md` shows how to run it
 from a Stop hook, a pre-commit hook, or CI.
 
+## Tracker sync
+
+At generation the skill offers to mirror the project's milestones and features onto a GitHub
+Project (`skills/project-bootstrap/scripts/sync_tracker.py`, copied to `tools/`). The repository
+stays the source of status; the board is a one-way mirror plus the claim lock: a session runs
+`tools/sync_tracker.py claim <id>` before it writes a plan, and stops if someone else is
+assigned. Merging a PR whose body says `Closes #N` moves the card to Done through the project's
+built-in workflow, so no CI or stored token is needed. It needs the GitHub CLI logged in with the
+`project` scope (`gh auth login --scopes project`). Linear and Jira are not supported yet.
+
 ## Repository layout
 
 - `BOOTSTRAP.md` — the idea and the machinery, one page each, with pointers into the skill.

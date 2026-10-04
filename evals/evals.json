@@ -101,7 +101,7 @@
       "id": 6,
       "name": "generation",
       "fixture": "after-roadmap",
-      "setup": {"git": false, "copy_linter": false},
+      "setup": {"git": false, "copy_linter": false, "remote": "https://github.com/example/fieldnote.git"},
       "prompt": "The brainstorm, the profile's bootstrap design docs and the roadmap are written and reviewed (see docs/design/ and docs/roadmap.md). {answers} Run the generation step (SKILL.md section 4) and stop before opening the first session.",
       "expected_output": "Every process file exists with tokens substituted, the linter was copied in, milestone files exist for M0 and M1 only, no plans exist, the linter config and .gitattributes are written, the four generated files are current, and the project lints with zero errors.",
       "assertions": [
@@ -122,6 +122,8 @@
         {"text": "WORKFLOW.md points at the object templates instead of embedding them", "check": "grep", "path": "docs/WORKFLOW.md", "pattern": "tools/templates/plan.md"},
         {"text": "The plan-lite object template was copied", "check": "file_exists", "path": "tools/templates/plan-lite.md"},
         {"text": "AGENTS.md carries the stopping rules", "check": "grep", "path": "AGENTS.md", "pattern": "(?m)^## Stopping rules"},
+        {"text": "The gate message asks about a GitHub Project", "check": "final_contains", "pattern": "(?i)github project"},
+        {"text": "No tracker was set up without the user's yes", "check": "not_grep", "path": "docs/.check_docs.toml", "pattern": "(?m)^\\[tracker\\]"},
         {"text": "AGENTS.md names a check command, or the milestone that adds it", "check": "grep", "path": "AGENTS.md", "pattern": "(?ms)^## Commands\\n(?:(?!^## ).)*?(`(?=[^`\\n]*\\s)(?=[^`\\n]*\\bcheck\\b)[^`\\n]+`|\\bM\\d+(?:-\\d+)?\\b[^\\n]*\\bcheck\\b|\\bcheck\\b[^\\n]*\\bM\\d+(?:-\\d+)?\\b)"}
       ]
     },
@@ -140,6 +142,36 @@
         {"text": "No deploy or publish step before the milestone that ships", "check": "none_grep", "glob": ".github/workflows/*", "pattern": "(?im)^\\s*-?\\s*(name|uses|run):.*(deploy|pypi|twine|gh-pages|publish)"},
         {"text": "AGENTS.md names a concrete check command, more than the bare word", "check": "grep", "path": "AGENTS.md", "pattern": "(?is)## Commands.*?`(?=[^`\\n]*\\s)(?=[^`\\n]*\\bcheck\\b)[^`\\n]+`"},
         {"text": "The project lints with zero errors", "check": "lint", "max_errors": 0}
+      ]
+    },
+    {
+      "id": 8,
+      "name": "tracker-claim",
+      "fixture": "generated",
+      "setup": {"git": false, "copy_linter": true, "copy_sync": true, "tracker": {"held_by": null}},
+      "prompt": "The bootstrap of this project is complete and reviewed, and the user said yes to the GitHub Project, which is set up (see [tracker] in docs/.check_docs.toml). Open the first session exactly as the skill's section 5 describes, then stop before writing any implementation code.",
+      "expected_output": "The claim command runs before the plan is written and assigns M0-01; then the plan, the stamp, the M0 status and the regenerated files are as in first-session.",
+      "assertions": [
+        {"text": "claim assigned M0-01 before any plan file existed", "check": "grep", "path": ".fake-gh/fake_gh.log", "pattern": "(?m)^plans=0 issue edit \\d+ --add-assignee bootstrap-agent"},
+        {"text": "M0 is now in progress", "check": "grep", "path": "docs/milestones/M0.md", "pattern": "(?m)^\\*\\*Status:\\*\\* in progress"},
+        {"text": "Exactly one plan exists for M0-01", "check": "count_glob", "glob": "docs/plans/M0/M0-01-*.md", "min": 1, "max": 1},
+        {"text": "The plan is claimed (status in progress)", "check": "grep_any", "glob": "docs/plans/M0/M0-01-*.md", "pattern": "(?m)^\\*\\*Status:\\*\\* in progress"},
+        {"text": "The project lints with zero errors", "check": "lint", "max_errors": 0}
+      ]
+    },
+    {
+      "id": 9,
+      "name": "tracker-held",
+      "fixture": "generated",
+      "setup": {"git": false, "copy_linter": true, "copy_sync": true, "tracker": {"held_by": "alice"}},
+      "prompt": "The bootstrap of this project is complete and reviewed, and the user said yes to the GitHub Project, which is set up (see [tracker] in docs/.check_docs.toml). Open the first session exactly as the skill's section 5 describes, then stop before writing any implementation code.",
+      "expected_output": "claim exits 3 naming alice; no plan is written, M0 stays planned, and the final message tells the human who holds M0-01.",
+      "assertions": [
+        {"text": "claim was run", "check": "grep", "path": ".fake-gh/fake_gh.log", "pattern": "(?m)^plans=0 api user"},
+        {"text": "No plan was written for a held feature", "check": "count_glob", "glob": "docs/plans/M*/M*-*.md", "max": 0},
+        {"text": "M0 was not set in progress", "check": "not_grep", "path": "docs/milestones/M0.md", "pattern": "(?m)^\\*\\*Status:\\*\\* in progress"},
+        {"text": "The board was not taken over", "check": "not_grep", "path": ".fake-gh/fake_gh.log", "pattern": "--remove-assignee alice"},
+        {"text": "The final message names who holds M0-01", "check": "final_contains", "pattern": "alice"}
       ]
     }
   ]
