@@ -102,10 +102,13 @@ def test_session_stamp_form_agrees_with_the_workflow_template():
 def test_config_template_documents_every_linter_key():
     import dataclasses
     import tomllib
-    keys = {f.name for f in dataclasses.fields(cd.Config)} - {"root", "config_error"}
+    keys = {f.name for f in dataclasses.fields(cd.Config)} - {"root", "config_error", "tracker"}
     text = _text(TEMPLATES / "check_docs.toml")
     mentioned = set(re.findall(r"^#?\s*([a-z_]+)\s*=", text, re.M))
     assert keys <= mentioned, keys - mentioned
+    assert re.search(r"(?m)^#\s*\[tracker\]", text), "the [tracker] table is documented"
+    sub = {f.name for f in dataclasses.fields(cd.TrackerConfig)}
+    assert sub <= mentioned, sub - mentioned
     active = tomllib.loads(text)
     assert set(active) <= keys, set(active) - keys
 

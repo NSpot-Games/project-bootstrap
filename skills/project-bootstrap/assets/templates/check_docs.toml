@@ -27,3 +27,13 @@ exclude = []
 
 # A codename placeholder that must not survive into a real doc; reported as E005 if found.
 # codename_placeholder = "PROJECTNAME"
+
+# Mirror milestones and features onto a GitHub Project (standard and full tiers only).
+# tools/sync_tracker.py reads this table; the linter checks it and warns (W009) on a feature in
+# a planned milestone with no `(tracker: #N)` link. The board never changes the repo: a card
+# moved by hand is moved back on the next sync. Leave the table commented out for no tracker.
+# [tracker]
+# kind = "github-projects"   # or "none"
+# owner = "<user-or-org>"    # who owns the project
+# project = 1                # the project number, from its URL
+# gh = "gh"                  # the gh executable; a path is relative to the project root

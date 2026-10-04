@@ -1131,3 +1131,62 @@ def test_dependency_before_a_trailing_link_is_still_checked(tmp_path):
     found = cd.run(root)
     assert any(x.code == "E008" and "M9-01" in x.message for x in found)
     assert "E006" not in codes(found)
+
+
+def _with_tracker(root: Path, body: str) -> Path:
+    cfg = root / "docs" / ".check_docs.toml"
+    cfg.write_text(cfg.read_text(encoding="utf-8") + "\n[tracker]\n" + body, encoding="utf-8", newline="\n")
+    return root
+
+
+GOOD_TRACKER = 'kind = "github-projects"\nowner = "acme"\nproject = 3\n'
+
+
+def test_tracker_config_is_read(tmp_path):
+    root = _with_tracker(make_project(tmp_path), GOOD_TRACKER + 'gh = "tools/gh.py"\n')
+    t = cd.load_config(root).tracker
+    assert (t.kind, t.owner, t.project, t.gh) == ("github-projects", "acme", 3, "tools/gh.py")
+
+
+def test_tracker_absent_means_none(tmp_path):
+    assert cd.load_config(make_project(tmp_path)).tracker.kind == "none"
+
+
+@pytest.mark.parametrize("body", [
+    'kind = "jira"\n',
+    'kind = "github-projects"\nproject = 3\n',
+    'kind = "github-projects"\nowner = "acme"\nproject = 0\n',
+    'kind = "github-projects"\nowner = "acme"\nproject = true\n',
+    'kind = "github-projects"\nowner = "acme"\nproject = "3"\n',
+])
+def test_bad_tracker_config_is_e012_and_tracker_off(tmp_path, body):
+    root = _with_tracker(make_project(tmp_path), body)
+    assert cd.load_config(root).tracker.kind == "none"
+    assert "E012" in codes(cd.run(root))
+
+
+def test_tracker_at_lite_is_e012(tmp_path):
+    root = make_project(tmp_path)
+    shutil.rmtree(root / "docs" / "milestones")
+    cfg = root / "docs" / ".check_docs.toml"
+    cfg.write_text('tier = "lite"\n[tracker]\n' + GOOD_TRACKER, encoding="utf-8", newline="\n")
+    found = cd.run(root)
+    assert any(f.code == "E012" and "standard or full" in f.message for f in found)
+
+
+def test_w009_on_planned_feature_without_link(tmp_path):
+    root = _with_tracker(make_project(tmp_path), GOOD_TRACKER)
+    found = [f for f in cd.run(root) if f.code == "W009"]
+    assert any("M1-03" in f.message for f in found)
+
+
+def test_w009_silent_with_links_or_without_tracker(tmp_path):
+    root = make_project(tmp_path)
+    assert "W009" not in codes(cd.run(root))
+    _with_tracker(root, GOOD_TRACKER)
+    for p in (root / "docs" / "milestones").glob("M*.md"):
+        text = p.read_text(encoding="utf-8")
+        text = re.sub(r"(?m)^(- \[[ xX]\] M\d+-(\d+) — .*?)[ \t]*$",
+                      lambda m: f"{m.group(1)} (tracker: #{int(m.group(2))})", text)
+        p.write_text(text, encoding="utf-8", newline="\n")
+    assert "W009" not in codes(cd.run(root))

@@ -18,6 +18,7 @@ Codes (the CODES table below is the same list, for tooling):
   W003 generated file differs          W006 AGENTS.md over 120 lines
   W007 cited project file not written yet (no CURRENT.md, bootstrap in progress)
   W008 lite plan over 3 tasks (promote to a full plan)
+  W009 planned feature has no (tracker: #N) while a tracker is configured
 """
 from __future__ import annotations
 
@@ -56,6 +57,7 @@ CODES: dict[str, str] = {
     "W006": "AGENTS.md over 120 lines",
     "W007": "cited project file not written yet (bootstrap in progress)",
     "W008": "lite plan over 3 tasks; promote to a full plan",
+    "W009": "planned feature has no tracker link",
 }
 
 # Tiers, least to most machinery. `minimal` is a project with no roadmap yet (mid-bootstrap):
@@ -104,6 +106,18 @@ class Finding:
         return f"{self.path}:{self.line}: {self.code} {self.message}"
 
 
+TRACKER_KINDS = ("none", "github-projects")
+
+
+@dataclass
+class TrackerConfig:
+    """The `[tracker]` table: where tools/sync_tracker.py mirrors milestones and features."""
+    kind: str = "none"
+    owner: str = ""
+    project: int = 0
+    gh: str = "gh"
+
+
 @dataclass
 class Config:
     root: Path
@@ -114,6 +128,7 @@ class Config:
     citation_roots: list[str] = field(default_factory=list)
     exclude: list[str] = field(default_factory=lambda: list(DEFAULT_EXCLUDE))
     tier: str = "auto"
+    tracker: TrackerConfig = field(default_factory=TrackerConfig)
     config_error: str | None = None
 
     @property
@@ -152,7 +167,29 @@ def load_config(root: Path) -> Config:
             if missing:
                 cfg.config_error = f"citation_roots entry is not a directory: {missing[0]}"
                 cfg.citation_roots = [r for r in roots if r not in missing]
+        if "tracker" in data:
+            err = _load_tracker(cfg, data["tracker"])
+            if err:
+                cfg.config_error = err
+                cfg.tracker = TrackerConfig()
     return cfg
+
+
+def _load_tracker(cfg: Config, raw: object) -> str | None:
+    if not isinstance(raw, dict):
+        return "[tracker] must be a table"
+    t = TrackerConfig(**{k: raw[k] for k in ("kind", "owner", "project", "gh") if k in raw})
+    if t.kind not in TRACKER_KINDS:
+        return f"tracker kind must be one of {', '.join(TRACKER_KINDS)}, not {t.kind!r}"
+    if t.kind == "github-projects":
+        if not isinstance(t.owner, str) or not t.owner:
+            return "tracker owner must be the GitHub user or organisation that owns the project"
+        if isinstance(t.project, bool) or not isinstance(t.project, int) or t.project <= 0:
+            return f"tracker project must be a positive project number, not {t.project!r}"
+        if not isinstance(t.gh, str) or not t.gh:
+            return "tracker gh must be the path or name of the gh executable"
+    cfg.tracker = t
+    return None
 
 
 # --------------------------------------------------------------------------- markdown helpers
@@ -1109,6 +1146,27 @@ def check_generated(project: Project) -> list[Finding]:
     return out
 
 
+def check_tracker(project: Project) -> list[Finding]:
+    """E012: a GitHub Projects tracker needs milestone files, so the standard or full tier.
+    W009: a feature in a planned or in-progress milestone has no `(tracker: #N)` link yet; the
+    board lags the repo until the next `tools/sync_tracker.py sync`, so this only warns."""
+    t = project.cfg.tracker
+    if t.kind != "github-projects":
+        return []
+    if project.tier not in STANDARD_LIKE:
+        return [Finding("E012", "docs/.check_docs.toml", 1,
+                        f"invalid config: the tracker needs the standard or full tier, not {project.tier}")]
+    out: list[Finding] = []
+    for m in project.milestones.values():
+        if m.status not in ("planned", "in progress"):
+            continue
+        for f in m.features:
+            if f.tracker is None and not f.moved_to:
+                out.append(Finding("W009", rel(project.cfg, m.path), f.line,
+                                   f"{f.id} has no (tracker: #N); run tools/sync_tracker.py sync"))
+    return out
+
+
 # --------------------------------------------------------------------------- run / main
 
 
@@ -1139,6 +1197,7 @@ def check(project: Project, now: datetime | None = None) -> list[Finding]:
     findings += check_placeholders(project)
     findings += check_design_docs(project)
     findings += check_sizes(project)
+    findings += check_tracker(project)
     if project.tier in STANDARD_LIKE:
         findings += check_vocabulary(project)
         findings += check_status_agreement(project)
