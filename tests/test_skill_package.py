@@ -128,10 +128,6 @@ def test_stop_hook_exits_zero_when_stop_hook_active(tmp_path, stdin):
     assert r.returncode == 0, r.stderr
 
 
-@needs_sh
-def test_stop_hook_exits_zero_when_project_has_no_linter(tmp_path):
-    r = _run_stop(tmp_path, "{}")
-    assert r.returncode == 0, r.stderr
 
 
 @needs_sh
@@ -282,9 +278,6 @@ def test_skill_directory_works_when_copied_alone(tmp_path):
 
 # --------------------------------------------------------------------------- release A: hooks warn until CURRENT.md exists
 
-PROJECT_STOP_SH = SKILL_DIR / "scripts" / "hooks" / "stop.sh"
-
-
 def _failing_linter(cwd: Path) -> None:
     (cwd / "tools").mkdir(exist_ok=True)
     (cwd / "tools" / "check_docs.py").write_text("import sys; print('E001 boom'); sys.exit(1)\n", encoding="utf-8")
@@ -310,3 +303,12 @@ def test_stop_hook_blocks_on_errors_once_current_md_exists(tmp_path, script):
     env = {**os.environ, "CLAUDE_PROJECT_DIR": str(tmp_path)}
     r = subprocess.run([SH, str(script)], input="{}", capture_output=True, text=True, cwd=tmp_path, env=env)
     assert r.returncode == 2, r.stderr
+
+
+@needs_sh
+@pytest.mark.parametrize("script", [STOP_SH, PROJECT_STOP_SH], ids=["plugin", "project"])
+def test_stop_hook_exits_zero_when_project_has_no_linter(tmp_path, script):
+    env = {**os.environ, "CLAUDE_PROJECT_DIR": str(tmp_path)}
+    r = subprocess.run([SH, str(script)], input="{}", capture_output=True, text=True, cwd=tmp_path, env=env)
+    assert r.returncode == 0, r.stderr
+    assert not (r.stdout + r.stderr).strip(), "a repo without the kit's linter is never linted"

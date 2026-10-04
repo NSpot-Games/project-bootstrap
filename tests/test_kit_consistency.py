@@ -84,6 +84,21 @@ def test_token_table_lists_exactly_the_tokens_the_templates_use():
     assert documented == used, documented ^ used
 
 
+def test_prose_docs_name_only_tokens_the_table_documents():
+    documented = set(re.findall(r"`(\{\{[^}]+\}\})`", _text(TEMPLATES / "README.md")))
+    generic = {"{{token}}", "{{placeholder}}"}  # the concept, not a token
+    prose = [p for p in DOC_FILES if TEMPLATES not in p.parents]
+    named = {(p.name, t) for p in prose for t in re.findall(r"\{\{[^}]+\}\}", _text(p))}
+    assert not {(f, t) for f, t in named if t not in documented | generic}
+
+
+def test_session_stamp_form_agrees_with_the_workflow_template():
+    stamp = "`- <date>T<hh>:<mm>Z — <agent> — <branch>`"
+    assert stamp in _text(TEMPLATES / "WORKFLOW.md")
+    assert stamp in _text(SKILL_DIR / "SKILL.md")
+    assert stamp in _text(REFERENCES / "core" / "parallel-agents.md")
+
+
 def test_config_template_documents_every_linter_key():
     import dataclasses
     import tomllib
