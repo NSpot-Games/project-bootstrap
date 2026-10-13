@@ -51,7 +51,10 @@ procedure change they measure has shipped. A baseline run records which.
    ```
    python evals/harness.py prepare all evals/runs --label <label>
    python evals/harness.py prepare all evals/runs --label baseline --skill <path to a snapshot of the old skill>
+   python evals/harness.py prepare <scenario> evals/runs --label baseline --no-skill
    ```
+
+   A scenario names the skill it exercises with an optional `"skill"` key (default `project-bootstrap`); `--no-skill` writes a prompt with no skill at all, the baseline for a new skill.
 
 2. For each `evals/runs/<scenario>/<label>/prompt.md`, hand the prompt to a fresh agent
    (a subagent, or a separate session) and let it work inside `project/`. The agent must write
@@ -75,5 +78,5 @@ Add a fixture directory, an entry in `evals.json`, and assertions using the chec
 `harness.py` knows: `file_exists`, `files_exist`, `file_absent`, `grep`, `not_grep`,
 `grep_any`, `none_grep`, `mentions_each`, `unchanged`, `count_glob`, `no_tokens`, `lint`,
 `git_branch_prefix`, `git_commits_min`, `git_clean`, `sha_recorded`, `final_contains`,
-`final_not_contains`. Prefer assertions the linter or a grep can decide; leave judgement
+`final_not_contains`, `final_count`. Prefer assertions the linter or a grep can decide; leave judgement
 calls (is the doc deep enough?) to a human reading the outputs.
