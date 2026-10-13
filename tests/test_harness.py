@@ -114,6 +114,14 @@ def _assertion(scenario, text):
     ("nothing-new", "The message says plainly that it already exists", "Instagram already does this.", True),
     ("handoff", "No code or stack is started", "No tech stack is chosen yet; project-bootstrap scaffolds the docs.", True),
     ("handoff", "No code or stack is started", "Next: npm install and we'll use Postgres.", False),
+    ("raw-idea", "The message names what is new about the idea, or says plainly that it already exists",
+     "This already exists: it is Streaks. So the idea is not yet new.\n\nThree angles that would make it new:", True),
+    ("raw-idea", "The one question is about purpose, or (on the already-exists path) about which angle to take",
+     "Which angle, or one of your own?", True),
+    ("raw-idea", "Exactly one question is asked",
+     'People post "anyone got a ladder?"\nWhich angle, or one of your own?\n', True),
+    ("tech-drift", "At most one question is asked",
+     "Back to the open question: how do people find it?\nWhich one?\n", False),
 ])
 def test_scenario_patterns_match_intended_text(tmp_path, scenario, text, message, expected):
     (tmp_path / "final_message.md").write_text(message, encoding="utf-8")

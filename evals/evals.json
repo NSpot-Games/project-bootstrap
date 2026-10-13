@@ -184,9 +184,9 @@
       "expected_output": "The agent places the idea among existing products, names what is new, and asks one question — what the product is for — with options and a recommendation. No stack, no features yet.",
       "assertions": [
         {"text": "The message compares the idea with things that already exist", "check": "final_contains", "pattern": "(?i)(already exist|existing|apps? like|similar|services? like)"},
-        {"text": "The message names what is new about the idea", "check": "final_contains", "pattern": "(?i)(what('s| is) new|the new (part|thing|angle)|hook|different from|sets? it apart|stand out)"},
-        {"text": "The question is about purpose", "check": "final_contains", "pattern": "(?i)(what is it for|purpose|who is it for|the goal|commercial|non-?profit|side project|hobby)"},
-        {"text": "Exactly one question is asked", "check": "final_count", "pattern": "(?m)\\?[\\s*)\"”’]*$", "min": 1, "max": 1},
+        {"text": "The message names what is new about the idea, or says plainly that it already exists", "check": "final_contains", "pattern": "(?i)(what('s| is) new|the new (part|thing|angle)|hook|different from|sets? it apart|stand out|already exists|not yet (an idea that is )?new|angles? that would make it new)"},
+        {"text": "The one question is about purpose, or (on the already-exists path) about which angle to take", "check": "final_contains", "pattern": "(?i)(what is it for|purpose|who is it for|the goal|commercial|non-?profit|side project|hobby|which angle|angles?)"},
+        {"text": "Exactly one question is asked", "check": "final_count", "pattern": "(?m)\\?[\\s*)]*$", "min": 1, "max": 1},
         {"text": "A recommendation is given", "check": "final_contains", "pattern": "(?i)recommend"},
         {"text": "No technology is chosen or discussed", "check": "final_not_contains", "pattern": "(?i)(react native|flutter|firebase|postgres|supabase|tech stack|database|backend)"}
       ]
@@ -203,7 +203,7 @@
         {"text": "The database question is parked in the vision README", "check": "grep", "path": "docs/vision/README.md", "pattern": "(?is)parked for later.{0,800}(database|postgres|firebase)"},
         {"text": "No design area file records a database", "check": "none_grep", "glob": "docs/vision/*.md", "exclude": "docs/vision/README.md", "pattern": "(?i)(postgres|firebase)"},
         {"text": "The message returns to the open question about finding tools", "check": "final_contains", "pattern": "(?i)(map|searchable list|request board)"},
-        {"text": "At most one question is asked", "check": "final_count", "pattern": "(?m)\\?[\\s*)\"”’]*$", "max": 1}
+        {"text": "At most one question is asked", "check": "final_count", "pattern": "(?m)\\?[\\s*)]*$", "max": 1}
       ]
     },
     {
