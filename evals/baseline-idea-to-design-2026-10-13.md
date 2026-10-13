@@ -78,3 +78,31 @@ Two results need a caveat before they are read as evidence.
   bootstrap with a proposed name. Fine, but it came from reading the spec.
 - **Mojibake in files.** Non-ASCII dashes were written in a Windows code page in
   against-recommendation. A skill should keep the documents ASCII-safe or say UTF-8.
+
+## Failure classes
+
+Each failure and each "seen but not asserted" behaviour, classified with writing-skills' "Match
+the Form to the Failure", and where `skills/idea-to-design/SKILL.md` answers it.
+
+| Behaviour (scenario) | Class | Form used | Where |
+|---|---|---|---|
+| No comparison with existing products; handed to the user (raw-idea) | shape | recipe: the first message's parts in order, part 2 "What already exists", named by the agent | step 1 |
+| No hook named (raw-idea) | omitted element | required part 3 of the first message, opening "What is new here is…"; "The hook" slot in the vision README template | step 1; `assets/templates/vision-readme.md` |
+| About ten questions in five groups (raw-idea) | shape | recipe: "That is the whole message. It holds one question, as its last line." Question messages get the same five-part shape | steps 1 and 3 |
+| No recommendation when only the idea exists (raw-idea; seen in the pattern across scenarios) | omitted element + conditional | required "(my recommendation)" option first; conditional "When only the idea exists, the reason rests on the idea itself" | steps 2 and 3 |
+| Hijacked into project-bootstrap setup on a raw idea (nothing-new) | shape + trigger | ordering recipe: the first message comes before any setup, setup is step 9; trigger description kept as the brief wrote it | step 1 opening paragraph; description |
+| Instagram not named, no "it exists", no angles (nothing-new) | conditional | keyed to "If the products in part 2 already do everything the idea describes": the verdict naming the product, then 2–3 lettered angles with a recommendation | step 1 |
+| Technical question answered with a pick, "I'd lean Postgres" (tech-drift) | discipline | firm rule ("not as a lean, not as a provisional pick"), rationalization table in the agent's words, red flag | step 7; Red flags |
+| Parked in a `docs/tech` note, not under "Parked for later" (tech-drift) | conditional + omitted element | reply recipe keyed to "If the person asks a technology question before the design is agreed"; the README template's "Parked for later" slot | step 7; `assets/templates/vision-readme.md` |
+| Technical note left untracked (tech-drift) | shape | commit recipe: `git add` the changed vision files by name, then commit; step 7 part 3 commits the README change | steps 5 and 7 |
+| Final-message file swept into commits (against-recommendation, consistency) | shape (harness artefact) | same commit recipe: stage by name | step 5 |
+| Consistency pass asked two questions in one message (consistency) | shape | recipe in the reference: the report lists all findings, the message asks about the first, as its last line | `references/consistency-pass.md` §6 |
+| Re-argued the choice softly (against-recommendation) | discipline, borderline; assertion passed | no new wording; Conduct keeps "taken at once in one line" | Conduct |
+| Prototype offered at handoff (handoff) | not a failure | no change; step 9 already offers it | step 9 |
+| Mojibake in written files (against-recommendation) | omitted element | a line in the write recipe: "Files are written as UTF-8." | step 5 |
+
+Draft wording removed because a recipe replaced it or the baseline did not need it: step 1's
+"Do not design a copy." and "Ask nothing else until the hook is stated." (replaced by the
+first-message recipe, which also holds the purpose question the raw-idea scenario expects);
+Conduct's "One question per message…" (now the step 3 recipe) and "The person's words decide…"
+(against-recommendation passed without it; folded into the remaining Conduct line).

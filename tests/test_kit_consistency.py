@@ -283,3 +283,11 @@ def test_tracker_procedure_is_written_where_sessions_read_it():
     assert "## 7. Tracker mirror" in _text(REFERENCES / "core" / "parallel-agents.md")
     assert "Closes #" in _text(REFERENCES / "core" / "lifecycle.md")
     assert "sync_tracker.py sync" in _text(REFERENCES / "core" / "long-horizon.md")
+
+
+def test_idea_to_design_carries_no_double_brace_placeholders():
+    skill = ROOT / "skills" / "idea-to-design"
+    files = sorted(skill.rglob("*.md"))
+    assert files, "skills/idea-to-design/ has no Markdown files"
+    bad = [p.relative_to(ROOT).as_posix() for p in files if "{{" in p.read_text(encoding="utf-8")]
+    assert bad == []
