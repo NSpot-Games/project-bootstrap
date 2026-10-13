@@ -186,7 +186,7 @@
         {"text": "The message compares the idea with things that already exist", "check": "final_contains", "pattern": "(?i)(already exist|existing|apps? like|similar|services? like)"},
         {"text": "The message names what is new about the idea", "check": "final_contains", "pattern": "(?i)(what('s| is) new|the new (part|thing|angle)|hook|different from|sets? it apart|stand out)"},
         {"text": "The question is about purpose", "check": "final_contains", "pattern": "(?i)(what is it for|purpose|who is it for|the goal|commercial|non-?profit|side project|hobby)"},
-        {"text": "Exactly one question is asked", "check": "final_count", "pattern": "(?m)\\?\\**\\s*$", "min": 1, "max": 1},
+        {"text": "Exactly one question is asked", "check": "final_count", "pattern": "(?m)\\?[\\s*)\"”’]*$", "min": 1, "max": 1},
         {"text": "A recommendation is given", "check": "final_contains", "pattern": "(?i)recommend"},
         {"text": "No technology is chosen or discussed", "check": "final_not_contains", "pattern": "(?i)(react native|flutter|firebase|postgres|supabase|tech stack|database|backend)"}
       ]
@@ -203,7 +203,7 @@
         {"text": "The database question is parked in the vision README", "check": "grep", "path": "docs/vision/README.md", "pattern": "(?is)parked for later.{0,800}(database|postgres|firebase)"},
         {"text": "No design area file records a database", "check": "none_grep", "glob": "docs/vision/*.md", "exclude": "docs/vision/README.md", "pattern": "(?i)(postgres|firebase)"},
         {"text": "The message returns to the open question about finding tools", "check": "final_contains", "pattern": "(?i)(map|searchable list|request board)"},
-        {"text": "At most one question is asked", "check": "final_count", "pattern": "(?m)\\?\\**\\s*$", "max": 1}
+        {"text": "At most one question is asked", "check": "final_count", "pattern": "(?m)\\?[\\s*)\"”’]*$", "max": 1}
       ]
     },
     {
@@ -231,8 +231,8 @@
       "expected_output": "The agent says plainly that this exists, names it, and offers at least two angles that would make it new.",
       "assertions": [
         {"text": "The existing product is named", "check": "final_contains", "pattern": "(?i)instagram"},
-        {"text": "The message says plainly that it already exists", "check": "final_contains", "pattern": "(?i)(already exists|exists today|is essentially|that's instagram|is instagram|already built)"},
-        {"text": "At least two angles are offered", "check": "final_count", "pattern": "(?m)^\\s*(?:[-*]|\\d+[.)]|\\*\\*[A-E][).])\\s+", "min": 2}
+        {"text": "The message says plainly that it already exists", "check": "final_contains", "pattern": "(?i)(already exists|exists today|is essentially|that's instagram|is instagram|already built|instagram already|already (does|do) (this|that))"},
+        {"text": "At least two angles are offered", "check": "final_count", "pattern": "(?m)^\\s*(?:[-*]|\\d+[.)]|\\*\\*[A-E][).]\\*\\*|\\*\\*[A-E][).]|[A-E][).])\\s*\\S", "min": 2}
       ]
     },
     {
@@ -265,7 +265,7 @@
         {"text": "No area file is changed when nothing was wrong", "check": "unchanged", "glob": "docs/vision/[!R]*.md"},
         {"text": "What is still to design is named", "check": "final_contains", "pattern": "(?i)(still to design|left to design|damaged tools|open)"},
         {"text": "project-bootstrap is offered as the next step", "check": "final_contains", "pattern": "(?i)project-bootstrap"},
-        {"text": "No code or stack is started", "check": "final_not_contains", "pattern": "(?i)(npm |pip install|scaffold|tech stack|postgres|firebase)"}
+        {"text": "No code or stack is started", "check": "final_not_contains", "pattern": "(?i)(npm install|pip install|git clone|create-react-app|\\bwe('ll| will) use (postgres|firebase|react|flutter))"}
       ]
     }
   ]

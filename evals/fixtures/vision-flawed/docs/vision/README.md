@@ -8,7 +8,7 @@ the app holds, so lending to a stranger on your street is as safe as lending to 
 
 ## Purpose
 
-A free-to-borrow community app run by a non-profit, funded by grants and a small membership.
+A community app run by a non-profit, funded by grants and a small membership for borrowers.
 Success is the number of lends per street per month.
 
 ## Pillars

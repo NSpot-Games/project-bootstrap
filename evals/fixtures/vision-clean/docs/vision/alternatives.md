@@ -4,8 +4,8 @@ Every design question, the option chosen, and the options not taken.
 
 ## 1. What is Tidepool for?
 
-**Chosen: A — a free-to-borrow community app run by a non-profit**, funded by grants and a small
-membership.
+**Chosen: A — a community app run by a non-profit**, funded by grants and a small
+membership for borrowers.
 
 | Option | Notes |
 |---|---|

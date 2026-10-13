@@ -8,7 +8,7 @@ the app holds, so lending to a stranger on your street is as safe as lending to 
 
 ## Purpose
 
-A free-to-borrow community app run by a non-profit, funded by grants and a small membership.
+A community app run by a non-profit, funded by grants and a small membership for borrowers.
 Success is the number of lends per street per month.
 
 ## Pillars
@@ -23,7 +23,7 @@ Success is the number of lends per street per month.
 |---|---|
 | [Lending](lending.md) | request, accept, hand-over, return; a refundable deposit the app holds; at most 2 tools at once; loans up to 7 days |
 | [Trust](trust.md) | a trust score from on-time returns; new members start with a 2-tool starter bundle |
-| [Pricing](pricing.md) | membership £2 a month; borrowing and lending are free |
+| [Pricing](pricing.md) | membership £2 a month for borrowers; no fee per lend |
 
 ## Still to design
 

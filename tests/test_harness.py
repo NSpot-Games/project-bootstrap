@@ -100,3 +100,22 @@ def test_flawed_and_clean_fixtures_differ_only_where_planted():
     assert sorted(p.name for p in flawed.iterdir()) == sorted(p.name for p in clean.iterdir())
     differ = sorted(p.name for p in flawed.iterdir() if p.read_text(encoding="utf-8") != (clean / p.name).read_text(encoding="utf-8"))
     assert differ == ["README.md", "trust.md"]
+
+
+def _assertion(scenario, text):
+    ev = next(e for e in harness.load_evals()["evals"] if e["name"] == scenario)
+    return next(a for a in ev["assertions"] if a["text"] == text)
+
+
+@pytest.mark.parametrize("scenario,text,message,expected", [
+    ("raw-idea", "Exactly one question is asked", "Which is it for?)", True),
+    ("nothing-new", "At least two angles are offered", "**A)** Stories that vanish\nB) Photos only of food\n", True),
+    ("nothing-new", "At least two angles are offered", "**A)** Stories that vanish\n", False),
+    ("nothing-new", "The message says plainly that it already exists", "Instagram already does this.", True),
+    ("handoff", "No code or stack is started", "No tech stack is chosen yet; project-bootstrap scaffolds the docs.", True),
+    ("handoff", "No code or stack is started", "Next: npm install and we'll use Postgres.", False),
+])
+def test_scenario_patterns_match_intended_text(tmp_path, scenario, text, message, expected):
+    (tmp_path / "final_message.md").write_text(message, encoding="utf-8")
+    ok, evidence = harness.check(_assertion(scenario, text), tmp_path / "project", tmp_path, {})
+    assert ok is expected, evidence
