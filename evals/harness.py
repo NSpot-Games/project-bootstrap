@@ -176,9 +176,14 @@ def _files(project: Path, glob: str, exclude: str | None = None) -> list[Path]:
 
 def _read(p: Path) -> str:
     try:
-        return p.read_text(encoding="utf-8").replace("\r\n", "\n")
-    except (UnicodeDecodeError, OSError):
+        data = p.read_bytes()
+    except OSError:
         return ""
+    try:
+        text = data.decode("utf-8")
+    except UnicodeDecodeError:
+        text = data.decode("cp1252", errors="replace")
+    return text.replace("\r\n", "\n")
 
 
 def _lint(project: Path) -> tuple[list[str], int]:

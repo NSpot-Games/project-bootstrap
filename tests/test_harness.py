@@ -119,3 +119,12 @@ def test_scenario_patterns_match_intended_text(tmp_path, scenario, text, message
     (tmp_path / "final_message.md").write_text(message, encoding="utf-8")
     ok, evidence = harness.check(_assertion(scenario, text), tmp_path / "project", tmp_path, {})
     assert ok is expected, evidence
+
+
+def test_grep_reads_a_file_written_in_a_windows_code_page(tmp_path):
+    project = tmp_path / "project"
+    (project / "docs").mkdir(parents=True)
+    (project / "docs" / "alt.md").write_bytes("**Chosen: C — a request board**\n".encode("cp1252"))
+    ok, evidence = harness.check({"check": "grep", "path": "docs/alt.md", "pattern": r"(?i)chosen[^\n]{0,80}request board"},
+                                 project, tmp_path, {})
+    assert ok, evidence
