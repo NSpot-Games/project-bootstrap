@@ -1,9 +1,9 @@
 # BOOTSTRAP.md
 
 The entry point to this kit. Read this file first; it states the idea in one page, names the
-machinery, and points into the skill at `skills/project-bootstrap/`, where the rules
-(`references/core/`), profiles (`references/profiles/`), templates (`assets/templates/`) and
-linter (`scripts/check_docs.py`) live. It contains no templates of its own.
+machinery, and points into the skills at `skills/project-bootstrap/` and `skills/idea-to-design/`;
+project-bootstrap holds the rules (`references/core/`), profiles (`references/profiles/`),
+templates (`assets/templates/`) and linter (`scripts/check_docs.py`). It contains no templates of its own.
 
 **Before bootstrap, if there is only an idea:** the kit's second skill, `skills/idea-to-design/`,
 turns a raw idea into a design — its hook, purpose, pillars, every structural decision and the

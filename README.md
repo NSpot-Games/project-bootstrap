@@ -34,21 +34,22 @@ start a new session, before asking for the skill.
 or `/plugin marketplace add NSpot-Games/project-bootstrap` and
 `/plugin install project-bootstrap@project-bootstrap` inside a session.
 
-**By hand:** clone this repo and copy `skills/project-bootstrap/` into your agent's skills
-directory (`.claude/skills/`, `.agents/skills/`, `~/.codex/skills/`, or wherever it reads
-them). Or skip installing and hand your agent `BOOTSTRAP.md`.
+**By hand:** clone this repo and copy `skills/idea-to-design/` and
+`skills/project-bootstrap/` into your agent's skills directory (`.claude/skills/`,
+`.agents/skills/`, `~/.codex/skills/`, or wherever it reads them). Or skip installing and hand your agent `BOOTSTRAP.md`.
 
 ## Use
 
 **From an idea.** Tell your agent "I have an idea for …". `idea-to-design` places the idea among
 what already exists and names what is new, asks what it is for, then settles every structural
 decision one question at a time, each with a recommendation, writing each decision into
-`docs/vision/` as it is made and every option not taken into `<project>/docs/vision/alternatives.md`. It
-holds technology back until the design is agreed, checks the whole design for contradictions at
-the end, and offers project-bootstrap as the next step.
+`<project>/docs/vision/` as it is made and every option not taken into
+`<project>/docs/vision/alternatives.md`. It holds technology back until the design is agreed,
+checks the whole design for contradictions at the end, and offers project-bootstrap as the next
+step.
 
-**From a design or an existing repo.** Tell your agent to bootstrap the project. The skill classifies the repo as greenfield or
-brownfield, asks five setup questions, writes the design docs one per session with a review
+**From a design or an existing repo.** Tell your agent to bootstrap the project. The skill
+classifies the repo as greenfield or brownfield, asks five setup questions, writes the design docs one per session with a review
 gate after each, generates the process files for the chosen tier, copies the linter into the
 project, and opens the first session. Without a skill-aware agent, read `BOOTSTRAP.md` for the
 idea in one page and follow `skills/project-bootstrap/references/core/adoption.md` by hand.
