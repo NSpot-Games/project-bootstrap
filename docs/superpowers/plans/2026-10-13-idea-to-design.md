@@ -19,6 +19,7 @@
 - `python -m pytest tests -q` passes and `python skills/project-bootstrap/scripts/check_docs.py --root .` reports 0 errors, 0 warnings at the end of every task.
 - `SKILL.md` under 500 lines; `description` 1–1024 characters; `name` matches its folder.
 - Work happens on branch `design/idea-to-design` (it already holds the spec commit). Nothing is pushed and no PR is opened without the owner's yes.
+- The skill is written test-first under superpowers:writing-skills: baseline without the skill (Task 4), the skill written against the observed failures (Task 5), loopholes closed on re-runs (Task 7). Its `description` states only when to use the skill, starting "Use when…", and never summarizes the procedure.
 
 ## Review Focus
 
@@ -930,6 +931,8 @@ Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>"
 
 ### Task 5: The skill
 
+> **REQUIRED SUB-SKILL:** Use superpowers:writing-skills for this task. The text below is the draft; Step 8 reshapes it against the baseline as that skill directs.
+
 **Files:**
 - Create: `skills/idea-to-design/SKILL.md`
 - Create: `skills/idea-to-design/references/questions.md`
@@ -964,7 +967,7 @@ Run: `python -m pytest tests/test_kit_consistency.py -q -k double_brace` → FAI
 ```markdown
 ---
 name: idea-to-design
-description: Turn a raw product idea into a design that can work — its hook, purpose, pillars and every structural decision, with the options not taken — written into docs/vision/. Use when the user says "I have an idea for…", "turn this idea into something that works", "design this product / game / tool", or "is this idea any good". Not for building, code changes, or a project that already has design notes (use project-bootstrap for those).
+description: Use when someone brings a raw idea for a product, game, tool or service — "I have an idea for…", "turn this idea into something that could work", "is this idea any good", "help me design this app" — and no design notes or code exist yet. Not for building, code changes, or a repository that already has design notes.
 license: MIT
 metadata:
   author: NSpotGames
@@ -1266,9 +1269,34 @@ Expected: PASS, including `test_every_skill_relative_path_in_skill_md_exists[ide
 Run: `python skills/project-bootstrap/scripts/check_docs.py --root .`
 Expected: `0 error(s), 0 warning(s)`. If it reports E001 for a `<project>/...` path or a template citation, adjust the config, not the skill text.
 
-- [ ] **Step 8: Revise against the baseline**
+- [ ] **Step 8: Reshape the draft against the baseline (writing-skills GREEN)**
 
-Open `evals/baseline-idea-to-design-<date>.md`. For each failed assertion and each "seen but not asserted" behaviour, find the `SKILL.md` step that should prevent it and confirm its wording does, plainly. Tighten wording where it does not; do not add steps. Re-run Step 7.
+Open `evals/baseline-idea-to-design-<date>.md`. For each failed assertion and each "seen but not asserted" behaviour:
+
+1. **Classify it** with writing-skills' "Match the Form to the Failure" table, and record the class in a new "## Failure classes" section of the baseline file:
+   - *discipline* — the agent knew better and did it anyway (e.g. picked a stack mid-design, argued against the person's choice): a firm rule, plus a rationalization table of the agent's own words from the baseline, plus a red-flag line;
+   - *shape* — the output had the wrong form (several questions in one message, features before purpose): a positive recipe stating what the message IS, its parts in order; no prohibition;
+   - *omitted element* — something required was missing (an option not taken left unrecorded, no "Parked for later"): a required slot in the template the agent fills;
+   - *conditional* — the behaviour should depend on a condition: a rule keyed to an observable predicate ("if the person raises a technical question…").
+2. **Find or write the guidance** in that form in the `SKILL.md` step that owns it. Remove draft wording the baseline shows is unneeded (the control did not fail): write only what a failure calls for.
+3. **Micro-test each behaviour-shaping change** before the full re-run: one single-shot fresh subagent per sample, system context = the full `SKILL.md`, user message = the scenario prompt that tempted the failure; 5 samples with the change and 5 with the draft without it (the no-guidance control); read every `final_message.md` yourself. Keep a change only if the control fails and the change's samples converge on the right shape. Record the counts in the baseline file under "## Wording micro-tests".
+
+Then add two sections at the end of `SKILL.md`, from the baseline evidence only:
+
+```markdown
+## Red flags
+
+<One line per discipline failure seen in the baseline, in the agent's own words, e.g. "Let me
+suggest a tech stack so we can estimate effort." — each means: stop, return to step 7.>
+
+## Common mistakes
+
+| Mistake | Fix |
+|---|---|
+| <a shape or omission failure seen in the baseline> | <the step and the recipe or slot that prevents it> |
+```
+
+Re-run Step 7. Check `SKILL.md` stays under 500 lines (`wc -l skills/idea-to-design/SKILL.md`).
 
 - [ ] **Step 9: Commit**
 
@@ -1420,7 +1448,7 @@ python evals/harness.py report evals/runs
 
 - [ ] **Step 4: Fix and re-run until the six idea-to-design scenarios pass in full**
 
-For each failed idea-to-design assertion, read that run's `final_message.md` and files, decide whether the skill text or the assertion is wrong, fix the one that is, and re-run that scenario with a new label (`release-k2`). An assertion is changed only when the agent's behaviour is right and the pattern too narrow; say so in the results file. Re-run Task 5 Step 7 after any skill edit.
+For each failed idea-to-design assertion, read that run's `final_message.md` and files, decide whether the skill text or the assertion is wrong, fix the one that is, and re-run that scenario with a new label (`release-k2`). An assertion is changed only when the agent's behaviour is right and the pattern too narrow; say so in the results file. A skill fix follows writing-skills REFACTOR: classify the failure as in Task 5 Step 8, use the matching form, and add any new rationalization, in the agent's own words, to `SKILL.md`'s "Red flags". Re-run Task 5 Step 7 after any skill edit.
 
 - [ ] **Step 5: Record**
 
