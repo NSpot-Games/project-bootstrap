@@ -155,6 +155,18 @@ repository (a new `evals/fixtures/idea-only/`: an empty repo with a one-paragrap
 | `consistency` | a finished `docs/vision/` fixture with three planted contradictions (an impossible rule, a limit inside the normal case, a stale summary) | all three found, fixed in the files, and each reported |
 | `handoff` | design agreed, the person says "that's everything" | `docs/vision/README.md` has decided and still-to-design tables linking every area file; `alternatives.md` exists; project-bootstrap is offered |
 
+**Harness.** `evals/harness.py` today serves project-bootstrap only. It gains: an optional
+per-scenario `"skill"` key in `evals.json` naming the skill under `skills/` (default
+`project-bootstrap`), used for the default skill path and the prompt's wording; a `--no-skill`
+flag on `prepare` that writes a prompt with no skill at all, for baselines; and one check,
+`final_count` (`pattern`, `min`, `max`: how many times a regex matches the final message), for
+"exactly one question". `tests/test_harness.py` covers the three.
+
+Fixtures (all invented, as the rest of `evals/`): `idea-only` (a README and nothing else);
+`vision-in-progress` (an invented tool-lending app, Tidepool, part-way through: hook, purpose,
+pillars, one area, one recorded question); `vision-flawed` (Tidepool finished, with the three
+planted contradictions); `vision-clean` (Tidepool finished, consistent).
+
 **Baseline first:** each scenario is run once with no skill installed, before `SKILL.md` is
 written; failures are recorded in `evals/baseline-idea-to-design-<date>.md` as the target
 assertions. The release run records results in `evals/release-k-<date>.md`.
