@@ -105,6 +105,20 @@ def test_every_skill_relative_path_in_skill_md_exists(skill_dir):
     assert missing_skill_paths(skill_dir) == []
 
 
+BACKTICKED_RE = re.compile(r"`([^`\n]+)`")
+
+
+@skill_param
+def test_no_backticked_path_escapes_the_skill(skill_dir):
+    """A skill is installed alone, so no path it cites may climb out of it (`../`) or name the
+    kit's layout (`skills/...`)."""
+    bad = [f"{md.relative_to(skill_dir).as_posix()}: `{m.group(1)}`"
+           for md in sorted(skill_dir.rglob("*.md"))
+           for m in BACKTICKED_RE.finditer(_text(md))
+           if "../" in m.group(1) or m.group(1).startswith("skills/")]
+    assert bad == []
+
+
 @skill_param
 def test_version_agrees_across_skill_and_manifests(skill_dir):
     fm = frontmatter(skill_dir / "SKILL.md")
