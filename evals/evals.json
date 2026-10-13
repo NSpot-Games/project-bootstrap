@@ -180,12 +180,13 @@
       "skill": "idea-to-design",
       "fixture": "idea-only",
       "setup": {"git": true},
-      "prompt": "The user says: \"I have an idea: an app where neighbours lend each other tools — drills, ladders, lawnmowers. Help me turn it into something that could actually work.\" Respond as the first message of the conversation.",
-      "expected_output": "The agent places the idea among existing products, names what is new, and asks one question — what the product is for — with options and a recommendation. No stack, no features yet.",
+      "prompt": "The user says: \"I have an idea: a language-learning app where you learn by texting with characters who live in a small fictional town, and the story only moves on when you reply in the language you're learning. Help me turn it into something that could actually work.\" Respond as the first message of the conversation.",
+      "expected_output": "The agent places the idea among existing language-learning and chat-story products, names what is new (a story that only moves when you reply in the language you are learning), does not call it a copy, and asks one question — what the product is for — with options and a recommendation. No stack, no features yet.",
       "assertions": [
         {"text": "The message compares the idea with things that already exist", "check": "final_contains", "pattern": "(?i)(already exist|existing|apps? like|similar|services? like)"},
-        {"text": "The message names what is new about the idea, or says plainly that it already exists", "check": "final_contains", "pattern": "(?i)(what('s| is) new|the new (part|thing|angle)|hook|different from|sets? it apart|stand out|already exists|not yet (an idea that is )?new|angles? that would make it new)"},
-        {"text": "The one question is about purpose, or (on the already-exists path) about which angle to take", "check": "final_contains", "pattern": "(?i)(what is it for|purpose|who is it for|the goal|commercial|non-?profit|side project|hobby|which angle|angles?)"},
+        {"text": "The message names what is new about the idea", "check": "final_contains", "pattern": "(?i)(what('s| is) new|the new (part|thing|angle)|hook|different from|sets? it apart|stand out)"},
+        {"text": "The question is about purpose", "check": "final_contains", "pattern": "(?i)(what is it for|purpose|who is it for|the goal|commercial|non-?profit|side project|hobby|learning project)"},
+        {"text": "The message does not declare the idea a copy", "check": "final_not_contains", "pattern": "(?i)(this already exists|is not yet new|not yet an idea that is new)"},
         {"text": "Exactly one question is asked", "check": "final_count", "pattern": "(?m)\\?[\\s*)]*$", "min": 1, "max": 1},
         {"text": "A recommendation is given", "check": "final_contains", "pattern": "(?i)recommend"},
         {"text": "No technology is chosen or discussed", "check": "final_not_contains", "pattern": "(?i)(react native|flutter|firebase|postgres|supabase|tech stack|database|backend)"}
