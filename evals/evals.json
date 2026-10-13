@@ -271,6 +271,32 @@
         {"text": "project-bootstrap is offered as the next step", "check": "final_contains", "pattern": "(?i)project-bootstrap"},
         {"text": "No code or stack is started", "check": "final_not_contains", "pattern": "(?i)(npm install|pip install|git clone|create-react-app|\\bwe('ll| will) use (postgres|firebase|react|flutter))"}
       ]
+    },
+    {
+      "id": 16,
+      "name": "route-idea",
+      "route": true,
+      "fixture": "idea-only",
+      "setup": {"git": true},
+      "prompt": "The user says: \"I have an idea: a podcast app that turns the articles you save during the week into a short audio briefing every morning. Help me turn it into something that could actually work.\" Respond as the first message of the conversation.",
+      "expected_output": "With both skills installed, the agent picks idea-to-design for a bare idea in an empty repository, not project-bootstrap's setup questions.",
+      "assertions": [
+        {"text": "idea-to-design is the skill followed", "check": "grep", "path": "chosen_skill.txt", "pattern": "^\\s*idea-to-design\\s*$"},
+        {"text": "No project setup question (codename) is asked", "check": "final_not_contains", "pattern": "(?i)codename"}
+      ]
+    },
+    {
+      "id": 17,
+      "name": "route-bootstrap",
+      "route": true,
+      "fixture": "docs-rich-greenfield",
+      "setup": {"git": false},
+      "prompt": "The user says: \"The thinking for this project is in docs/vision/. Set the repository up so we can start building it.\" Respond as the first message of the conversation.",
+      "expected_output": "With both skills installed, the agent picks project-bootstrap for a repository whose design notes exist and a request to set it up, not idea-to-design, and leaves the vision docs untouched.",
+      "assertions": [
+        {"text": "project-bootstrap is the skill followed", "check": "grep", "path": "chosen_skill.txt", "pattern": "^\\s*project-bootstrap\\s*$"},
+        {"text": "Existing vision docs are left untouched", "check": "unchanged", "glob": "docs/vision/*.md"}
+      ]
     }
   ]
 }

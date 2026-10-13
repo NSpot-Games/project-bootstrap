@@ -13,7 +13,7 @@ used, so the suite is project-agnostic and safe to publish with the kit.
 
 ## Layout
 
-- `evals.json` — the fifteen scenarios: fixture, setup, prompt, expected outcome, and typed
+- `evals.json` — the seventeen scenarios: fixture, setup, prompt, expected outcome, and typed
   assertions. The prompt substitutes `{answers}` and `{brainstorm}` from the top-level fields.
 - `fixtures/<name>/` — starting repositories: `plain-greenfield` (a README), `docs-rich-greenfield`
   (no code, three vision docs with one deliberate contradiction), `after-roadmap` (design docs and
@@ -30,7 +30,7 @@ used, so the suite is project-agnostic and safe to publish with the kit.
   no remote, for acceptance runs (`harness.py seed add|refresh|prepare|list`); their runs go to
   `runs/acceptance/<name>-<date>/`. See `seeds/README.md`.
 
-## The fifteen scenarios
+## The seventeen scenarios
 
 | Scenario | Step under test | What it measures |
 |---|---|---|
@@ -49,8 +49,10 @@ used, so the suite is project-agnostic and safe to publish with the kit.
 | `nothing-new` | idea-to-design step 1 | an idea that already exists named plainly, with angles offered |
 | `consistency` | idea-to-design step 8 | three planted contradictions found, fixed and reported |
 | `handoff` | idea-to-design steps 8–9 | a clean design left unchanged, a summary, project-bootstrap offered |
+| `route-idea` | choosing between the installed skills | a bare idea in an empty repo goes to idea-to-design, with no setup question |
+| `route-bootstrap` | choosing between the installed skills | design notes plus a set-up request go to project-bootstrap, the notes untouched |
 
-The first nine exercise project-bootstrap; the last six exercise idea-to-design (`"skill": "idea-to-design"`), and their prompts give the user's turn of an ongoing conversation.
+The first nine exercise project-bootstrap; the next six exercise idea-to-design (`"skill": "idea-to-design"`), and their prompts give the user's turn of an ongoing conversation. The last two are routing scenarios (`"route": true`): the prompt lists every skill under `skills/` by name and description, as an agent sees them before opening any, the agent picks one and follows it, and writes the name to `<project>/chosen_skill.txt`. They guard the two skills' descriptions: run them after any change to a description.
 
 Some assertions are *targets*: they fail against the current skill on purpose and pass once the
 procedure change they measure has shipped. A baseline run records which.
