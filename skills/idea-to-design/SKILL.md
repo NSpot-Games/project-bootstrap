@@ -35,7 +35,7 @@ The first reply to a raw idea has these parts, in this order:
    adds that those do not. Every later decision protects it.
 4. **One question: what it is for**, built as step 2 describes, with your recommendation first.
 
-That is the whole message. The lead-in names the open question as a statement ("The open question is how people find a habit to start."); the message's only question mark is on its last line, which asks it.
+That is the whole message, and its one question follows the question rule in Conduct.
 Everything else the idea raises (money, success, the technology) waits for its own step.
 
 **If the products in part 2 already do everything the idea describes, or differ from it only in
@@ -43,8 +43,8 @@ a detail a setting could change**, parts 3 and 4 become:
 
 3. **The verdict, plainly.** "This already exists: it is <product>." Name it.
 4. **Two or three angles** that would make it new, as a lettered list, one sentence each, your
-   recommended angle first with its reason. The lead-in names the open question as a statement ("The open question is how people find a habit to start."); the message's only question mark is on its last line, which asks it. The last line asks which
-   angle, or one of their own.
+   recommended angle first with its reason. The last line asks which angle, or one of their own
+   (the question rule in Conduct).
 
 The purpose question follows once the person has picked a hook.
 
@@ -68,7 +68,7 @@ core flow, then each subsystem, then details. Each question message has these pa
    "(my recommendation)", each with what it gains, what it costs and a real product as a
    reference point, when one exists (`references/questions.md`);
 4. the reason for the recommendation, in one sentence;
-5. the question, as the last line. The lead-in names the open question as a statement ("The open question is how people find a habit to start."); the message's only question mark is on its last line, which asks it.
+5. the question, as the last line (the question rule in Conduct).
 
 A question too small to matter (a conventional default exists and nothing depends on it,
 `references/questions.md` §7) gets no message: pick the default, say so in one line inside the
@@ -122,7 +122,8 @@ parts, in order:
 2. The question and that answer, as one line under "Parked for later" in
    `<project>/docs/vision/README.md`. That line is the only place it is written down.
 3. A commit of that README change.
-4. The open design question, as it stood, with its options. The lead-in names the open question as a statement ("The open question is how people find a habit to start."); the message's only question mark is on its last line, which asks it.
+4. The open design question, as it stood, with its options, asked as the last line (the
+   question rule in Conduct).
 
 A hard technical limit that shapes the design — a platform's rules, a regulation, a device's
 screen — is recorded as a constraint in the area it shapes: a limit set from outside, never a
@@ -139,8 +140,9 @@ When the person says the design is complete, or every structural area is decided
 in `<project>/docs/vision/` together and run `references/consistency-pass.md`. Fix each finding
 with the option that keeps the pillars and the hook, and report it with the option not taken, so
 the person can reverse it. Ask only when the fix forces a choice between two pillars, and then
-only about the first such finding; fix the rest. Commit the fixes and report each in a short
-list. If nothing is wrong, change nothing and say so.
+only about the first such finding; fix the rest; list any other pillar conflict for the next
+message. Commit the fixes and report each in a short list. If nothing is wrong, change nothing
+and say so.
 
 ## 9. Hand off
 
@@ -151,6 +153,8 @@ to test the riskiest part. Start neither without a yes.
 
 ## Conduct
 
+- Every message asks at most one question, as its last line, with a recommendation and its
+  reason; a lead-in names the open question as a statement.
 - Plain language. A term the person may not know is explained the first time it appears.
 - A change of direction from the person is taken at once in one line, without arguing back or
   reopening its cost; so is a choice against the recommendation, and the recommended option is
@@ -170,7 +174,7 @@ Each means: stop, return to step 7.
 |---|---|
 | Lists ten questions in five groups before saying anything about what exists, then asks for "short answers" | Step 1: four parts, one question, as the last line |
 | Handing the comparison over: "What do you think they do badly? That gap is the real product." | Step 1, parts 2 and 3: you name the products and the hook |
-| Names the open question as a question in the lead-in ("Back to the open question: how do people find it?"), then asks "Which one?" | The lead-in states it ("The open question is …"); the only question mark is on the last line (steps 1, 3 and 7) |
+| Names the open question as a question in the lead-in ("Back to the open question: how do people find it?"), then asks "Which one?" | Conduct, the question rule: the lead-in states it ("The open question is …"); the only question is the last line |
 | Lists the options for a question (three ways a habit app could remind people, say) and picks none | Steps 2 and 3: the recommendation first, with its reason |
 | Starting setup on a raw idea: "Question 1 of 5: name and codename." | Step 1 comes first; project-bootstrap is the hand-off in step 9 |
 | Restates an idea that an existing product already is, feature by feature, as the plan, without saying it exists | Step 1, the verdict: name the product, offer angles |

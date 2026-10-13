@@ -37,5 +37,6 @@ left. Check each pillar against the whole: does anything break it?
 Fix each finding with the option that keeps the pillars and the hook, and report it as one line:
 what contradicted what, the fix made, and the option not taken, so the person can reverse it.
 Ask only when the fix forces a choice between two pillars, and then only about the first such
-finding, built as `references/questions.md` describes, as the message's last line; fix the rest.
+finding, built as `references/questions.md` describes, as the message's last line; fix the rest;
+list any other pillar conflict for the next message.
 If nothing is wrong, change nothing and say so.
