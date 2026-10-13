@@ -105,7 +105,7 @@ not block the next decision. A starting number may be proposed as a starting val
 
 ## 7. Technology waits
 
-No engine, stack, language, database or architecture is chosen until the design is agreed — not
+No engine, stack, language, framework or architecture is chosen until the design is agreed — not
 as a lean, not as a provisional pick.
 
 **If the person asks a technology question before the design is agreed**, the reply has these
@@ -123,7 +123,7 @@ screen — is recorded as a constraint in the area it shapes, not decided as des
 
 | Excuse | Reality |
 |---|---|
-| "I'd lean Postgres, but it's early" | A lean is a pick: the person hears a decision. Say what it depends on instead. |
+| "I'd lean towards one of them, but it's early" | A lean is a pick: the person hears a decision. Say what it depends on instead. |
 | "I've noted it as provisional" in a tech note | A note outside "Parked for later" is a second design document. Park it in the README. |
 
 ## 8. Consistency pass
@@ -149,7 +149,7 @@ to test the riskiest part. Start neither without a yes.
 
 ## Red flags
 
-- "I'd lean Postgres" — a technology pick before the design is agreed.
+- "I'd lean towards…" about a technology — a pick before the design is agreed.
 - "I've noted it as provisional … and kept it out of the vision docs" — a technical note
   outside "Parked for later".
 
@@ -159,10 +159,10 @@ Each means: stop, return to step 7.
 
 | Mistake | Fix |
 |---|---|
-| Five numbered groups of questions in the first reply, ending "Short answers are fine" | Step 1: four parts, one question, as the last line |
+| Lists ten questions in five groups before saying anything about what exists, then asks for "short answers" | Step 1: four parts, one question, as the last line |
 | Handing the comparison over: "What do you think they do badly? That gap is the real product." | Step 1, parts 2 and 3: you name the products and the hook |
-| Options with no pick: "Options include a deposit, a rating system, insurance…" | Steps 2 and 3: the recommendation first, with its reason |
+| Lists the options for a question (three ways a habit app could remind people, say) and picks none | Steps 2 and 3: the recommendation first, with its reason |
 | Starting setup on a raw idea: "Question 1 of 5: name and codename." | Step 1 comes first; project-bootstrap is the hand-off in step 9 |
-| Restating a copy as the plan ("post square photos with filters, follow friends, and like") without saying it exists | Step 1, the verdict: name the product, offer angles |
+| Restates an idea that an existing product already is, feature by feature, as the plan, without saying it exists | Step 1, the verdict: name the product, offer angles |
 | A new file left uncommitted, or unrelated files swept into a commit | Step 5: `git add` the changed vision files by name, then commit |
 | Dashes written in a Windows code page, unreadable as UTF-8 | Step 5: files are written as UTF-8 |
