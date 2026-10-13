@@ -47,7 +47,7 @@ may follow the announcement in the same message.
 If the repository is greenfield and the person brings only an idea — nothing written down beyond
 a sentence or two — offer the idea-to-design skill first, in one line, when it is installed: it
 turns the idea into a design in `<project>/docs/vision/`, which this procedure then reads as a
-docs-first project. If they decline, continue here.
+docs-first project. Ask nothing else in that message. If they decline, continue here.
 
 ## 1a. Record the starting point in git
 
