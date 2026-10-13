@@ -5,7 +5,7 @@ license: MIT
 compatibility: Requires Python 3.11+ for scripts/check_docs.py
 metadata:
   author: NSpotGames
-  version: "2.10.1"
+  version: "2.11.0"
 ---
 
 # Project Bootstrap
@@ -43,6 +43,11 @@ Look at the target repository and say which of these it is, per `references/core
 Every path runs §1a and §2 first. Greenfield then follows §3 through §5. Docs-first runs §6a in
 place of §3(a) and continues with §3(b) onward. Brownfield follows §6. The first setup question
 may follow the announcement in the same message.
+
+If the repository is greenfield and the person brings only an idea — nothing written down beyond
+a sentence or two — offer the idea-to-design skill first, in one line, when it is installed: it
+turns the idea into a design in `<project>/docs/vision/`, which this procedure then reads as a
+docs-first project. If they decline, continue here.
 
 ## 1a. Record the starting point in git
 

@@ -1,11 +1,11 @@
 {
   "name": "project-bootstrap",
   "displayName": "Project Bootstrap",
-  "version": "2.10.1",
-  "description": "Docs-as-contract bootstrap for agent-driven projects: design docs, milestones, plans, ADRs, and a linter that keeps them true.",
+  "version": "2.11.0",
+  "description": "Two skills for agent-driven projects: idea-to-design turns a raw idea into a design in docs/vision; project-bootstrap turns a design into docs-as-contract — design docs, milestones, plans, ADRs, and a linter that keeps them true.",
   "author": { "name": "NSpotGames", "url": "https://github.com/NSpot-Games" },
   "homepage": "https://github.com/NSpot-Games/project-bootstrap",
   "repository": "https://github.com/NSpot-Games/project-bootstrap",
   "license": "MIT",
-  "keywords": ["skills", "bootstrap", "documentation", "planning", "adr", "milestones", "workflow"]
+  "keywords": ["skills", "bootstrap", "documentation", "planning", "adr", "milestones", "workflow", "ideation", "product-design"]
 }

@@ -5,6 +5,11 @@ machinery, and points into the skill at `skills/project-bootstrap/`, where the r
 (`references/core/`), profiles (`references/profiles/`), templates (`assets/templates/`) and
 linter (`scripts/check_docs.py`) live. It contains no templates of its own.
 
+**Before bootstrap, if there is only an idea:** the kit's second skill, `skills/idea-to-design/`,
+turns a raw idea into a design — its hook, purpose, pillars, every structural decision and the
+options not taken — in `<project>/docs/vision/`. Bootstrap then starts from that as a docs-first
+project. The chain is *idea-to-design → project-bootstrap → build*.
+
 ## 1. The idea in one page
 
 **Docs are the contract with your agents.** An agent's session carries no memory into the next

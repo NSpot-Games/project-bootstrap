@@ -1,13 +1,13 @@
 {
   "name": "project-bootstrap",
-  "description": "Docs-as-contract bootstrap kit for agent-driven projects.",
+  "description": "Idea-to-design and docs-as-contract bootstrap skills for agent-driven projects.",
   "owner": { "name": "NSpotGames", "url": "https://github.com/NSpot-Games" },
   "plugins": [
     {
       "name": "project-bootstrap",
       "source": "./",
-      "description": "Docs-as-contract bootstrap for agent-driven projects.",
-      "version": "2.10.1"
+      "description": "Idea-to-design and docs-as-contract bootstrap skills for agent-driven projects.",
+      "version": "2.11.0"
     }
   ]
 }

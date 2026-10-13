@@ -4,7 +4,7 @@ description: Use when someone brings a raw idea for a product, game, tool or ser
 license: MIT
 metadata:
   author: NSpotGames
-  version: "2.10.1"
+  version: "2.11.0"
 ---
 
 # Idea to design

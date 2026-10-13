@@ -1,17 +1,18 @@
 # AGENTS.md
 
-This repository is the bootstrap kit itself — one Agent Skill at `skills/project-bootstrap/`
-holding `references/core/`, `references/profiles/`, `assets/templates/` and
-`scripts/check_docs.py` — not a project built on the kit. Read `BOOTSTRAP.md` first: it states
-the idea, names the machinery, and points into the skill.
+This repository is the kit itself — two Agent Skills, not a project built on the kit:
+`skills/idea-to-design/` (turns a raw idea into a design in `docs/vision/`; Markdown only) and
+`skills/project-bootstrap/` (holding `references/core/`, `references/profiles/`,
+`assets/templates/` and `scripts/check_docs.py`). Read `BOOTSTRAP.md` first: it states the idea,
+names the machinery, and points into both skills.
 
 ## Rules
 
 - Every path any doc here cites must exist, and every `§N` cited must be a real numbered
   heading. Run `python skills/project-bootstrap/scripts/check_docs.py --root .` before ending
   a session — zero errors, always.
-- Paths have three forms. Inside `skills/project-bootstrap/`, kit paths are relative to the
-  skill root (`references/core/layers.md §1`) so the skill works when installed alone. At the
+- Paths have three forms. Inside each skill, kit paths are relative to that skill's
+  root (`references/core/layers.md §1`) so the skill works when installed alone. At the
   repo root they are full (`skills/project-bootstrap/references/core/layers.md §1`). Paths in
   the project being bootstrapped are written `<project>/...`.
 - Templates (`skills/project-bootstrap/assets/templates/*.md`) keep the exact field formats
@@ -23,8 +24,9 @@ the idea, names the machinery, and points into the skill.
   Elsewhere, a name that isn't fixed yet is written `<angle-bracketed>`.
 - Section numbers (`## N. Title`) are contracts once another doc cites them — append a lettered
   section rather than renumbering.
-- The version is `2.10.1` in `skills/project-bootstrap/SKILL.md` metadata,
-  `.claude-plugin/plugin.json` and `.claude-plugin/marketplace.json`; bump all three together.
+- The version is `2.11.0` in `skills/project-bootstrap/SKILL.md` and
+  `skills/idea-to-design/SKILL.md` metadata, `.claude-plugin/plugin.json` and
+  `.claude-plugin/marketplace.json`; bump all four together.
 
 ## Commands
 
