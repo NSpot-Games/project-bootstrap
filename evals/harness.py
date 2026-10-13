@@ -146,6 +146,9 @@ def prepare(name: str, runs: Path, label: str, skill: Path | None = None, no_ski
             git(project, "remote", "add", "origin", setup["remote"])
     data = load_evals()
     task = ev["prompt"].format(answers=data["answers"], brainstorm=data["brainstorm"])
+    # An explicit skill path (a snapshot) applies only to the scenarios of the skill it names.
+    if skill is not None and skill.name != ev.get("skill", "project-bootstrap"):
+        skill = None
     skill = None if no_skill else (skill or skill_for(ev))
     skill_lines = "" if skill is None else SKILL_LINES.format(
         skill_name=ev.get("skill", "project-bootstrap"), skill=skill.resolve().as_posix())
@@ -448,8 +451,10 @@ def main(argv: list[str] | None = None) -> int:
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     sub = ap.add_subparsers(dest="cmd", required=True)
     p = sub.add_parser("prepare"); p.add_argument("scenario"); p.add_argument("runs"); p.add_argument("--label", default="with_skill")
-    p.add_argument("--skill", default=None, help="skill directory; default: the scenario's skill under skills/")
-    p.add_argument("--no-skill", action="store_true", help="a prompt with no skill at all, for baselines")
+    which = p.add_mutually_exclusive_group()
+    which.add_argument("--skill", default=None, help="skill directory (a snapshot); applies to the scenarios of the "
+                       "skill its directory name names, the others use their own skill under skills/")
+    which.add_argument("--no-skill", action="store_true", help="a prompt with no skill at all, for baselines")
     g = sub.add_parser("grade"); g.add_argument("scenario"); g.add_argument("runs"); g.add_argument("--label", default="with_skill")
     r = sub.add_parser("report"); r.add_argument("runs")
     sd = sub.add_parser("seed", help="real-repository seeds for acceptance runs")

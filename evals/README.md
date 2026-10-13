@@ -64,7 +64,7 @@ procedure change they measure has shipped. A baseline run records which.
    python evals/harness.py prepare <scenario> evals/runs --label baseline --no-skill
    ```
 
-   A scenario names the skill it exercises with an optional `"skill"` key (default `project-bootstrap`); `--no-skill` writes a prompt with no skill at all, the baseline for a new skill.
+   A scenario names the skill it exercises with an optional `"skill"` key (default `project-bootstrap`). A `--skill` snapshot applies to the scenarios of the skill its directory name names (a snapshot directory called `idea-to-design` serves the idea-to-design scenarios); the other scenarios use their own skill under `skills/`. `--no-skill` writes a prompt with no skill at all, the baseline for a new skill; it cannot be combined with `--skill`.
 
 2. For each `evals/runs/<scenario>/<label>/prompt.md`, hand the prompt to a fresh agent
    (a subagent, or a separate session) and let it work inside `project/`. The agent must write

@@ -54,6 +54,24 @@ def test_explicit_skill_path_wins(evals, tmp_path):
     assert snap.resolve().as_posix() + "/SKILL.md" in p
 
 
+def test_explicit_skill_path_applies_only_to_its_own_skills_scenarios(evals, tmp_path):
+    p = _prompt(harness.prepare("ideas", evals, "t", tmp_path / "snapshot" / "project-bootstrap"))
+    assert "skills/idea-to-design/SKILL.md" in p
+    assert "snapshot" not in p
+
+
+def test_explicit_idea_to_design_snapshot_is_used_for_its_scenarios(evals, tmp_path):
+    snap = tmp_path / "snapshot" / "idea-to-design"
+    p = _prompt(harness.prepare("ideas", evals, "t", snap))
+    assert snap.resolve().as_posix() + "/SKILL.md" in p
+
+
+def test_skill_and_no_skill_are_mutually_exclusive():
+    with pytest.raises(SystemExit) as exc:
+        harness.main(["prepare", "x", "r", "--skill", "a", "--no-skill"])
+    assert exc.value.code == 2  # argparse's usage error, not the unknown-scenario exit
+
+
 def test_no_skill_prompt_names_no_skill(evals):
     rd = harness.prepare("ideas", evals, "baseline", no_skill=True)
     p = _prompt(rd)
@@ -85,6 +103,7 @@ def test_every_scenario_has_a_fixture_and_known_checks():
     for ev in harness.load_evals()["evals"]:
         assert (harness.FIXTURES / ev["fixture"]).is_dir(), ev["name"]
         assert {a["check"] for a in ev["assertions"]} <= KNOWN_CHECKS, ev["name"]
+        assert (harness.skill_for(ev) / "SKILL.md").is_file(), ev["name"]
 
 
 def test_idea_to_design_scenarios_exist_and_prepare(tmp_path):
