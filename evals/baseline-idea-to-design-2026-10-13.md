@@ -82,7 +82,8 @@ Two results need a caveat before they are read as evidence.
 ## Failure classes
 
 Each failure and each "seen but not asserted" behaviour, classified with writing-skills' "Match
-the Form to the Failure", and where `skills/idea-to-design/SKILL.md` answers it.
+the Form to the Failure", and where `skills/idea-to-design/SKILL.md` answers it. Quoted recipe
+text in this table and below it is the wording at a74c11e; the current wording is in `SKILL.md`.
 
 | Behaviour (scenario) | Class | Form used | Where |
 |---|---|---|---|
@@ -108,6 +109,8 @@ Conduct's "One question per message…" (now the step 3 recipe) and "The person'
 (against-recommendation passed without it; folded into the remaining Conduct line).
 
 ## Wording micro-tests
+
+The measured effect of the fixes below is in `evals/release-k-2026-10-13.md`.
 
 Run by the controller on the skill at commit `a74c11e`: one fresh single-shot agent per sample
 (model: sonnet), the full `SKILL.md` in context, the scenario prompt as the user message, 5 reps

@@ -1,13 +1,14 @@
 # evals/
 
-Behavioural evals for the skill: what an agent *does* when it follows the procedure, which the
+Behavioural evals for the kit's skills: what an agent *does* when it follows the procedure, which the
 linter's unit tests cannot see. A full bootstrap is multi-session and human-gated, so each
 scenario is one step of it, run against a synthetic starting repository, ending where the
 procedure would wait for a human. The setup answers an agent would ask for are supplied in the
 prompt; the agent stops at the first gate not answered there.
 
-Everything here is invented. The fixtures describe Fieldnote, a made-up CLI and library that
-turns a folder of markdown field notes into a static site; no content from any real project is
+Everything here is invented. The project-bootstrap fixtures describe Fieldnote, a made-up CLI
+and library that turns a folder of markdown field notes into a static site; the idea-to-design
+fixtures describe Tidepool, a made-up tool-lending app. No content from any real project is
 used, so the suite is project-agnostic and safe to publish with the kit.
 
 ## Layout

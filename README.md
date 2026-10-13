@@ -8,8 +8,9 @@ tier instead of assuming one fixed shape of project.
 
 The kit ships as two Agent Skills that follow the [Agent Skills](https://agentskills.io) layout:
 `skills/idea-to-design/` turns a raw idea into a design, and `skills/project-bootstrap/` turns a
-design into a project — the procedure in `SKILL.md`, the rules in `references/`, the templates in
-`assets/`, the linter in `scripts/`. Install both into your agent or just read them.
+design into a project; project-bootstrap keeps its procedure in `SKILL.md`, its rules in
+`references/`, its templates in `assets/` and its linter in `scripts/`. Install both into your
+agent or just read them.
 
 ## Install
 
@@ -71,7 +72,7 @@ built-in workflow, so no CI or stored token is needed. It needs the GitHub CLI l
 
 ## Repository layout
 
-- `BOOTSTRAP.md` — the idea and the machinery, one page each, with pointers into the skill.
+- `BOOTSTRAP.md` — the idea and the machinery, one page each, with pointers into the skills.
 - `skills/idea-to-design/` — the idea-to-design skill: `SKILL.md`, the question method and the consistency pass in `references/`, the `docs/vision/` file shapes in `assets/templates/`.
 - `skills/project-bootstrap/SKILL.md` — the guided procedure.
 - `skills/project-bootstrap/references/core/` — document kinds, layers, lifecycle,
