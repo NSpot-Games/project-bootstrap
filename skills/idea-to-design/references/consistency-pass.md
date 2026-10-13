@@ -6,8 +6,8 @@ look for each kind of problem below. Fix each finding in the files, and report e
 ## 1. Rules that cannot happen
 
 A rule that assumes a state the rest of the design rules out: a bonus for something the design
-never allows, a welcome pack bigger than the inventory it must fit in, a trigger on an event that every
-other rule prevents. Check every rule's condition against the rules that govern that condition.
+never allows, an upgrade that costs a currency nothing pays out, a trigger on an event that
+every other rule prevents. Check every rule's condition against the rules that govern that condition.
 
 ## 2. Numbers and timings that clash
 
@@ -17,13 +17,13 @@ cannot add up to.
 
 ## 3. Limits inside the normal case
 
-A limit, penalty or alarm that fires during ordinary, intended use: "overdue" earlier than the
-standard delivery time, an anti-stall rule that triggers inside a normal fight's length, a cap
+A limit, penalty or alarm that fires during ordinary, intended use: a reminder that fires before
+the period it reminds about can end, an anti-stall rule that triggers inside a normal fight's length, a cap
 below the starting value. Compare every limit with the normal range the design intends.
 
 ## 4. Stale summaries
 
-`README.md`'s hook, purpose, decided table and still-to-design table, and any other summary,
+`<project>/docs/vision/README.md`'s hook, purpose, decided table and still-to-design table, and any other summary,
 against the area files they summarize. The area file is the truth; the summary is corrected.
 
 ## 5. Fairness and abuse
@@ -34,8 +34,8 @@ left. Check each pillar against the whole: does anything break it?
 
 ## 6. Reporting
 
-Report each finding as one line: what contradicted what, and the fix made. If a fix needs a
-decision only the person can make, ask it as a question (`references/questions.md`) instead of
-fixing it. When several findings need the person, the report lists them all, and the message
-asks about the first, as its last line; the next is asked after its answer. If nothing is wrong,
-change nothing and say so.
+Fix each finding with the option that keeps the pillars and the hook, and report it as one line:
+what contradicted what, the fix made, and the option not taken, so the person can reverse it.
+Ask only when the fix forces a choice between two pillars, and then only about the first such
+finding, built as `references/questions.md` describes, as the message's last line; fix the rest.
+If nothing is wrong, change nothing and say so.

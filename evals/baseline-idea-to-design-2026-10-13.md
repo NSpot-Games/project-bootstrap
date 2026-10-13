@@ -90,13 +90,13 @@ the Form to the Failure", and where `skills/idea-to-design/SKILL.md` answers it.
 | No hook named (raw-idea) | omitted element | required part 3 of the first message, opening "What is new here is…"; "The hook" slot in the vision README template | step 1; `assets/templates/vision-readme.md` |
 | About ten questions in five groups (raw-idea) | shape | recipe: "That is the whole message. It holds one question, as its last line." Question messages get the same five-part shape | steps 1 and 3 |
 | No recommendation when only the idea exists (raw-idea; seen in the pattern across scenarios) | omitted element + conditional | required "(my recommendation)" option first; conditional "When only the idea exists, the reason rests on the idea itself" | steps 2 and 3 |
-| Hijacked into project-bootstrap setup on a raw idea (nothing-new) | shape + trigger | ordering recipe: the first message comes before any setup, setup is step 9; trigger description kept as the brief wrote it | step 1 opening paragraph; description |
+| Hijacked into project-bootstrap setup on a raw idea (nothing-new) | shape + trigger | ordering recipe: the first message comes before any setup, setup is step 9; the description names a raw idea ("I have an idea for…") and continuing a design under way in docs/vision/, and excludes only a project whose design is settled | step 1 opening paragraph; description |
 | Instagram not named, no "it exists", no angles (nothing-new) | conditional | keyed to "If the products in part 2 already do everything the idea describes": the verdict naming the product, then 2–3 lettered angles with a recommendation | step 1 |
-| Technical question answered with a pick, "I'd lean Postgres" (tech-drift) | discipline | firm rule ("not as a lean, not as a provisional pick"), rationalization table in the agent's words, red flag | step 7; Red flags |
+| Technical question answered with a pick, "I'd lean Postgres" (tech-drift) | discipline | firm rule ("not as a lean, not as a provisional pick"), rationalization table and red flag in neutral words generalised from the agent's ("I'd lean towards one of them, but it's early"), so the skill carries no scenario-domain words | step 7; Red flags |
 | Parked in a `docs/tech` note, not under "Parked for later" (tech-drift) | conditional + omitted element | reply recipe keyed to "If the person asks a technology question before the design is agreed"; the README template's "Parked for later" slot | step 7; `assets/templates/vision-readme.md` |
 | Technical note left untracked (tech-drift) | shape | commit recipe: `git add` the changed vision files by name, then commit; step 7 part 3 commits the README change | steps 5 and 7 |
 | Final-message file swept into commits (against-recommendation, consistency) | shape (harness artefact) | same commit recipe: stage by name | step 5 |
-| Consistency pass asked two questions in one message (consistency) | shape | recipe in the reference: the report lists all findings, the message asks about the first, as its last line | `references/consistency-pass.md` §6 |
+| Consistency pass asked about two fixes instead of making them (consistency) | shape | recipe: fix each finding with the option that keeps the pillars and the hook, report it with the option not taken so the person can reverse it; ask only when a fix forces a choice between two pillars, and only about the first such finding | `references/consistency-pass.md` §6; step 8 |
 | Re-argued the choice softly (against-recommendation) | discipline, borderline; assertion passed | no new wording; Conduct keeps "taken at once in one line" | Conduct |
 | Prototype offered at handoff (handoff) | not a failure | no change; step 9 already offers it | step 9 |
 | Mojibake in written files (against-recommendation) | omitted element | a line in the write recipe: "Files are written as UTF-8." | step 5 |
@@ -106,3 +106,26 @@ Draft wording removed because a recipe replaced it or the baseline did not need 
 first-message recipe, which also holds the purpose question the raw-idea scenario expects);
 Conduct's "One question per message…" (now the step 3 recipe) and "The person's words decide…"
 (against-recommendation passed without it; folded into the remaining Conduct line).
+
+## Wording micro-tests
+
+Run by the controller on the skill at commit `a74c11e`: one fresh single-shot agent per sample
+(model: sonnet), the full `SKILL.md` in context, the scenario prompt as the user message, 5 reps
+per scenario, every final message read. Assertions are the scenario's own, summed over the reps.
+
+| Scenario | Reps | Assertions passed | Baseline (no skill) | Failure notes |
+|---|---|---|---|---|
+| nothing-new | 5 | 15/15 | 0/3 | none |
+| raw-idea | 5 | 24/30 | 2/6 | the failures come from the question stated twice ("What is it for? … Which one: A, B, C or D?") and from the one run that took the nothing-new path |
+| tech-drift | 5 | 16/20 | 3/4 | the question stated twice, failing "at most one question" |
+
+Two observations:
+
+- **One decision, two question marks.** In 8 of the 10 raw-idea and tech-drift runs the one
+  question was stated twice: once as the question, then again as a "which one?" prompt after the
+  options. It is a shape failure. Fix round 3 makes every message recipe (step 1, the step 3
+  question message, the step 7 reply) end with the question, asked once as the final line, with
+  no second "which one?" after the options. The effect is not yet measured.
+- **Tool lending judged as already existing.** In 1 raw-idea run the agent judged the idea to
+  be an existing peer-to-peer lending service and took the nothing-new path. This is counted as
+  variance in judging the idea, not as a defect in the wording.

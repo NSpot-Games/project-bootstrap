@@ -29,7 +29,7 @@ changes in it.>
 
 | Area | Status |
 |---|---|
-| <Area> | <open question / rules agreed, content to design / not started> |
+| [<Area>](<area>.md) | <open question / rules agreed, content to design / not started> |
 
 ## Parked for later
 

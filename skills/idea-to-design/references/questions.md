@@ -33,7 +33,8 @@ leave the person without a recommendation.
 ## 5. Check against the pillars
 
 Once pillars exist, check every option against them. An option that breaks a pillar says which,
-in its cost. A recommendation never breaks a pillar.
+in its cost. A recommendation that breaks a pillar says which, and why it is still the best
+option.
 
 ## 6. Order: structure, then flow, then parts, then details
 

@@ -35,14 +35,16 @@ The first reply to a raw idea has these parts, in this order:
    adds that those do not. Every later decision protects it.
 4. **One question: what it is for**, built as step 2 describes, with your recommendation first.
 
-That is the whole message. It holds one question, as its last line. Everything else the idea
-raises (terms, trust, money, success, the technology) waits for its own step.
+That is the whole message. Its last line is the question, asked once; the options above it are not followed by a second "which one?".
+Everything else the idea raises (money, success, the technology) waits for its own step.
 
-**If the products in part 2 already do everything the idea describes**, parts 3 and 4 become:
+**If the products in part 2 already do everything the idea describes, or differ from it only in
+a detail a setting could change**, parts 3 and 4 become:
 
 3. **The verdict, plainly.** "This already exists: it is <product>." Name it.
 4. **Two or three angles** that would make it new, as a lettered list, one sentence each, your
-   recommended angle first with its reason; then one question: which angle, or one of their own.
+   recommended angle first with its reason. The last line is the question, asked once: which
+   angle, or one of their own; the options above it are not followed by a second "which one?".
 
 The purpose question follows once the person has picked a hook.
 
@@ -64,12 +66,13 @@ core flow, then each subsystem, then details. Each question message has these pa
 2. the decision, in one sentence;
 3. 2–4 lettered options that genuinely differ, the recommended one first and marked
    "(my recommendation)", each with what it gains, what it costs and a real product as a
-   reference point (`references/questions.md`);
+   reference point, when one exists (`references/questions.md`);
 4. the reason for the recommendation, in one sentence;
-5. the question, as the last line, and the only one in the message.
+5. the question, as the last line, asked once; the options above it are not followed by a second "which one?".
 
-A question too small to matter gets no message: pick the conventional default, say so in one line
-inside the next question, and move on.
+A question too small to matter (a conventional default exists and nothing depends on it,
+`references/questions.md` §7) gets no message: pick the default, say so in one line inside the
+next question, and move on.
 
 ## 4. Pillars
 
@@ -89,12 +92,14 @@ Each decision is written the moment it is agreed, never batched for the end:
   question, the option chosen, and every option not taken with a note on where it might fit later.
   An idea left out on purpose goes under "Possible additions".
 - `<project>/docs/vision/README.md` (shape: `assets/templates/vision-readme.md`) keeps the hook,
-  purpose, pillars, the decided table and the still-to-design table current.
-- Files are written as UTF-8.
+  purpose, pillars, the decided table and the still-to-design table current. Purpose, hook and
+  pillars live only in this file, never in an area file of their own.
+- Files are written with the file-writing tool, not shell redirection, so they stay UTF-8.
 - Then commit: `git add` the vision files this decision changed, each by name, and commit with a
   message naming the decision.
 
-If the project has no repository yet, offer to create one before the first write. Never push,
+If the project has no repository yet, offer to create one before the first write. If they
+decline, write the files without committing. Never push,
 and never create a remote, without the person's yes.
 
 ## 6. Rules apart from content and numbers
@@ -105,8 +110,9 @@ not block the next decision. A starting number may be proposed as a starting val
 
 ## 7. Technology waits
 
-No engine, stack, language, framework or architecture is chosen until the design is agreed — not
-as a lean, not as a provisional pick.
+No engine, stack, language, framework or architecture is chosen until the design is agreed
+(until the consistency pass is done and the hand-off accepted): not as a lean, not as a
+provisional pick.
 
 **If the person asks a technology question before the design is agreed**, the reply has these
 parts, in order:
@@ -116,10 +122,12 @@ parts, in order:
 2. The question and that answer, as one line under "Parked for later" in
    `<project>/docs/vision/README.md`. That line is the only place it is written down.
 3. A commit of that README change.
-4. The open design question, asked again as it stood, as the last line.
+4. The open design question, as it stood, with its options; the last line is the question,
+   asked once; the options above it are not followed by a second "which one?".
 
 A hard technical limit that shapes the design — a platform's rules, a regulation, a device's
-screen — is recorded as a constraint in the area it shapes, not decided as design.
+screen — is recorded as a constraint in the area it shapes: a limit set from outside, never a
+choice between technologies.
 
 | Excuse | Reality |
 |---|---|
@@ -130,8 +138,10 @@ screen — is recorded as a constraint in the area it shapes, not decided as des
 
 When the person says the design is complete, or every structural area is decided, read every file
 in `<project>/docs/vision/` together and run `references/consistency-pass.md`. Fix each finding
-in the files, commit, and report each fix in a short list so the person can check it. If nothing
-is wrong, change nothing and say so.
+with the option that keeps the pillars and the hook, and report it with the option not taken, so
+the person can reverse it. Ask only when the fix forces a choice between two pillars, and then
+only about the first such finding; fix the rest. Commit the fixes and report each in a short
+list. If nothing is wrong, change nothing and say so.
 
 ## 9. Hand off
 
@@ -143,9 +153,9 @@ to test the riskiest part. Start neither without a yes.
 ## Conduct
 
 - Plain language. A term the person may not know is explained the first time it appears.
-- A choice against the recommendation, or a change of direction, is taken at once in one line;
-  the recommended option is recorded in `<project>/docs/vision/alternatives.md` as not taken,
-  like any other.
+- A change of direction from the person is taken at once in one line, without arguing back or
+  reopening its cost; so is a choice against the recommendation, and the recommended option is
+  recorded in `<project>/docs/vision/alternatives.md` as not taken, like any other.
 
 ## Red flags
 

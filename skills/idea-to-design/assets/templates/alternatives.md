@@ -9,6 +9,7 @@ can pick them up.
 
 | Option | Notes |
 |---|---|
+| <letter> — <the recommended option, when it was not chosen> (recommended) | <why it was recommended, and where it might fit later> |
 | <letter> — <option not taken> | <what it gains, what it costs, where it might fit later> |
 
 ## Possible additions
