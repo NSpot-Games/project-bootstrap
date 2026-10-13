@@ -249,6 +249,9 @@
         {"text": "Late-after-5-days against 7-day loans is reported", "check": "final_contains", "pattern": "(?is)(late|overdue).{0,300}(5|five|7|seven)|(5|five|7|seven).{0,300}(late|overdue)"},
         {"text": "The stale pricing summary is reported", "check": "final_contains", "pattern": "(?i)(free for everyone|£2|membership)"},
         {"text": "The stale summary is fixed in the README", "check": "not_grep", "path": "docs/vision/README.md", "pattern": "(?i)free for everyone"},
+        {"text": "The late threshold no longer fires inside a normal loan", "check": "not_grep", "path": "docs/vision/trust.md", "pattern": "more than 5 days"},
+        {"text": "The starter bundle fits the holding limit", "check": "not_grep", "path": "docs/vision/trust.md", "pattern": "\\b3 tools"},
+        {"text": "The README no longer summarises a 3-tool bundle", "check": "not_grep", "path": "docs/vision/README.md", "pattern": "3-tool"},
         {"text": "The fixes are committed", "check": "git_commits_min", "n": 2}
       ]
     },

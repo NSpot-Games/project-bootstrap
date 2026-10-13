@@ -1,6 +1,7 @@
 """The eval harness: which skill a scenario's prompt names, the no-skill baseline prompt, and
 the final_count check."""
 import json
+import shutil
 import sys
 from pathlib import Path
 
@@ -100,6 +101,18 @@ def test_flawed_and_clean_fixtures_differ_only_where_planted():
     assert sorted(p.name for p in flawed.iterdir()) == sorted(p.name for p in clean.iterdir())
     differ = sorted(p.name for p in flawed.iterdir() if p.read_text(encoding="utf-8") != (clean / p.name).read_text(encoding="utf-8"))
     assert differ == ["README.md", "trust.md"]
+
+
+@pytest.mark.parametrize("text", [
+    "The late threshold no longer fires inside a normal loan",
+    "The starter bundle fits the holding limit",
+    "The README no longer summarises a 3-tool bundle",
+])
+def test_consistency_file_checks_fail_on_the_untouched_flawed_fixture(tmp_path, text):
+    project = tmp_path / "project"
+    shutil.copytree(harness.FIXTURES / "vision-flawed", project)
+    ok, evidence = harness.check(_assertion("consistency", text), project, tmp_path, {})
+    assert ok is False, evidence
 
 
 def _assertion(scenario, text):
