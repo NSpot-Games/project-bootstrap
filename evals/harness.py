@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
-"""Behavioural evals for the project-bootstrap skill: one bootstrap step per scenario, run by
+"""Behavioural evals for the kit's skills: one step per scenario, run by
 an agent against a synthetic fixture repository, graded by the linter and by file checks.
 
-    python evals/harness.py prepare <scenario|all> <runs_dir> [--label with_skill] [--skill PATH]
+    python evals/harness.py prepare <scenario|all> <runs_dir> [--label with_skill] [--skill PATH | --no-skill]
     python evals/harness.py grade   <scenario|all> <runs_dir> [--label with_skill]
     python evals/harness.py report  <runs_dir>
 
@@ -29,26 +29,29 @@ HERE = Path(__file__).resolve().parent
 ROOT = HERE.parent
 EVALS = HERE / "evals.json"
 FIXTURES = HERE / "fixtures"
-DEFAULT_SKILL = ROOT / "skills" / "project-bootstrap"
+SKILLS_DIR = ROOT / "skills"
+DEFAULT_SKILL = SKILLS_DIR / "project-bootstrap"
 LINTER = DEFAULT_SKILL / "scripts" / "check_docs.py"
 SYNC = DEFAULT_SKILL / "scripts" / "sync_tracker.py"
 FAKE_GH = HERE / "fake_gh.py"
 PRE_BOOTSTRAP_MSG = "pre-bootstrap: the repository as it was before the docs-as-contract bootstrap"
 
-PROMPT = """You are exercising the project-bootstrap skill exactly as an agent would use it.
+SKILL_LINES = """You are exercising the {skill_name} skill exactly as an agent would use it.
 
 Skill: read `{skill}/SKILL.md` first and follow it. Its references, templates and scripts live
 under `{skill}/`. Never modify anything under `{skill}`.
 
-Project: `{project}`. Work only inside this directory; it is a scratch copy and nothing
-outside it matters. Paths the skill writes as `<project>/...` mean this directory.
+"""
+
+PROMPT = """{skill_lines}Project: `{project}`. Work only inside this directory; it is a scratch copy and nothing
+outside it matters. Paths written as `<project>/...` mean this directory.
 
 Task: {task}
 
-The user is not available. Every answer they would give is stated above. If the procedure
+The user is not available. Every answer they would give is stated above. If the work
 requires a human reply that is not given above, stop at that point. Before you finish, write
 `{project}/final_message.md` containing exactly the message you would post to the user at the
-point you stopped, and nothing else. Then reply with a short report: which SKILL.md sections you
+point you stopped, and nothing else. Then reply with a short report: which steps you
 followed, which files you wrote, and where you stopped and why.
 """
 
@@ -110,7 +113,12 @@ def _fake_tracker(project: Path, held_by: str | None) -> None:
                    'project = 1\ngh = ".fake-gh/fake_gh.py"\n', encoding="utf-8", newline="\n")
 
 
-def prepare(name: str, runs: Path, label: str, skill: Path) -> Path:
+def skill_for(ev: dict) -> Path:
+    """The skill a scenario exercises: its "skill" key, or project-bootstrap."""
+    return SKILLS_DIR / ev.get("skill", "project-bootstrap")
+
+
+def prepare(name: str, runs: Path, label: str, skill: Path | None = None, no_skill: bool = False) -> Path:
     ev = scenario(name)
     rd = run_dir(runs, name, label)
     if rd.exists():
@@ -138,10 +146,17 @@ def prepare(name: str, runs: Path, label: str, skill: Path) -> Path:
             git(project, "remote", "add", "origin", setup["remote"])
     data = load_evals()
     task = ev["prompt"].format(answers=data["answers"], brainstorm=data["brainstorm"])
-    prompt = PROMPT.format(skill=skill.resolve().as_posix(), project=project.resolve().as_posix(), task=task)
+    # An explicit skill path (a snapshot) applies only to the scenarios of the skill it names.
+    if skill is not None and skill.name != ev.get("skill", "project-bootstrap"):
+        skill = None
+    skill = None if no_skill else (skill or skill_for(ev))
+    skill_lines = "" if skill is None else SKILL_LINES.format(
+        skill_name=ev.get("skill", "project-bootstrap"), skill=skill.resolve().as_posix())
+    prompt = PROMPT.format(skill_lines=skill_lines, project=project.resolve().as_posix(), task=task)
     (rd / "prompt.md").write_text(prompt, encoding="utf-8", newline="\n")
     (rd / "eval_metadata.json").write_text(json.dumps({
-        "eval_id": ev["id"], "eval_name": name, "label": label, "skill": skill.resolve().as_posix(),
+        "eval_id": ev["id"], "eval_name": name, "label": label,
+        "skill": None if skill is None else skill.resolve().as_posix(),
         "prompt": task, "assertions": [a["text"] for a in ev["assertions"]],
     }, indent=2), encoding="utf-8", newline="\n")
     return rd
@@ -164,9 +179,14 @@ def _files(project: Path, glob: str, exclude: str | None = None) -> list[Path]:
 
 def _read(p: Path) -> str:
     try:
-        return p.read_text(encoding="utf-8").replace("\r\n", "\n")
-    except (UnicodeDecodeError, OSError):
+        data = p.read_bytes()
+    except OSError:
         return ""
+    try:
+        text = data.decode("utf-8")
+    except UnicodeDecodeError:
+        text = data.decode("cp1252", errors="replace")
+    return text.replace("\r\n", "\n")
 
 
 def _lint(project: Path) -> tuple[list[str], int]:
@@ -264,6 +284,13 @@ def check(a: dict, project: Path, rd: Path, ev: dict) -> tuple[bool, str]:
         if kind == "final_contains":
             return bool(m), (f"matched: {m.group(0)[:80]!r}" if m else "no match")
         return not m, (f"found: {m.group(0)[:80]!r}" if m else "absent, as required")
+    if kind == "final_count":
+        p = rd / "final_message.md"
+        if not p.is_file():
+            return False, "final_message.md missing"
+        n = len(re.findall(a["pattern"], _read(p)))
+        ok = a.get("min", 0) <= n <= a.get("max", 10**9)
+        return ok, f"{n} match(es)"
     return False, f"unknown check {kind!r}"
 
 
@@ -423,7 +450,11 @@ def seed_list() -> str:
 def main(argv: list[str] | None = None) -> int:
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     sub = ap.add_subparsers(dest="cmd", required=True)
-    p = sub.add_parser("prepare"); p.add_argument("scenario"); p.add_argument("runs"); p.add_argument("--label", default="with_skill"); p.add_argument("--skill", default=str(DEFAULT_SKILL))
+    p = sub.add_parser("prepare"); p.add_argument("scenario"); p.add_argument("runs"); p.add_argument("--label", default="with_skill")
+    which = p.add_mutually_exclusive_group()
+    which.add_argument("--skill", default=None, help="skill directory (a snapshot); applies to the scenarios of the "
+                       "skill its directory name names, the others use their own skill under skills/")
+    which.add_argument("--no-skill", action="store_true", help="a prompt with no skill at all, for baselines")
     g = sub.add_parser("grade"); g.add_argument("scenario"); g.add_argument("runs"); g.add_argument("--label", default="with_skill")
     r = sub.add_parser("report"); r.add_argument("runs")
     sd = sub.add_parser("seed", help="real-repository seeds for acceptance runs")
@@ -447,7 +478,7 @@ def main(argv: list[str] | None = None) -> int:
     names = [e["name"] for e in load_evals()["evals"]] if getattr(args, "scenario", None) == "all" else [getattr(args, "scenario", None)]
     if args.cmd == "prepare":
         for n in names:
-            rd = prepare(n, Path(args.runs), args.label, Path(args.skill))
+            rd = prepare(n, Path(args.runs), args.label, Path(args.skill) if args.skill else None, args.no_skill)
             print(f"prepared {rd / 'prompt.md'}")
     elif args.cmd == "grade":
         for n in names:

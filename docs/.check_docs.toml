@@ -1,5 +1,5 @@
 # Config for running the kit's own linter on this repo.
-citation_roots = ["skills/project-bootstrap"]
+citation_roots = ["skills/project-bootstrap", "skills/idea-to-design"]
 allow_tbd_in = ["docs/superpowers/", "evals/fixtures/", "evals/runs/", "evals/seeds/"]
-citation_exclude = ["skills/project-bootstrap/assets/templates/", "tests/fixture/", "docs/superpowers/", "evals/fixtures/", "evals/runs/", "evals/seeds/"]
+citation_exclude = ["skills/project-bootstrap/assets/templates/", "skills/idea-to-design/assets/templates/", "tests/fixture/", "docs/superpowers/", "evals/fixtures/", "evals/runs/", "evals/seeds/"]
 exclude = ["tests/fixture", ".superpowers", "evals/fixtures", "evals/runs", "evals/seeds"]

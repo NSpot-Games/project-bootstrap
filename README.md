@@ -6,10 +6,11 @@ one workflow, and one source of truth for progress. It fits new projects and exi
 codebases, solo weekend builds and multi-agent, multi-phase efforts, by picking a profile and a
 tier instead of assuming one fixed shape of project.
 
-The kit ships as one Agent Skill, `skills/project-bootstrap/`, that follows the
-[Agent Skills](https://agentskills.io) layout: the procedure in `SKILL.md`, the rules in
-`references/`, the templates in `assets/`, the linter in `scripts/`. Install it into your agent
-or just read it.
+The kit ships as two Agent Skills that follow the [Agent Skills](https://agentskills.io) layout:
+`skills/idea-to-design/` turns a raw idea into a design, and `skills/project-bootstrap/` turns a
+design into a project; project-bootstrap keeps its procedure in `SKILL.md`, its rules in
+`references/`, its templates in `assets/` and its linter in `scripts/`. Install both into your
+agent or just read them.
 
 ## Install
 
@@ -34,14 +35,22 @@ start a new session, before asking for the skill.
 or `/plugin marketplace add NSpot-Games/project-bootstrap` and
 `/plugin install project-bootstrap@project-bootstrap` inside a session.
 
-**By hand:** clone this repo and copy `skills/project-bootstrap/` into your agent's skills
-directory (`.claude/skills/`, `.agents/skills/`, `~/.codex/skills/`, or wherever it reads
-them). Or skip installing and hand your agent `BOOTSTRAP.md`.
+**By hand:** clone this repo and copy `skills/idea-to-design/` and
+`skills/project-bootstrap/` into your agent's skills directory (`.claude/skills/`,
+`.agents/skills/`, `~/.codex/skills/`, or wherever it reads them). Or skip installing and hand your agent `BOOTSTRAP.md`.
 
 ## Use
 
-Tell your agent to bootstrap the project. The skill classifies the repo as greenfield or
-brownfield, asks five setup questions, writes the design docs one per session with a review
+**From an idea.** Tell your agent "I have an idea for …". `idea-to-design` places the idea among
+what already exists and names what is new, asks what it is for, then settles every structural
+decision one question at a time, each with a recommendation, writing each decision into
+`<project>/docs/vision/` as it is made and every option not taken into
+`<project>/docs/vision/alternatives.md`. It holds technology back until the design is agreed,
+checks the whole design for contradictions at the end, and offers project-bootstrap as the next
+step.
+
+**From a design or an existing repo.** Tell your agent to bootstrap the project. The skill
+classifies the repo as greenfield or brownfield, asks five setup questions, writes the design docs one per session with a review
 gate after each, generates the process files for the chosen tier, copies the linter into the
 project, and opens the first session. Without a skill-aware agent, read `BOOTSTRAP.md` for the
 idea in one page and follow `skills/project-bootstrap/references/core/adoption.md` by hand.
@@ -63,7 +72,8 @@ built-in workflow, so no CI or stored token is needed. It needs the GitHub CLI l
 
 ## Repository layout
 
-- `BOOTSTRAP.md` — the idea and the machinery, one page each, with pointers into the skill.
+- `BOOTSTRAP.md` — the idea and the machinery, one page each, with pointers into the skills.
+- `skills/idea-to-design/` — the idea-to-design skill: `SKILL.md`, the question method and the consistency pass in `references/`, the `docs/vision/` file shapes in `assets/templates/`.
 - `skills/project-bootstrap/SKILL.md` — the guided procedure.
 - `skills/project-bootstrap/references/core/` — document kinds, layers, lifecycle,
   long-horizon rules, parallel agents, tiers, economy, adoption, lessons.

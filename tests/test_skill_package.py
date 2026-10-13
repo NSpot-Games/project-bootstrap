@@ -1,5 +1,5 @@
-"""Checks that skills/project-bootstrap/ is a valid, self-contained Agent Skill and that the
-Claude plugin manifests agree with it."""
+"""Checks that every skill under skills/ is a valid, self-contained Agent Skill and that the
+Claude plugin manifests agree with them."""
 import json
 import os
 import re
@@ -11,6 +11,7 @@ from pathlib import Path
 import pytest
 
 ROOT = Path(__file__).resolve().parents[1]
+SKILLS = sorted(d for d in (ROOT / "skills").iterdir() if (d / "SKILL.md").is_file())
 SKILL_DIR = ROOT / "skills" / "project-bootstrap"
 SKILL_MD = SKILL_DIR / "SKILL.md"
 PLUGIN = ROOT / ".claude-plugin" / "plugin.json"
@@ -23,14 +24,16 @@ NAME_RE = re.compile(r"^[a-z0-9]+(-[a-z0-9]+)*$")
 # optional ` §N.M` anchor before the closing backtick.
 SKILL_PATH_RE = re.compile(r"`((?:references|assets|scripts)/[A-Za-z0-9_./<>-]*)(?:\s*§[\d.a-z]+)?`")
 
+skill_param = pytest.mark.parametrize("skill_dir", SKILLS, ids=[d.name for d in SKILLS])
+
 
 def _text(p: Path) -> str:
     return p.read_text(encoding="utf-8").replace("\r\n", "\n")
 
 
-def frontmatter() -> dict[str, str]:
-    text = _text(SKILL_MD)
-    assert text.startswith("---\n"), "SKILL.md must start with YAML frontmatter"
+def frontmatter(skill_md: Path = SKILL_MD) -> dict[str, str]:
+    text = _text(skill_md)
+    assert text.startswith("---\n"), f"{skill_md} must start with YAML frontmatter"
     block = text.split("---\n", 2)[1]
     out: dict[str, str] = {}
     parent = None
@@ -51,38 +54,84 @@ def frontmatter() -> dict[str, str]:
     return out
 
 
-def test_name_matches_directory_and_spec_rules():
-    fm = frontmatter()
-    assert fm["name"] == SKILL_DIR.name
+def missing_skill_paths(skill_dir: Path) -> list[str]:
+    """Backticked skill-relative paths in SKILL.md that do not exist inside the skill."""
+    missing = []
+    for m in SKILL_PATH_RE.finditer(_text(skill_dir / "SKILL.md")):
+        p = m.group(1)
+        if "<" in p:
+            continue  # generic name such as references/profiles/<name>.md
+        if not (skill_dir / p.rstrip("/")).exists():
+            missing.append(p)
+    return missing
+
+
+def test_missing_skill_paths_finds_a_broken_reference(tmp_path):
+    broken = tmp_path / "broken-skill"
+    (broken / "references").mkdir(parents=True)
+    (broken / "references" / "real.md").write_text("# Real\n", encoding="utf-8")
+    (broken / "SKILL.md").write_text(
+        "---\nname: broken-skill\ndescription: x\n---\n\nSee `references/real.md` and `references/gone.md §2`.\n",
+        encoding="utf-8",
+    )
+    assert missing_skill_paths(broken) == ["references/gone.md"]
+
+
+def test_skills_directory_holds_project_bootstrap():
+    assert SKILL_DIR in SKILLS
+
+
+@skill_param
+def test_name_matches_directory_and_spec_rules(skill_dir):
+    fm = frontmatter(skill_dir / "SKILL.md")
+    assert fm["name"] == skill_dir.name
     assert 1 <= len(fm["name"]) <= 64
     assert NAME_RE.match(fm["name"])
 
 
-def test_description_is_present_and_bounded():
-    fm = frontmatter()
+@skill_param
+def test_description_is_present_and_bounded(skill_dir):
+    fm = frontmatter(skill_dir / "SKILL.md")
     assert 1 <= len(fm["description"]) <= 1024
 
 
-def test_skill_md_is_under_500_lines():
-    assert len(_text(SKILL_MD).splitlines()) < 500
+@skill_param
+def test_skill_md_is_under_500_lines(skill_dir):
+    assert len(_text(skill_dir / "SKILL.md").splitlines()) < 500
 
 
-def test_every_skill_relative_path_in_skill_md_exists():
-    missing = []
-    for m in SKILL_PATH_RE.finditer(_text(SKILL_MD)):
-        p = m.group(1)
-        if "<" in p:
-            continue  # generic name such as references/profiles/<name>.md
-        if not (SKILL_DIR / p.rstrip("/")).exists():
-            missing.append(p)
-    assert missing == []
+@skill_param
+def test_every_skill_relative_path_in_skill_md_exists(skill_dir):
+    assert missing_skill_paths(skill_dir) == []
 
 
-def test_version_agrees_across_skill_and_manifests():
-    fm = frontmatter()
+BACKTICKED_RE = re.compile(r"`([^`\n]+)`")
+
+
+@skill_param
+def test_no_backticked_path_escapes_the_skill(skill_dir):
+    """A skill is installed alone, so no path it cites may climb out of it (`../`) or name the
+    kit's layout (`skills/...`)."""
+    bad = [f"{md.relative_to(skill_dir).as_posix()}: `{m.group(1)}`"
+           for md in sorted(skill_dir.rglob("*.md"))
+           for m in BACKTICKED_RE.finditer(_text(md))
+           if "../" in m.group(1) or m.group(1).startswith("skills/")]
+    assert bad == []
+
+
+@skill_param
+def test_version_agrees_across_skill_and_manifests(skill_dir):
+    fm = frontmatter(skill_dir / "SKILL.md")
     plugin = json.loads(_text(PLUGIN))
     market = json.loads(_text(MARKETPLACE))
     assert fm["metadata.version"] == plugin["version"] == market["plugins"][0]["version"]
+
+
+@skill_param
+def test_skill_paths_resolve_when_copied_alone(skill_dir, tmp_path):
+    copy = tmp_path / skill_dir.name
+    shutil.copytree(skill_dir, copy, ignore=shutil.ignore_patterns("__pycache__"))
+    assert missing_skill_paths(copy) == []
 
 
 def test_plugin_and_marketplace_name_the_skill():
