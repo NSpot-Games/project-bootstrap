@@ -1,6 +1,6 @@
 ---
 name: idea-to-design
-description: Use when someone brings a raw idea for a product, game, tool or service — "I have an idea for…", "turn this idea into something that could work", "is this idea any good", "help me design this app" — and no design notes or code exist yet. Not for building, code changes, or a repository that already has design notes.
+description: Use when someone brings a raw idea for a product, game, tool or service — "I have an idea for…", "turn this idea into something that could work", "is this idea any good", "help me design this app" — or wants to continue a design under way in docs/vision/. Not for building, code changes, or a project whose design is already settled.
 license: MIT
 metadata:
   author: NSpotGames
@@ -29,8 +29,8 @@ The first reply to a raw idea has these parts, in this order:
 
 1. **The idea in one sentence**, in your own words.
 2. **What already exists.** Two to four existing products or services it resembles, named by
-   you, each with what it already does ("Peerby and local tool libraries already lend tools
-   between neighbours"). You do the comparison; the person is not asked to.
+   you, each with what it already does ("Streaks and Habitica already track habits and reward
+   streaks"). You do the comparison; the person is not asked to.
 3. **The hook.** One sentence, starting "What is new here is…", naming the one thing this idea
    adds that those do not. Every later decision protects it.
 4. **One question: what it is for**, built as step 2 describes, with your recommendation first.
@@ -52,8 +52,8 @@ The purpose question asks what the product is for: commercial, internal tool, co
 learning, portfolio, or whatever fits. It comes before any feature, because it changes most later
 answers (how it earns, how big it is, what "done" means). It is built like every question
 (step 3): lettered options, the recommendation first, marked "(my recommendation)", with a
-one-sentence reason. When only the idea exists, the reason rests on the idea itself ("a
-neighbourhood scheme starts as a community project, so…").
+one-sentence reason. When only the idea exists, the reason rests on the idea itself ("a habit
+tracker built for your own routine starts as a personal project, so…").
 
 ## 3. Structural decisions, top-down, one per message
 
@@ -75,7 +75,7 @@ inside the next question, and move on.
 
 Once the shape is visible — usually after the purpose and two or three structural decisions —
 propose 3–5 pillars: short rules every later decision is checked against ("every match is a
-decision", "nobody profits from a neighbour"). Write them into `<project>/docs/vision/README.md`.
+decision", "a missed day never wipes out a month"). Write them into `<project>/docs/vision/README.md`.
 From then on, an option that breaks a pillar says which; a recommendation never breaks one
 silently.
 

@@ -6,7 +6,7 @@ look for each kind of problem below. Fix each finding in the files, and report e
 ## 1. Rules that cannot happen
 
 A rule that assumes a state the rest of the design rules out: a bonus for something the design
-never allows, a starting bundle bigger than the holding limit, a trigger on an event that every
+never allows, a welcome pack bigger than the inventory it must fit in, a trigger on an event that every
 other rule prevents. Check every rule's condition against the rules that govern that condition.
 
 ## 2. Numbers and timings that clash
@@ -17,8 +17,8 @@ cannot add up to.
 
 ## 3. Limits inside the normal case
 
-A limit, penalty or alarm that fires during ordinary, intended use: "late" earlier than the
-standard loan length, an anti-stall rule that triggers inside a normal fight's length, a cap
+A limit, penalty or alarm that fires during ordinary, intended use: "overdue" earlier than the
+standard delivery time, an anti-stall rule that triggers inside a normal fight's length, a cap
 below the starting value. Compare every limit with the normal range the design intends.
 
 ## 4. Stale summaries
