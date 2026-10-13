@@ -22,12 +22,14 @@ Success is the number of lends per street per month.
 | Area | Decision |
 |---|---|
 | [Lending](lending.md) | request, accept, hand-over, return; a refundable deposit the app holds; at most 2 tools at once; loans up to 7 days |
-| [Trust](trust.md) | a trust score from on-time returns; new members start with a 2-tool starter bundle |
+| [Trust](trust.md) | a trust score from on-time returns; new members can start with a 2-tool starter bundle |
 | [Pricing](pricing.md) | membership £2 a month for borrowers; no fee per lend |
 
 ## Still to design
 
-| Area | Status |
+| Area | Still to design |
 |---|---|
-| Damaged tools | rules to design |
-| Finding tools | the map's layout to design |
+| [Lending](lending.md) | what happens when a tool comes back damaged |
+| [Trust](trust.md) | whether a very low score blocks borrowing |
+| [Pricing](pricing.md) | a hardship waiver for the membership |
+| Finding tools ([alternatives](alternatives.md), question 2) | the layout of the map of nearby tools |

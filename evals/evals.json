@@ -266,8 +266,8 @@
       "assertions": [
         {"text": "The vision README still links every area file", "check": "grep", "path": "docs/vision/README.md", "pattern": "(?s)(?=.*\\(lending\\.md\\))(?=.*\\(trust\\.md\\))(?=.*\\(pricing\\.md\\))"},
         {"text": "alternatives.md exists", "check": "file_exists", "path": "docs/vision/alternatives.md"},
-        {"text": "No area file is changed when nothing was wrong", "check": "unchanged", "glob": "docs/vision/[!R]*.md"},
-        {"text": "What is still to design is named", "check": "final_contains", "pattern": "(?i)(still to design|left to design|damaged tools|open)"},
+        {"text": "No vision file is changed when nothing was wrong", "check": "unchanged", "glob": "docs/vision/*.md"},
+        {"text": "What is still to design is named", "check": "final_contains", "pattern": "(?i)(still to design|left to design|open (question|item)|damaged tools|hardship)"},
         {"text": "project-bootstrap is offered as the next step", "check": "final_contains", "pattern": "(?i)project-bootstrap"},
         {"text": "No code or stack is started", "check": "final_not_contains", "pattern": "(?i)(npm install|pip install|git clone|create-react-app|\\bwe('ll| will) use (postgres|firebase|react|flutter))"}
       ]
