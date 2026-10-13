@@ -173,6 +173,100 @@
         {"text": "The board was not taken over", "check": "not_grep", "path": ".fake-gh/fake_gh.log", "pattern": "--remove-assignee alice"},
         {"text": "The final message names who holds M0-01", "check": "final_contains", "pattern": "alice"}
       ]
+    },
+    {
+      "id": 10,
+      "name": "raw-idea",
+      "skill": "idea-to-design",
+      "fixture": "idea-only",
+      "setup": {"git": true},
+      "prompt": "The user says: \"I have an idea: an app where neighbours lend each other tools — drills, ladders, lawnmowers. Help me turn it into something that could actually work.\" Respond as the first message of the conversation.",
+      "expected_output": "The agent places the idea among existing products, names what is new, and asks one question — what the product is for — with options and a recommendation. No stack, no features yet.",
+      "assertions": [
+        {"text": "The message compares the idea with things that already exist", "check": "final_contains", "pattern": "(?i)(already exist|existing|apps? like|similar|services? like)"},
+        {"text": "The message names what is new about the idea", "check": "final_contains", "pattern": "(?i)(what('s| is) new|the new (part|thing|angle)|hook|different from|sets? it apart|stand out)"},
+        {"text": "The question is about purpose", "check": "final_contains", "pattern": "(?i)(what is it for|purpose|who is it for|the goal|commercial|non-?profit|side project|hobby)"},
+        {"text": "Exactly one question is asked", "check": "final_count", "pattern": "(?m)\\?\\**\\s*$", "min": 1, "max": 1},
+        {"text": "A recommendation is given", "check": "final_contains", "pattern": "(?i)recommend"},
+        {"text": "No technology is chosen or discussed", "check": "final_not_contains", "pattern": "(?i)(react native|flutter|firebase|postgres|supabase|tech stack|database|backend)"}
+      ]
+    },
+    {
+      "id": 11,
+      "name": "tech-drift",
+      "skill": "idea-to-design",
+      "fixture": "vision-in-progress",
+      "setup": {"git": true},
+      "prompt": "The design so far is in docs/vision/. Your last message asked: \"How do people find a tool to borrow? A) a map of nearby tools (recommended — it shows how close each tool is, which serves 'under a minute') B) a searchable list C) a request board.\" The user replies: \"Before that — which database should we use, Postgres or Firebase?\" Respond, and update the files as the design work requires.",
+      "expected_output": "The agent answers the database question briefly, parks it in docs/vision/README.md under 'Parked for later', records no stack as design, and returns to the open question about finding tools.",
+      "assertions": [
+        {"text": "The database question is parked in the vision README", "check": "grep", "path": "docs/vision/README.md", "pattern": "(?is)parked for later.{0,800}(database|postgres|firebase)"},
+        {"text": "No design area file records a database", "check": "none_grep", "glob": "docs/vision/*.md", "exclude": "docs/vision/README.md", "pattern": "(?i)(postgres|firebase)"},
+        {"text": "The message returns to the open question about finding tools", "check": "final_contains", "pattern": "(?i)(map|searchable list|request board)"},
+        {"text": "At most one question is asked", "check": "final_count", "pattern": "(?m)\\?\\**\\s*$", "max": 1}
+      ]
+    },
+    {
+      "id": 12,
+      "name": "against-recommendation",
+      "skill": "idea-to-design",
+      "fixture": "vision-in-progress",
+      "setup": {"git": true},
+      "prompt": "The design so far is in docs/vision/. Your last message asked: \"How do people find a tool to borrow? A) a map of nearby tools (recommended — it shows how close each tool is, which serves 'under a minute') B) a searchable list C) a request board.\" The user replies: \"C.\" Respond, record the decision in the files as the procedure says, and commit.",
+      "expected_output": "The agent accepts C without arguing, records it as chosen in alternatives.md with the map and the list as options not taken, commits, and moves to the next question.",
+      "assertions": [
+        {"text": "alternatives.md records the request board as chosen", "check": "grep", "path": "docs/vision/alternatives.md", "pattern": "(?i)chosen[^\\n]{0,80}request board"},
+        {"text": "alternatives.md records the recommended map as not taken", "check": "grep", "path": "docs/vision/alternatives.md", "pattern": "(?is)chosen[^\\n]{0,80}request board.{0,1500}\\bmap\\b"},
+        {"text": "The choice is accepted without counter-argument", "check": "final_not_contains", "pattern": "(?i)(are you sure|reconsider|i would still|i'd still|still recommend|second thoughts)"},
+        {"text": "The decision is committed", "check": "git_commits_min", "n": 2}
+      ]
+    },
+    {
+      "id": 13,
+      "name": "nothing-new",
+      "skill": "idea-to-design",
+      "fixture": "idea-only",
+      "setup": {"git": true},
+      "prompt": "The user says: \"I have an idea: an app where you post square photos with filters, follow your friends and like their photos.\" Respond as the first message of the conversation.",
+      "expected_output": "The agent says plainly that this exists, names it, and offers at least two angles that would make it new.",
+      "assertions": [
+        {"text": "The existing product is named", "check": "final_contains", "pattern": "(?i)instagram"},
+        {"text": "The message says plainly that it already exists", "check": "final_contains", "pattern": "(?i)(already exists|exists today|is essentially|that's instagram|is instagram|already built)"},
+        {"text": "At least two angles are offered", "check": "final_count", "pattern": "(?m)^\\s*(?:[-*]|\\d+[.)]|\\*\\*[A-E][).])\\s+", "min": 2}
+      ]
+    },
+    {
+      "id": 14,
+      "name": "consistency",
+      "skill": "idea-to-design",
+      "fixture": "vision-flawed",
+      "setup": {"git": true},
+      "prompt": "The design in docs/vision/ is finished; the user says: \"I think that's everything — do the final check.\" Run the consistency pass, fix what it finds in the files, commit, and report.",
+      "expected_output": "All three planted contradictions are found, fixed in the files and reported: the 3-tool starter bundle against the 2-tool limit, late-after-5-days against 7-day loans, and the stale 'free for everyone' summary.",
+      "assertions": [
+        {"text": "The starter bundle against the tool limit is reported", "check": "final_contains", "pattern": "(?is)(starter|bundle).{0,300}(two|2|three|3)|(two|2|three|3).{0,300}(starter|bundle)"},
+        {"text": "Late-after-5-days against 7-day loans is reported", "check": "final_contains", "pattern": "(?is)(late|overdue).{0,300}(5|five|7|seven)|(5|five|7|seven).{0,300}(late|overdue)"},
+        {"text": "The stale pricing summary is reported", "check": "final_contains", "pattern": "(?i)(free for everyone|£2|membership)"},
+        {"text": "The stale summary is fixed in the README", "check": "not_grep", "path": "docs/vision/README.md", "pattern": "(?i)free for everyone"},
+        {"text": "The fixes are committed", "check": "git_commits_min", "n": 2}
+      ]
+    },
+    {
+      "id": 15,
+      "name": "handoff",
+      "skill": "idea-to-design",
+      "fixture": "vision-clean",
+      "setup": {"git": true},
+      "prompt": "The design in docs/vision/ is finished; the user says: \"That's everything, I think. What now?\" Finish the procedure.",
+      "expected_output": "The consistency pass finds nothing to change; the agent summarizes what is decided and what is still to design, and offers project-bootstrap as the next step. No code, no stack.",
+      "assertions": [
+        {"text": "The vision README still links every area file", "check": "grep", "path": "docs/vision/README.md", "pattern": "(?s)(?=.*\\(lending\\.md\\))(?=.*\\(trust\\.md\\))(?=.*\\(pricing\\.md\\))"},
+        {"text": "alternatives.md exists", "check": "file_exists", "path": "docs/vision/alternatives.md"},
+        {"text": "No area file is changed when nothing was wrong", "check": "unchanged", "glob": "docs/vision/[!R]*.md"},
+        {"text": "What is still to design is named", "check": "final_contains", "pattern": "(?i)(still to design|left to design|damaged tools|open)"},
+        {"text": "project-bootstrap is offered as the next step", "check": "final_contains", "pattern": "(?i)project-bootstrap"},
+        {"text": "No code or stack is started", "check": "final_not_contains", "pattern": "(?i)(npm |pip install|scaffold|tech stack|postgres|firebase)"}
+      ]
     }
   ]
 }

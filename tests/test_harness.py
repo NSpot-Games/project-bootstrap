@@ -71,3 +71,32 @@ def test_final_count(tmp_path, text, a, expected):
     (tmp_path / "final_message.md").write_text(text, encoding="utf-8")
     ok, evidence = harness.check({"check": "final_count", **a}, tmp_path / "project", tmp_path, {})
     assert ok is expected, evidence
+
+
+IDEA_SCENARIOS = ["raw-idea", "tech-drift", "against-recommendation", "nothing-new", "consistency", "handoff"]
+KNOWN_CHECKS = {"file_exists", "files_exist", "file_absent", "grep", "not_grep", "grep_any", "none_grep",
+                "mentions_each", "unchanged", "count_glob", "no_tokens", "lint", "git_branch_prefix",
+                "git_commits_min", "git_clean", "sha_recorded", "final_contains", "final_not_contains",
+                "final_count"}
+
+
+def test_every_scenario_has_a_fixture_and_known_checks():
+    for ev in harness.load_evals()["evals"]:
+        assert (harness.FIXTURES / ev["fixture"]).is_dir(), ev["name"]
+        assert {a["check"] for a in ev["assertions"]} <= KNOWN_CHECKS, ev["name"]
+
+
+def test_idea_to_design_scenarios_exist_and_prepare(tmp_path):
+    names = {e["name"]: e for e in harness.load_evals()["evals"]}
+    for n in IDEA_SCENARIOS:
+        assert names[n].get("skill") == "idea-to-design", n
+        rd = harness.prepare(n, tmp_path, "baseline", no_skill=True)
+        assert (rd / "project").is_dir()
+
+
+def test_flawed_and_clean_fixtures_differ_only_where_planted():
+    flawed = harness.FIXTURES / "vision-flawed" / "docs" / "vision"
+    clean = harness.FIXTURES / "vision-clean" / "docs" / "vision"
+    assert sorted(p.name for p in flawed.iterdir()) == sorted(p.name for p in clean.iterdir())
+    differ = sorted(p.name for p in flawed.iterdir() if p.read_text(encoding="utf-8") != (clean / p.name).read_text(encoding="utf-8"))
+    assert differ == ["README.md", "trust.md"]
