@@ -24,6 +24,7 @@ Success is the number of lends per street per month.
 | [Lending](lending.md) | request, accept, hand-over, return; a refundable deposit the app holds; at most 2 tools at once; loans up to 7 days |
 | [Trust](trust.md) | a trust score from on-time returns; new members can start with a 3-tool starter bundle |
 | [Pricing](pricing.md) | free for everyone |
+| Finding tools | a map of nearby tools ([alternatives](alternatives.md), question 2) |
 
 ## Still to design
 
