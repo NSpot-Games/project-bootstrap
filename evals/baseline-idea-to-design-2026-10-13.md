@@ -13,9 +13,14 @@ No `timing.json` was kept; tokens and seconds come from the dispatch results.
 | tech-drift | 3 | 4 | 65,207 | 34 |
 | against-recommendation | 4 | 4 | 66,628 | 51 |
 | nothing-new | 0 | 3 | 74,997 | 33 |
-| consistency | 5 | 5 | 66,631 | 41 |
+| consistency | 5 | 8 | 66,631 | 41 |
 | handoff | 6 | 6 | 89,520 | 70 |
-| **total** | **20** | **28** | **427,538** | **268** |
+| **total** | **20** | **31** | **427,538** | **268** |
+
+consistency is shown under the current assertions. It was first graded 5/5. The three file
+checks added in the final fix wave fail because the agent left two contradictions unfixed in
+the files. raw-idea is shown under its original prompt and assertions; the prompt changed later
+(see `evals/release-k-2026-10-13.md`).
 
 Two results need a caveat before they are read as evidence.
 
@@ -43,10 +48,11 @@ Two results need a caveat before they are read as evidence.
 
 ## Non-targets
 
-- **consistency passed 5/5 without the skill.** The agent found all three contradictions (the
-  starter bundle of 3 tools against the limit of 2; "late" after 5 days against 7-day loans; the
-  README's stale "free for everyone" against the £2 membership), fixed the stale summary, and
-  left the other two for the owner. It is a regression guard for the skill, not a target.
+- **consistency passed 5/5 without the skill, under the assertions of the time.** The agent found
+  all three contradictions (the starter bundle of 3 tools against the limit of 2; "late" after 5
+  days against 7-day loans; the README's stale "free for everyone" against the £2 membership). It
+  fixed the stale summary and left the other two for the owner. The file checks added later
+  catch the two left unfixed, so it is 5/8 under the current assertions.
 - **against-recommendation, 4/4 after the harness fix.** The agent accepted the request board
   with no argument, recorded the map as "not taken" in the alternatives file, committed, and moved on.
 - **handoff, 6/6, contaminated** (see above).
@@ -131,4 +137,5 @@ Two observations:
   no second "which one?" after the options. The effect is not yet measured.
 - **Tool lending judged as already existing.** In 1 raw-idea run the agent judged the idea to
   be an existing peer-to-peer lending service and took the nothing-new path. This is counted as
-  variance in judging the idea, not as a defect in the wording.
+  variance in judging the idea, not as a defect in the wording. Reversed in the final review:
+  the prompt was a bare category; see release-k (`evals/release-k-2026-10-13.md`).
