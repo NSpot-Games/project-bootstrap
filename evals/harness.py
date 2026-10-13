@@ -43,6 +43,18 @@ under `{skill}/`. Never modify anything under `{skill}`.
 
 """
 
+ROUTE_LINES = """You are an agent with these skills installed. Each is listed as an agent sees it before
+opening any — its name and description — followed by where its SKILL.md lives:
+
+{skills}
+
+Handle the user's message below as such an agent would: decide which installed skill fits it, if
+any, then read that skill's SKILL.md and follow it. Never modify anything under `{skills_dir}`.
+Before you finish, write `{project}/chosen_skill.txt` containing only the name of the skill you
+followed, or `none`.
+
+"""
+
 PROMPT = """{skill_lines}Project: `{project}`. Work only inside this directory; it is a scratch copy and nothing
 outside it matters. Paths written as `<project>/...` mean this directory.
 
@@ -118,6 +130,28 @@ def skill_for(ev: dict) -> Path:
     return SKILLS_DIR / ev.get("skill", "project-bootstrap")
 
 
+def installed_skills() -> list[tuple[str, str, Path]]:
+    """Every skill under skills/ as (name, description, directory), read from SKILL.md frontmatter."""
+    out = []
+    for d in sorted(SKILLS_DIR.iterdir()):
+        md = d / "SKILL.md"
+        if not md.is_file():
+            continue
+        head = md.read_text(encoding="utf-8").replace("\r\n", "\n").split("---\n", 2)[1]
+        name = re.search(r"(?m)^name:\s*(.+)$", head).group(1).strip()
+        description = re.search(r"(?m)^description:\s*(.+)$", head).group(1).strip()
+        out.append((name, description, d))
+    return out
+
+
+def _route_lines(project: Path) -> str:
+    """The routing prompt: every installed skill by name and description, the agent picks."""
+    skills = "\n".join(f"- {name}: {description}\n  ({(d / 'SKILL.md').resolve().as_posix()})"
+                       for name, description, d in installed_skills())
+    return ROUTE_LINES.format(skills=skills, skills_dir=SKILLS_DIR.resolve().as_posix(),
+                              project=project.resolve().as_posix())
+
+
 def prepare(name: str, runs: Path, label: str, skill: Path | None = None, no_skill: bool = False) -> Path:
     ev = scenario(name)
     rd = run_dir(runs, name, label)
@@ -150,13 +184,18 @@ def prepare(name: str, runs: Path, label: str, skill: Path | None = None, no_ski
     if skill is not None and skill.name != ev.get("skill", "project-bootstrap"):
         skill = None
     skill = None if no_skill else (skill or skill_for(ev))
-    skill_lines = "" if skill is None else SKILL_LINES.format(
-        skill_name=ev.get("skill", "project-bootstrap"), skill=skill.resolve().as_posix())
+    if ev.get("route"):
+        # A routing scenario shows every installed skill and lets the agent choose.
+        skill_lines, skill_meta = _route_lines(project), "route"
+    else:
+        skill_lines = "" if skill is None else SKILL_LINES.format(
+            skill_name=ev.get("skill", "project-bootstrap"), skill=skill.resolve().as_posix())
+        skill_meta = None if skill is None else skill.resolve().as_posix()
     prompt = PROMPT.format(skill_lines=skill_lines, project=project.resolve().as_posix(), task=task)
     (rd / "prompt.md").write_text(prompt, encoding="utf-8", newline="\n")
     (rd / "eval_metadata.json").write_text(json.dumps({
         "eval_id": ev["id"], "eval_name": name, "label": label,
-        "skill": None if skill is None else skill.resolve().as_posix(),
+        "skill": skill_meta,
         "prompt": task, "assertions": [a["text"] for a in ev["assertions"]],
     }, indent=2), encoding="utf-8", newline="\n")
     return rd

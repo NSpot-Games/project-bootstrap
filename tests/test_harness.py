@@ -22,6 +22,7 @@ def evals(tmp_path, monkeypatch):
         "evals": [
             {"id": 1, "name": "plain", "fixture": "tiny", "prompt": "Do it. {answers}", "assertions": []},
             {"id": 2, "name": "ideas", "skill": "idea-to-design", "fixture": "tiny", "prompt": "Design it.", "assertions": []},
+            {"id": 3, "name": "pick", "route": True, "fixture": "tiny", "prompt": "Help me.", "assertions": []},
         ],
     }
     path = tmp_path / "evals.json"
@@ -64,6 +65,24 @@ def test_explicit_idea_to_design_snapshot_is_used_for_its_scenarios(evals, tmp_p
     snap = tmp_path / "snapshot" / "idea-to-design"
     p = _prompt(harness.prepare("ideas", evals, "t", snap))
     assert snap.resolve().as_posix() + "/SKILL.md" in p
+
+
+def test_routing_prompt_lists_every_installed_skill_by_description(evals):
+    rd = harness.prepare("pick", evals, "t")
+    p = _prompt(rd)
+    for name, description, path in harness.installed_skills():
+        assert f"- {name}: {description}" in p
+        assert (path / "SKILL.md").resolve().as_posix() in p
+    assert "exercising" not in p
+    assert "chosen_skill.txt" in p
+    assert "Help me." in p
+    assert json.loads((rd / "eval_metadata.json").read_text(encoding="utf-8"))["skill"] == "route"
+
+
+def test_installed_skills_reads_both_kit_skills():
+    skills = harness.installed_skills()
+    assert [name for name, _, _ in skills] == ["idea-to-design", "project-bootstrap"]
+    assert all(description for _, description, _ in skills)
 
 
 def test_skill_and_no_skill_are_mutually_exclusive():
