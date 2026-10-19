@@ -261,7 +261,7 @@
       "skill": "idea-to-design",
       "fixture": "vision-clean",
       "setup": {"git": true},
-      "prompt": "The design in docs/vision/ is finished; the user says: \"That's everything, I think. What now?\" Finish the procedure.",
+      "prompt": "The design in docs/vision/ is finished; the user says: \"That's everything, I think. No need to go deeper into the areas now. What's next?\" Finish the procedure.",
       "expected_output": "The consistency pass finds nothing to change; the agent summarizes what is decided and what is still to design, and offers project-bootstrap as the next step. No code, no stack.",
       "assertions": [
         {"text": "The vision README still links every area file", "check": "grep", "path": "docs/vision/README.md", "pattern": "(?s)(?=.*\\(lending\\.md\\))(?=.*\\(trust\\.md\\))(?=.*\\(pricing\\.md\\))"},
@@ -296,6 +296,35 @@
       "assertions": [
         {"text": "project-bootstrap is the skill followed", "check": "grep", "path": "chosen_skill.txt", "pattern": "^\\s*project-bootstrap\\s*$"},
         {"text": "Existing vision docs are left untouched", "check": "unchanged", "glob": "docs/vision/*.md"}
+      ]
+    },
+    {
+      "id": 18,
+      "name": "deep-dive-offer",
+      "skill": "idea-to-design",
+      "fixture": "vision-clean",
+      "setup": {"git": true},
+      "prompt": "The design in docs/vision/ is finished; the user says: \"That's everything, I think. What now?\" Respond.",
+      "expected_output": "After the consistency pass finds nothing, the agent offers to deep-dive the areas one by one, naming the areas that still have open items, as its one question with a recommendation, before any hand-off to project-bootstrap.",
+      "assertions": [
+        {"text": "The one question offers to go deeper into the areas", "check": "final_contains", "pattern": "(?im)^.*(deep[- ]?dive|deeper|refine|one by one|area by area).*\\?[\\s*)]*$"},
+        {"text": "The areas with open items are named", "check": "final_contains", "pattern": "(?is)(?=.*lending)(?=.*trust)(?=.*pricing)"},
+        {"text": "Exactly one question is asked", "check": "final_count", "pattern": "(?m)\\?[\\s*)]*$", "min": 1, "max": 1},
+        {"text": "A recommendation is given", "check": "final_contains", "pattern": "(?i)recommend"}
+      ]
+    },
+    {
+      "id": 19,
+      "name": "deep-dive-area",
+      "skill": "idea-to-design",
+      "fixture": "vision-clean",
+      "setup": {"git": true},
+      "prompt": "The design in docs/vision/ is finished. Your last message offered to deep-dive the areas one by one before handing off. The user replies: \"Yes, let's go deeper. Start with trust.\" Respond, and update the files as the procedure requires.",
+      "expected_output": "The agent starts the trust area with its first open item (whether a very low score blocks borrowing), as one question with options and a recommendation.",
+      "assertions": [
+        {"text": "The trust area's open item is the subject", "check": "final_contains", "pattern": "(?i)(very low|low) (trust )?score|block(s|ing)? borrowing"},
+        {"text": "Exactly one question is asked", "check": "final_count", "pattern": "(?m)\\?[\\s*)]*$", "min": 1, "max": 1},
+        {"text": "A recommendation is given", "check": "final_contains", "pattern": "(?i)recommend"}
       ]
     }
   ]

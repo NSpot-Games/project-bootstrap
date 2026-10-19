@@ -27,9 +27,9 @@ changes in it.>
 
 ## Still to design
 
-| Area | Status |
-|---|---|
-| [<Area>](<area>.md) | <open question / rules agreed, content to design / not started> |
+| Area | Still to design | Status |
+|---|---|---|
+| [<Area>](<area>.md) | <the open items, in a line> | <open / refined> |
 
 ## Parked for later
 

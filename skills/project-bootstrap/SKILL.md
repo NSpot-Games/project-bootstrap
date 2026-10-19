@@ -5,7 +5,7 @@ license: MIT
 compatibility: Requires Python 3.11+ for scripts/check_docs.py
 metadata:
   author: NSpotGames
-  version: "2.11.0"
+  version: "2.12.0"
 ---
 
 # Project Bootstrap

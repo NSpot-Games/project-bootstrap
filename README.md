@@ -46,8 +46,9 @@ what already exists and names what is new, asks what it is for, then settles eve
 decision one question at a time, each with a recommendation, writing each decision into
 `<project>/docs/vision/` as it is made and every option not taken into
 `<project>/docs/vision/alternatives.md`. It holds technology back until the design is agreed,
-checks the whole design for contradictions at the end, and offers project-bootstrap as the next
-step.
+checks the whole design for contradictions at the end, then offers an optional deep dive —
+refining each area's open content and numbers one by one, resumable across sessions — before
+offering project-bootstrap as the next step.
 
 **From a design or an existing repo.** Tell your agent to bootstrap the project. The skill
 classifies the repo as greenfield or brownfield, asks five setup questions, writes the design docs one per session with a review
