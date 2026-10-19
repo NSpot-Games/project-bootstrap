@@ -52,3 +52,10 @@ question ("I've assumed portrait orientation") so the person can object.
 
 Record the decision (`SKILL.md` §5) before asking the next question. If the person picked an
 option other than the recommendation, accept it in one line and move on.
+
+## 9. Proposing a content list
+
+A list too long to build one question at a time — more than about ten items, enemies, screens,
+prices — is proposed whole as a draft: written into the area file, grouped, one line per entry,
+marked as a draft. The one question is what to change in it, with a recommendation of the entries
+most worth a second look. The draft stops being a draft when the person accepts it.

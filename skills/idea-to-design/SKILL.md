@@ -4,7 +4,7 @@ description: Use when someone brings a raw idea for a product, game, tool or ser
 license: MIT
 metadata:
   author: NSpotGames
-  version: "2.11.0"
+  version: "2.12.0"
 ---
 
 # Idea to design
@@ -23,7 +23,7 @@ Every file this skill names lives inside its own directory: the question method 
 
 A raw idea is design work before it is a project: this first message comes before any project
 setup, even in an empty repository and even when a setup skill such as project-bootstrap is
-installed. Setup is the hand-off in step 9, once there is a design to set up.
+installed. Setup is the hand-off in step 10, once there is a design to set up.
 
 The first reply to a raw idea has these parts, in this order:
 
@@ -144,7 +144,41 @@ only about the first such finding; fix the rest; list any other pillar conflict 
 message. Commit the fixes and report each in a short list. If nothing is wrong, change nothing
 and say so.
 
-## 9. Hand off
+## 9. Deep dive (optional)
+
+When the consistency pass is clean and areas still have open items, the next message offers to go
+deeper before any hand-off. It has these parts, in order:
+
+1. the consistency result, in a line or two;
+2. each area with open items, and how many: its "Still to design" list, with the proposed order
+   (below);
+3. the recommendation and its reason: the deep dive when the open items are content lists or
+   numbers a build needs first; handing off when they can be settled while building;
+4. the offer, as the last line and the one question: deep-dive those areas one by one now, or
+   hand off with them open.
+
+If the person has already said to skip it, or nothing is open, go to step 10.
+
+**Order.** Propose one: areas that other areas depend on first, then the riskiest. The person may
+reorder or skip any area.
+
+**Each area:**
+
+1. Its open items, one question per message. A content list longer than about ten entries is
+   proposed whole as a draft (`references/questions.md` §9). A number is proposed as a starting
+   value with its reason.
+2. One rules check, once its items are settled: now that the details exist, should any rule in
+   this area change? A rule changed here is recorded in
+   `<project>/docs/vision/alternatives.md` like any other decision.
+3. A consistency check of the area against the files it touches. Then mark it **refined** in the
+   README's still-to-design table, commit, and ask whether to go on to the next area, skip it,
+   or stop.
+
+**Stopping.** The person can stop after any area; the table shows which areas are refined and
+which are open, so a later session resumes at the first open one. After the last chosen area, run
+the full consistency pass (step 8) again, then hand off.
+
+## 10. Hand off
 
 Summarize in a few lines what is decided and what is still to design, linking
 `<project>/docs/vision/README.md`. Offer the next step: project-bootstrap, which reads
@@ -154,7 +188,8 @@ to test the riskiest part. Start neither without a yes.
 ## Conduct
 
 - Every message asks at most one question, as its last line, with a recommendation and its
-  reason; a lead-in names the open question as a statement.
+  reason; a lead-in names the open question as a statement. The recommendation comes before the
+  question; nothing follows the question.
 - Plain language. A term the person may not know is explained the first time it appears.
 - A change of direction from the person is taken at once in one line, without arguing back or
   reopening its cost; so is a choice against the recommendation, and the recommended option is
@@ -176,7 +211,8 @@ Each means: stop, return to step 7.
 | Handing the comparison over: "What do you think they do badly? That gap is the real product." | Step 1, parts 2 and 3: you name the products and the hook |
 | Names the open question as a question in the lead-in ("Back to the open question: how do people find it?"), then asks "Which one?" | Conduct, the question rule: the lead-in states it ("The open question is …"); the only question is the last line |
 | Lists the options for a question (three ways a habit app could remind people, say) and picks none | Steps 2 and 3: the recommendation first, with its reason |
-| Starting setup on a raw idea: "Question 1 of 5: name and codename." | Step 1 comes first; project-bootstrap is the hand-off in step 9 |
+| Starting setup on a raw idea: "Question 1 of 5: name and codename." | Step 1 comes first; project-bootstrap is the hand-off in step 10 |
+| A clean consistency pass followed straight by "Should I start project-bootstrap?" while areas still have open items | Step 9: offer the deep dive first; hand off when the person chooses to |
 | Restates an idea that an existing product already is, feature by feature, as the plan, without saying it exists | Step 1, the verdict: name the product, offer angles |
 | A new file left uncommitted, or unrelated files swept into a commit | Step 5: `git add` the changed vision files by name, then commit |
 | Dashes written in a Windows code page, unreadable as UTF-8 | Step 5: files are written as UTF-8 |
